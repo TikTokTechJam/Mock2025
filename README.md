@@ -6,10 +6,11 @@ produces a protected output with faces, plates, on-screen text, and sensitive
 speech redacted as configured.
 
 The current repository contains the web and API foundation, normalized detector
-contracts, a standalone spoken-PII detector/renderer, and a local
-PostgreSQL-backed Docker Compose topology. HTTP media ingestion, cross-modal
-redaction, real-time transport, persistence, and creator controls are planned
-and are not implemented yet.
+contracts, standalone license-plate/OCR visual-privacy and spoken-PII
+detector/renderer modules, and a local PostgreSQL-backed Docker Compose
+topology. HTTP media ingestion, cross-modal redaction compositing, real-time
+transport, persistence, and creator controls are planned and are not implemented
+yet.
 
 ## Local development
 
@@ -36,4 +37,5 @@ workers, creator controls, and E2E infrastructure remain unimplemented.
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and
-local commands.
+local commands. See [Visual Privacy](docs/PRIVACY_VISION.md) for the standalone
+plate/OCR module.
