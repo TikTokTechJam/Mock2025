@@ -19,7 +19,7 @@ Sensitive information frequently appears on screens, documents, signs, packages,
 - Required visual-PII protection fails closed when processing is unsafe.
 
 ## Scope
-- Scene-text OCR, normalization, deterministic recognizers, contextual classifier adapters, visual-region mapping, and compositor integration.
+- Scene-text OCR, OCR-specific normalization and visual-region mapping, shared text-PII recognition, and compositor integration.
 
 ## Out of Scope
 - General document understanding.
@@ -29,7 +29,7 @@ Sensitive information frequently appears on screens, documents, signs, packages,
 ## Decisions
 - Use a two-stage OCR then PII-classification design.
 - The initial renderer protects the full OCR block/line containing sensitive information.
-- The text-PII classification layer should be reusable by spoken PII where appropriate.
+- Modality-independent text-PII recognition is shared with spoken PII through issue #32 rather than implemented separately in the OCR path.
 
 ## Concerns
 - OCR quality, language coverage, rotation, low contrast, and false-positive-like numeric text.
@@ -39,4 +39,4 @@ Sensitive information frequently appears on screens, documents, signs, packages,
 Planned product story until the OCR/classification path is integrated and verified through protected output.
 
 ## Touched By
-Issues #3, #4, #7, #13, #14, #15, #17, #19.
+Issues #3, #4, #7, #13, #14, #15, #17, #19, #32.
