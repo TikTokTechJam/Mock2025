@@ -1,7 +1,7 @@
 [project]
-name = "freecoinalert-api"
+name = "privastream-api"
 version = "0.1.0"
-description = "Backend API for the FreeCoinAlert platform."
+description = "Control-plane API for the PrivaStream platform."
 requires-python = ">=3.14,<3.15"
 dependencies = [
     "fastapi[standard]==0.139.2",
@@ -29,4 +29,4 @@ indent-style = "space"
 python_version = "3.14"
 strict = true
 mypy_path = "src"
-packages = ["freecoinalert_api"]
+packages = ["privastream_api"]

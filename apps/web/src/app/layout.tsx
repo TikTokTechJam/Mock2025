@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "FreeCoinAlert",
-  description: "Configurable cryptocurrency alerts delivered through Telegram.",
+  title: "PrivaStream",
+  description: "Privacy-first media processing for protected creator output.",
 };
 
 export default function RootLayout({

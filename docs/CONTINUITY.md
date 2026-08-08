@@ -2,38 +2,42 @@
 
 ## Current Snapshot
 
-The working tree contains a FreeCoinAlert scaffold with a Next.js frontend, a
-FastAPI backend exposing GET /health, and a PostgreSQL-backed local Compose
-topology. Product features, persistence, provider integrations, workers, and
-E2E infrastructure remain absent.
+The working tree contains the PrivaStream web and API foundation, normalized
+video/audio detector contracts, a FastAPI process-health route, and a local
+PostgreSQL-backed Compose topology. Media ingestion, detector implementations,
+redaction, transport, persistence, creator controls, and E2E infrastructure
+remain absent.
 
 ## Active Work
 
-- Merge and review the backend, frontend, and local Docker scaffold.
+- Review and merge the PrivaStream foundation and architecture contract.
 
 ## Current Blockers
 
-- No product-runtime blocker exists because feature implementation has not
+- No product-runtime blocker exists because media feature implementation has not
   started.
 
 ## Verification Status
 
 | Area | Availability | Verification | Note |
 | --- | --- | --- | --- |
-| Frontend scaffold | Planned | Unverified | Static Next.js foundation page; no browser pass run. |
-| Backend scaffold and /health | Planned | Unverified | FastAPI process-health route; no runtime pass run. |
-| Local Compose topology | Planned | Unverified | web, api, and PostgreSQL services; Compose was not started. |
+| Frontend foundation | Implemented | Unverified | Static Next.js PrivaStream page; no browser pass run. |
+| Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |
+| Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types; no detector implementation. |
+| Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 
 ## Next Actions
 
-1. Merge the scaffold after review.
+1. Review and merge the foundation change.
 2. Request a dedicated verification pass when runtime checks are wanted.
+3. Add the next approved privacy/media lifecycle contract before implementing
+   detector behavior.
 
 ## Handoff Constraints
 
 - Keep feature logic, persistence, provider integrations, workers, and E2E
-  boundaries out of this scaffold change.
+  boundaries out of this foundation change.
 - Preserve the documented verification boundary and do not claim runtime
   verification without an explicit pass.
-- Update the owning current-state documents when the next approved capability
-  changes the topology or contracts.
+- Keep detector modules behind normalized contracts and keep media transport
+  independent from detector implementations.

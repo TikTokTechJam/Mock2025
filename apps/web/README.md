@@ -1,6 +1,6 @@
-# FreeCoinAlert Web
+# PrivaStream Web
 
-The web application is the browser foundation for FreeCoinAlert. It uses Next.js,
+The web application is the browser foundation for PrivaStream. It uses Next.js,
 TypeScript, the App Router, Tailwind CSS, and Server Components by default.
 
 ## Prerequisites
@@ -26,7 +26,7 @@ pnpm typecheck:web
 ```
 
 `pnpm dev:web` starts the local development server on [http://localhost:3000](http://localhost:3000).
-`pnpm build:web` produces a production build, and `pnpm --filter @freecoinalert/web start` serves that build.
+`pnpm build:web` produces a production build, and `pnpm --filter @privastream/web start` serves that build.
 
 ## Directory Purpose
 
@@ -42,5 +42,6 @@ pnpm typecheck:web
 
 ## Current Limitations
 
-Authentication, Telegram linking, alert management, market charts, API integration,
-deployment configuration, and a reusable design system are not implemented yet.
+Creator controls, media upload and live transport, detector integrations, redaction
+previews, API integration, deployment configuration, and a reusable design system
+are planned and are not implemented yet.

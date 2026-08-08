@@ -2,24 +2,46 @@
 
 ## Purpose
 
-This document owns the current user-visible capabilities, journeys, limits, boundaries, and non-goals.
+PrivaStream is a privacy-first media processing platform for creators. Its
+planned outcome is a protected video and audio stream or recording in which
+configured privacy-sensitive content is redacted before delivery.
 
-## Capabilities
+## Current capabilities
 
-For each capability, describe the user goal, entry point, inputs, visible state, success result, empty or disabled state, failure behavior, ownership rule, and availability status.
+| Capability | Entry point | Current result | Availability | Verification |
+| --- | --- | --- | --- | --- |
+| Foundation landing page | `GET /` on the web app | Identifies PrivaStream and explains that media controls are not available yet. | Implemented | Unverified |
+| API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
 
-## Journeys
+No media is accepted, stored, transported, inferred over, or redacted by the
+current product surface.
 
-Describe the smallest supported user journeys from entry to outcome. Link to API, security, data, notification, and operations documents for detailed contracts.
+## Planned creator journey
 
-## Limits and Safety
+1. A creator selects a live or recorded media source and a privacy policy.
+2. PrivaStream runs the configured face, license-plate, OCR, and spoken-PII
+   detectors independently.
+3. Normalized detector results are coordinated across time and passed to a
+   redaction compositor.
+4. The creator inspects and controls the protected preview or output.
 
-Document limits, eligibility, consent, privacy boundaries, user-controlled actions, and irreversible or externally visible effects. Do not promise delivery, prediction, profit, or outcomes that the system cannot guarantee.
+This journey is Planned. The current UI and API do not expose these actions.
 
-## Non-Goals
+## Privacy and safety boundaries
 
-Record deliberately unsupported behavior and adjacent work that requires a separate decision.
+- The privacy policy is the primary invariant: a required detector failure must
+  not be represented as a safe result.
+- Raw media and biometric data must not be retained unless a later approved
+  contract requires it.
+- Model-specific outputs are not a product contract; detector modules return
+  normalized video regions or audio intervals.
+- The current scaffold makes no claim about privacy coverage, latency, accuracy,
+  delivery, or end-to-end protection.
 
-## Status
+## Non-goals for this foundation
 
-Availability and verification are independent. Keep current behavior here and keep requirements or future ideas in user stories and approved planning records.
+Authentication, creator enrollment, media upload, live transport, face and
+license-plate detection, OCR, speech detection, audio/video synchronization,
+redaction compositing, persistence, and production deployment are not
+implemented here. Each requires a later approved capability and its owning
+documentation contract.

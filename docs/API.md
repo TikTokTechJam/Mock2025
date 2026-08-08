@@ -16,12 +16,13 @@ Response:
 ~~~json
 {
   "status": "ok",
-  "service": "freecoinalert-api"
+  "service": "privastream-api"
 }
 ~~~
 
 The response is served by the FastAPI process and does not check PostgreSQL,
-market data, authentication, notifications, or any other dependency.
+media ingestion, detector execution, redaction, real-time transport, or any other
+dependency. No media or creator-control endpoint exists yet.
 
 ## Errors and ownership
 

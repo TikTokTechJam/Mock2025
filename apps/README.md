@@ -1,5 +1,8 @@
 # Applications
 
-This directory contains deployable browser and API applications.
+This directory contains the PrivaStream browser foundation and API control-plane
+foundation.
 
-Issue #5 will create the frontend application, and Issue #6 will create the backend API. Do not add application placeholders before their approved implementation issues.
+The web app currently exposes a static foundation page. The API currently exposes
+only an unauthenticated process-health endpoint. Media processing, detector
+implementations, creator controls, and real-time transport remain planned.
