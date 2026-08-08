@@ -42,6 +42,7 @@ Do not use vague words such as done, ready, complete, or working when a status d
 | PRODUCT.md | User-visible capabilities, journeys, limits, and non-goals. |
 | ARCHITECTURE.md | Repository topology, components, processes, dependencies, and data flows. |
 | PRIVACY_VISION.md | Standalone license-plate, OCR, and visual-PII detector contract and limitations. |
+| PRIVACY_FACE.md | Standalone face detection, creator enrollment, matching, region output, and local runner contract. |
 | API.md | Interface methods, paths, authentication, inputs, outputs, errors, caching, pagination, and limits. |
 | DATABASE.md | Tables, relationships, constraints, lifecycle storage, transactions, retention, and migrations. |
 | SECURITY.md | Trust boundaries, authentication, authorization, secrets, privacy, abuse controls, and redaction. |

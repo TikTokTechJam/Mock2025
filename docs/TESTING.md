@@ -44,6 +44,12 @@ deterministic source-image provider to cover source-frame geometry, registration
 with `VideoOrchestrator`, exactly-once production padding, successful zero
 detections, and propagation of unavailable or execution failures. It must not
 require downloaded weights or real media.
+The standalone face unit boundary should use deterministic model doubles to
+cover explicit consent, zero-face and multi-face enrollment rejection,
+normalization and aggregate replacement, deletion, creator matches, unknown or
+ambiguous matches, low-quality and failed embeddings, coordinate clamping, and
+explicit model errors. It must not require InsightFace weights or retain raw
+face images.
 
 ## Isolation
 

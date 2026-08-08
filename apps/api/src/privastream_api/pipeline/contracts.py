@@ -12,7 +12,14 @@ from dataclasses import dataclass
 from math import isfinite
 from typing import Literal, Protocol
 
-VideoDetectionKind = Literal["face", "license_plate", "text", "email", "phone"]
+VideoDetectionKind = Literal[
+    "face",
+    "face_bystander",
+    "license_plate",
+    "text",
+    "email",
+    "phone",
+]
 AudioDetectionKind = Literal["spoken_pii"]
 
 
@@ -156,7 +163,7 @@ class AudioRedactionInterval:
 class FaceDetector(Protocol):
     """Detect non-whitelisted or otherwise sensitive faces in a video frame."""
 
-    kind: Literal["face"]
+    kind: Literal["face", "face_bystander"]
 
     def detect(self, frame: VideoFrame) -> Sequence[VideoRegionDetection]:
         """Return normalized face regions for ``frame``."""

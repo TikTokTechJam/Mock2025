@@ -14,6 +14,7 @@ sensitive content is redacted before delivery.
 | Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
 | Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
+| Standalone face enrollment and matching | `privastream_api.privacy.face` and `apps/api/scripts/face_demo.py` | Uses a local InsightFace/ArcFace adapter, explicit consented enrollment, in-memory creator matching, and conservative `face_bystander` regions for a local image or clip. | Implemented | Unverified |
 | Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
 
 The HTTP product surface does not accept media. The browser demo does not
@@ -49,8 +50,9 @@ engine is Implemented as an internal transport-independent primitive.
 
 ## Current non-goals
 
-Authentication, creator enrollment backend, product-surface media upload, server-side
-or production live transport, face detection integration, cross-modal
+Authentication, creator enrollment backend, user-facing creator enrollment,
+product-surface media upload, server-side or production live transport,
+production face-pipeline integration, cross-modal
 synchronization, cross-modal redaction policy, persistence, and production
 deployment are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
@@ -205,6 +207,7 @@ The stable MVP taxonomy is:
 
 ```text
 face
+face_bystander
 license_plate
 phone_number
 email
