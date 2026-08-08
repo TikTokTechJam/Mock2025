@@ -4,23 +4,26 @@
 
 The working tree contains the PrivaStream web and API foundation, normalized
 video/audio detector contracts, a FastAPI process-health route, a standalone
-spoken-PII detector/renderer module, and a local PostgreSQL-backed Compose
-topology. Live transport, cross-modal redaction, persistence, creator controls,
-and E2E infrastructure remain absent.
+spoken-PII detector/renderer module, a browser-local WebRTC loopback with mock
+video/audio processors, and a local PostgreSQL-backed Compose topology. Server-
+side transport, cross-modal redaction, persistence, creator controls, and E2E
+infrastructure remain absent.
 
 ## Active Work
 
-- Review the standalone spoken-PII module and its local-demo contract.
+- Review the browser-local media loopback contract and prepare an explicit
+  browser verification pass.
 
 ## Current Blockers
 
-- The local audio path has not received a dedicated runtime verification pass.
+- The browser media path and local audio path have not received dedicated runtime
+  verification passes; browser/device support is therefore Unverified.
 
 ## Verification Status
 
 | Area | Availability | Verification | Note |
 | --- | --- | --- | --- |
-| Frontend foundation | Implemented | Unverified | Static Next.js PrivaStream page; no browser pass run. |
+| Browser media loopback and mock processors | Implemented | Unverified | Local WebRTC path with canvas/gain processing; no browser pass run. |
 | Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |
 | Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types shared by independent modules. |
 | Spoken-PII detector and PCM16 renderer | Implemented | Unverified | Local VAD/transcription/pattern/interval/muting path; no model or audio pass run. |
@@ -28,15 +31,17 @@ and E2E infrastructure remain absent.
 
 ## Next Actions
 
-1. Request a dedicated audio verification pass with synthetic fixtures and a
+1. Request a dedicated browser verification pass with controlled camera and
+   microphone permissions, including disconnect and failure scenarios.
+2. Request a dedicated audio verification pass with synthetic fixtures and a
    controlled local model.
-2. Add the next approved privacy/media lifecycle contract before exposing the
-   detector through transport or creator controls.
+3. Add the next approved privacy/media lifecycle contract before exposing the
+   detector through server transport or creator controls.
 
 ## Handoff Constraints
 
-- Keep live transport, persistence, provider integrations, workers, and E2E
-  boundaries outside the standalone detector module.
+- Keep server-side transport, persistence, provider integrations, workers, and
+  E2E boundaries outside the browser-local demo and standalone detector module.
 - Preserve the documented verification boundary and do not claim runtime
   verification without an explicit pass.
 - Keep detector modules behind normalized contracts and keep media transport

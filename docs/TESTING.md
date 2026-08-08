@@ -17,6 +17,13 @@ spoken phone/email normalization, padding and merging, and PCM16 muting with
 synthetic in-memory fixtures. Model inference requires a separate local fixture
 or explicitly controlled model pass; it must not use real personal audio.
 
+The browser media boundary should cover permission denial, successful local
+offer/answer and ICE exchange, camera/microphone track return, visible fixed
+video redaction, deterministic audio muting, source-clock updates, bounded
+frame scheduling, device disconnect, and processor failure without raw-output
+fallback. Browser checks require a permission-controlled local browser session;
+they are not represented by the API health check.
+
 ## Isolation
 
 Use dedicated data, resources, credentials, and controlled dependencies for tests that can mutate state or contact external systems. Reset safely and prevent accidental actions outside the test boundary.

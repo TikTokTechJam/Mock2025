@@ -21,8 +21,10 @@ Response:
 ~~~
 
 The response is served by the FastAPI process and does not check PostgreSQL,
-media ingestion, detector execution, redaction, real-time transport, or any other
-dependency. No media or creator-control endpoint exists yet.
+media ingestion, detector execution, redaction, real-time transport, or any
+other dependency. No media or creator-control endpoint exists yet. The current
+browser media loopback is entirely local to the web page and does not add an
+HTTP signaling or media route.
 
 The standalone spoken-PII module is intentionally not an HTTP endpoint. Its
 local command accepts bounded PCM16 WAV input and writes a muted WAV result; the

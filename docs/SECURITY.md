@@ -23,6 +23,15 @@ requested muted audio output. Model caches and output files remain local
 operator-controlled artifacts and are outside the current product retention
 contract.
 
+The browser media demo is a separate local trust boundary. It requests explicit
+camera and microphone permission, keeps capture and processed tracks in browser
+memory, and does not upload them to the API. The local capture preview is marked
+as not published; the protected preview receives only the canvas-processed video
+track and Web Audio-processed audio track. A permission denial, device
+disconnect, transport failure, or processor error stops the output and does not
+attach the raw capture as a fallback. This is a local demo boundary, not an
+authentication, authorization, or production delivery guarantee.
+
 ## Abuse Controls
 
 Bound expensive operations, input size, rule complexity, retries, concurrency, and externally visible actions. Rate-limit sensitive actions and make important changes auditable.

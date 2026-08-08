@@ -33,3 +33,8 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   dependency-free energy-VAD baseline.
 - The local demo has no fail-closed delivery boundary or creator review step.
   A muted output must not be treated as proof of complete privacy coverage.
+- The browser media loopback has not received a browser verification pass.
+  Permission behavior, WebRTC support, audio autoplay, device disconnect, and
+  processor failure handling remain Unverified. The current mitigation is a
+  local-only boundary, explicit session error state, bounded video scheduling,
+  and no raw-output fallback.

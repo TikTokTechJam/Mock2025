@@ -15,6 +15,14 @@ The coverage target includes silence-only input, a representative phone number,
 a representative email address, source timestamps offset from zero, invalid
 audio, and a model/dependency failure without logging transcript text.
 
+The browser media loopback journey is Implemented but Unverified: local camera /
+microphone permission → WebRTC offer/answer and ICE exchange → returned remote
+tracks → canvas video redaction and Web Audio mute transform → processed
+protected preview. The coverage target includes permission denial, successful
+session startup, source timestamp updates, visible fixed-region redaction,
+deterministic audio transformation, device disconnect, and processor failure
+without raw-preview fallback.
+
 ## Environment
 
 The end-to-end environment must be isolated from normal development data and external side effects. Define deterministic fixtures, controlled dependencies, reset behavior, startup gates, teardown, and resource names without exposing credentials.
