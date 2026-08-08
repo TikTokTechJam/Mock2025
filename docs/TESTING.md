@@ -17,6 +17,13 @@ spoken phone/email normalization, padding and merging, and PCM16 muting with
 synthetic in-memory fixtures. Model inference requires a separate local fixture
 or explicitly controlled model pass; it must not use real personal audio.
 
+The timestamped audio-ingestion boundary should use deterministic chunks and
+mock VAD/transcriber implementations to cover exact sample-derived end times,
+mono normalization and resampling, sequence/timestamp discontinuity, pre/post
+roll, bounded long-speech splitting, queue count/duration limits, transcription
+deadlines, explicit VAD/transcription failures, and sanitized outcomes. It must
+not load Faster-Whisper, Silero, real provider data, or personal audio.
+
 The browser media boundary should cover permission denial, successful local
 offer/answer and ICE exchange, camera/microphone track return, visible fixed
 video redaction, deterministic audio muting, source-clock updates, bounded

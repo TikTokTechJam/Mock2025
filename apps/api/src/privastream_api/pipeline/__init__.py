@@ -1,4 +1,20 @@
-"""Media pipeline contracts, video orchestration, and spoken-PII processing."""
+"""Media pipeline contracts, audio processing, video orchestration, and PII."""
+
+from privastream_api.pipeline.contracts import AudioChunk
+from privastream_api.pipeline.audio import (
+    AudioNormalizer,
+    AudioNormalizerConfig,
+    AudioPipeline,
+    AudioPipelineConfig,
+    AudioProcessingResult,
+    AudioProcessingStatus,
+    SpeechSegment,
+    SpeechSegmenter,
+    SpeechSegmenterConfig,
+    TimestampedTranscript,
+    chunk_from_segment,
+    chunks_from_segment,
+)
 
 from privastream_api.pipeline.video import (
     DetectorRun,
@@ -16,6 +32,13 @@ from privastream_api.pipeline.video import (
 )
 
 __all__ = [
+    "AudioChunk",
+    "AudioNormalizer",
+    "AudioNormalizerConfig",
+    "AudioPipeline",
+    "AudioPipelineConfig",
+    "AudioProcessingResult",
+    "AudioProcessingStatus",
     "DetectorRun",
     "ProtectedVideoFrame",
     "RasterFrame",
@@ -26,6 +49,12 @@ __all__ = [
     "VideoOrchestrator",
     "VideoOrchestrationConfig",
     "VideoPrivacyRegion",
+    "SpeechSegment",
+    "SpeechSegmenter",
+    "SpeechSegmenterConfig",
+    "TimestampedTranscript",
+    "chunk_from_segment",
+    "chunks_from_segment",
     "merge_overlapping_regions",
     "normalize_regions",
 ]

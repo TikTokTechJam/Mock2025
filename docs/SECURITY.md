@@ -2,11 +2,14 @@
 
 ## Current implementation boundaries
 
-The API spoken-PII demo keeps PCM samples and transcript words in process
-memory for one bounded invocation. It does not log transcript text, detected
-PII, or raw samples, and writes only the explicitly requested muted audio
-output. Model caches and output files remain local operator-controlled
-artifacts outside the current product retention contract.
+The API spoken-PII path keeps PCM samples and transcript words in process
+memory for one bounded audio-pipeline invocation. The normalizer and ring
+buffer retain only the configured media window, and the transcription queue is
+bounded by segment count and duration. It does not log transcript text,
+detected PII, raw samples, or provider/model errors, and writes only the
+explicitly requested muted audio output. Model caches and output files remain
+local operator-controlled artifacts outside the current product retention
+contract.
 
 The browser media demo requests explicit camera and microphone permission,
 keeps capture and processed tracks in browser memory, and does not upload them

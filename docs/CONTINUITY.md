@@ -4,9 +4,10 @@
 
 The working tree contains the PrivaStream web and API foundation, normalized
 video/audio detector contracts, the shared text-PII recognizer, standalone
-plate/OCR visual-privacy and spoken-PII detector/renderer modules, a production
-plate adapter, standalone face enrollment/matching, and a FastAPI
-process-health route, a browser-local WebRTC loopback with mock video/audio
+plate/OCR visual-privacy and spoken-PII detector/renderer modules, a timestamped
+audio ingestion/transcription pipeline, a production plate adapter, standalone
+face enrollment/matching, a FastAPI process-health route, a browser-local
+WebRTC loopback with mock video/audio
 processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
 shared video orchestrator and compositor are implemented as an internal API
 pipeline, and the creator-console mock shell is present. Product-surface media
@@ -15,18 +16,18 @@ transport, persistence, and E2E infrastructure remain absent.
 
 ## Active Work
 
-- Review the creator-console mock contract and prepare an explicit UI/browser
-  verification pass.
+- Review the timestamped audio, face, and shared text-PII paths and prepare
+  explicit focused verification passes.
 
 ## Current Blockers
 
 - The creator console, browser media path, and local audio path have not received
   dedicated runtime verification passes; UI/device support is therefore
   Unverified.
-- The browser media path and local audio path have not received dedicated runtime
-  verification passes; browser/device support is therefore Unverified.
 - The shared video engine has not received a dedicated orchestration or raster
   compositor verification pass.
+- The timestamped audio pipeline has not received a dedicated streaming,
+  model, or failure-injection verification pass.
 - The standalone face module has not received a real-model or local-runner
   verification pass.
 
@@ -43,7 +44,7 @@ transport, persistence, and E2E infrastructure remain absent.
 | Standalone face enrollment and matching | Implemented | Unverified | Explicit consent, in-memory aggregate enrollment, conservative matching, normalized bystander regions, and deterministic model doubles; no real-model pass run. |
 | Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
 | Production plate adapter | Implemented | Unverified | Reuses source-frame plate inference and registers with the shared scheduler; no model or integration pass run. |
-| Spoken-PII detector and PCM16 renderer | Implemented | Unverified | Local VAD/transcription/pattern/interval/muting path; no model or audio pass run. |
+| Timestamped audio pipeline and spoken-PII renderer | Implemented | Unverified | Bounded chunk normalization, VAD segmentation, transcription queue, interval mapping, and PCM16 muting; no streaming or model pass run. |
 | Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 
 ## Next Actions
@@ -52,11 +53,13 @@ transport, persistence, and E2E infrastructure remain absent.
    keyboard, responsive, mock-state, and protected-handle scenarios.
 2. Request a dedicated video-engine verification pass with deterministic mock
    detectors, timeout/failure injection, and raster fixtures.
-3. Request a dedicated browser media verification pass with controlled camera
+3. Request a dedicated timestamped-audio verification pass with deterministic
+   chunks, mock VAD/transcription, queue overflow, deadline, and failure cases.
+4. Request a dedicated browser media verification pass with controlled camera
    and microphone permissions, including disconnect and failure scenarios.
-4. Request a dedicated face, visual, and audio verification pass with controlled local
-   fixtures and models when runtime checks are wanted.
-5. Add the next approved privacy/media lifecycle contract before exposing the
+5. Request a dedicated face, visual, and audio verification pass with
+   controlled local fixtures and models when runtime checks are wanted.
+6. Add the next approved privacy/media lifecycle contract before exposing the
    standalone detectors through server transport or creator controls.
 
 ## Handoff Constraints

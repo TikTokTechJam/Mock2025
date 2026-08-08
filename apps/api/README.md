@@ -3,8 +3,8 @@
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
 currently exposes only an unauthenticated process-health endpoint and contains
 the model-agnostic shared video orchestration path under
-`src/privastream_api/pipeline/video.py`, plus three local-only standalone detector
-paths: visual privacy under
+`src/privastream_api/pipeline/video.py`, plus local-only visual-privacy,
+spoken-audio, and face-detector paths. Visual privacy is under
 `src/privastream_api/privacy/vision`, with image/video processing through
 `scripts/vision_demo.py`. The completed plate detector also has a thin
 `PlateVideoDetector` registration path for the shared scheduler; it returns
@@ -15,8 +15,8 @@ The face-specific path under `src/privastream_api/privacy/face` provides
 standalone InsightFace/ArcFace detection, consented creator enrollment, and
 conservative creator-vs-bystander matching through `scripts/face_demo.py`.
 These detector paths are not API routes and do not persist raw media or model
-output. Product
-surface media ingestion, redaction integration, durable enrollment persistence,
+output. Product-surface media ingestion, redaction integration, durable
+enrollment persistence,
 creator controls, and real-time transport are planned and are not implemented.
 
 ## Prerequisites
@@ -70,6 +70,11 @@ code into the orchestrator. `src/privastream_api/privacy/face` contains the
 independent face model adapter, creator enrollment store, matcher, and
 bystander-region detector. It does not apply production padding or temporal
 composition.
+`src/privastream_api/pipeline/audio.py` contains the timestamped chunk
+normalizer, bounded ring-buffer segmenter, transcription queue, explicit unsafe
+outcomes, and in-memory timestamped transcript sink. It composes the VAD and
+transcriber interfaces from `spoken_pii.py`; the only current HTTP route is
+`GET /health`.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The only current HTTP
 route is `GET /health`.
@@ -80,9 +85,13 @@ Run the spoken-PII local demo from the repository root:
 uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wav output.wav
 ```
 
-The default VAD is the dependency-free energy baseline. Use `--vad silero` for
-the optional Silero adapter. The Faster-Whisper model, language, device,
-compute type, padding, and merge gap are configurable through CLI flags.
+The runner feeds the same `AudioChunk` and `AudioPipeline` interfaces used by
+the bounded processing path. The default VAD is the dependency-free energy
+baseline; use `--vad silero` for the optional Silero adapter. The Faster-Whisper
+model, language, device, compute type, padding, and merge gap are configurable
+through CLI flags. Timestamp discontinuity, VAD failure, queue overflow,
+transcription failure, and deadline lag fail closed with explicit local status;
+they are not converted to an empty redaction result.
 
 ## Environment rules
 

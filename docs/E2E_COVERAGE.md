@@ -9,11 +9,14 @@ Map complete user and system journeys across the real boundaries that the isolat
 For each journey, record the starting state, actions, expected visible results, API or worker effects, ownership checks, error paths, recovery path, and current verification status.
 
 The standalone spoken-PII demo journey is Implemented but Unverified: bounded
-PCM16 input → VAD speech windows → local word-timestamp transcription → phone /
-email interval normalization → padded/merged intervals → muted PCM16 output.
+PCM16 input → source-timestamped `AudioChunk` → mono/model-rate normalization →
+bounded VAD ring buffer and speech segments → local word-timestamp transcription
+→ phone/email interval normalization → padded/merged intervals → muted PCM16
+output.
 The coverage target includes silence-only input, a representative phone number,
 a representative email address, source timestamps offset from zero, invalid
-audio, and a model/dependency failure without logging transcript text.
+audio, timestamp discontinuity, queue overflow, deadline lag, and a
+model/dependency failure without logging transcript text.
 
 The browser media loopback journey is Implemented but Unverified: local camera /
 microphone permission → WebRTC offer/answer and ICE exchange → returned remote

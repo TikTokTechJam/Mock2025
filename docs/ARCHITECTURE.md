@@ -16,7 +16,8 @@ process boundaries, dependencies, and data flows.
   orchestrator/compositor under `src/privastream_api/pipeline/video.py`, the
   standalone face module under `src/privastream_api/privacy/face`, and the
   shared text-PII recognizer under `src/privastream_api/privacy/text_pii.py`,
-  plus the in-process spoken-PII demo under `src/privastream_api/pipeline/`.
+  plus the timestamped audio ingestion/transcription path under
+  `src/privastream_api/pipeline/audio.py`.
 - `models/` contains runtime model metadata and the future manifest boundary;
   it is not a model server and must not contain downloaded weights.
 - `ml/` contains offline training, fine-tuning, and evaluation tooling. Runtime
@@ -33,13 +34,14 @@ process boundaries, dependencies, and data flows.
   images with mounted source trees and persistent dependency volumes.
 
 The standalone face and plate/OCR modules, their production plate adapter,
-shared text-PII recognizer, shared video orchestrator/compositor, spoken-PII
-detector, and local PCM16 renderer are implemented inside the API package but
-are not exposed through the HTTP product surface. The browser-local loopback is
-implemented without an API dependency. No cross-modal redaction policy,
-server-side real-time media transport, persistence layer, worker, provider
-integration, or E2E runtime boundary exists yet. `apps/` contains only runnable
-application boundaries; there is no separate model/inference service.
+shared text-PII recognizer, shared video orchestrator/compositor, timestamped
+audio pipeline, spoken-PII detector, and local PCM16 renderer are implemented
+inside the API package but are not exposed through the HTTP product surface. The
+browser-local loopback is implemented without an API dependency. No
+cross-modal redaction policy, server-side real-time media transport, persistence
+layer, external worker process, provider integration, or E2E runtime boundary
+exists yet. `apps/` contains only runnable application boundaries; there is no
+separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
 client boundary. The browser loopback implements it with real browser streams,
@@ -53,7 +55,7 @@ façades.
 | --- | --- | --- |
 | Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries against typed façades. | Implemented mock console; production controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run normalized detector adapters, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video engine, face, and visual adapters; product pipeline Planned |
+| Media processing/inference | Run normalized detector adapters, timestamped audio segmentation/transcription, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video/audio source paths, face, and visual adapters; product pipeline Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -124,6 +126,31 @@ standalone plate inference boundary for this scheduler. It supplies a
 and leaves production cadence, TTL, padding, deadlines, and failure status to
 the shared engine.
 
+### Current timestamped audio path
+
+The issue-8 audio path is transport-independent and feeds the same interfaces
+from the prerecorded runner that a future live transport can use:
+
+```mermaid
+flowchart LR
+    A[AudioChunk source timeline] --> B[PCM normalizer]
+    B --> C[Bounded VAD ring buffer]
+    C --> D[SpeechSegment]
+    D --> E[Bounded transcription workers]
+    E --> F[TimestampedTranscript]
+    F --> G[Spoken-PII interval normalizer]
+    G --> H[AudioRedactionInterval]
+```
+
+`AudioChunk.end_timestamp_ms` is derived from sample count, and normalized
+chunks retain source start timestamps while converting to mono float32 at the
+configured model rate. `SpeechSegmenter` retains only configured pre-roll
+context, applies post-roll, and splits long speech at deterministic sample
+boundaries. The queue bounds segment count and duration; transcription deadline,
+VAD, input-timeline, and worker failures return explicit unsafe statuses. The
+pipeline keeps transcript words in an in-memory result for the local sink and
+does not log or persist them.
+
 ### Current browser loopback path
 
 The current browser demo provides the smallest transport-independent media path:
@@ -157,10 +184,10 @@ disconnect, transport failure, or processor failure stops the session and leaves
 the output detached instead of falling back to raw media.
 
 The browser foundation, browser-local loopback, creator-console mock shell, API
-process-health route, local Compose topology, shared video engine, and standalone
-face, plate/OCR, and spoken-PII audio paths are present. Cross-modal policy,
-backend creator operations, server-side live transport, and protected delivery
-beyond the local preview remain Planned.
+process-health route, local Compose topology, shared video engine, timestamped
+spoken-PII audio path, and standalone face, plate/OCR, and text-PII paths are
+present. Cross-modal policy, backend creator operations, server-side live
+transport, and protected delivery beyond the local preview remain Planned.
 
 ### Current creator-console path
 
@@ -205,6 +232,12 @@ detector work:
 - `AudioRedactionInterval` represents a time-based spoken-PII redaction with
   millisecond start and end offsets, confidence, detector identity, and an
   optional reason.
+- `AudioChunk` is the timestamped input envelope. It carries sequence identity,
+  sample rate, channel count, PCM format, and sample buffer; its exact end time
+  is derived from sample count rather than wall-clock processing time.
+- `SpeechSegment` is a bounded mono model-input window. `AudioNormalizer` owns
+  downmixing and deterministic resampling, while `SpeechSegmenter` owns the
+  bounded ring buffer, pre/post-roll, and maximum-duration splitting.
 - `FaceDetector`, `LicensePlateDetector`, and `OcrDetector` each accept a
   `VideoFrame` and return normalized `VideoRegionDetection` values.
 - `CreatorFaceEnrollmentService` accepts explicitly consented image samples,
@@ -219,6 +252,10 @@ detector work:
 - `SpokenPiiDetector` implements the audio detector boundary by composing a
   bounded VAD, a local word-timestamp transcriber, structured phone/email
   matching, configurable safety padding, and adjacent-interval merging.
+- `AudioPipeline` owns ordered chunk validation, bounded transcription queue
+  limits, processing deadlines, and sanitized unsafe outcomes. It composes the
+  existing `VoiceActivityDetector` and `LocalTranscriber` interfaces rather
+  than coupling streaming policy to Faster-Whisper.
 - `EnergyVoiceActivityDetector` is the dependency-free baseline; the optional
   `SileroVoiceActivityDetector` uses the Silero adapter without changing the
   normalized contract. `FasterWhisperTranscriber` is loaded lazily so the API
@@ -252,10 +289,10 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation, normalized contracts, standalone visual-privacy adapters, shared
-video engine, production plate adapter, standalone face module, spoken-PII
-detector baseline, local renderer, browser-local loopback, and creator-console
-mock shell are Implemented in source. Runtime verification is Unverified; the
-console, orchestration tests, browser path, audio and visual demos, real-model
-inference, and application verification have not been
-exercised.
+The foundation, normalized contracts, shared video engine, standalone
+visual-privacy adapters and production plate adapter, timestamped audio
+pipeline, standalone face and shared text-PII modules, spoken-PII detector
+baseline, local renderer, browser-local loopback, and creator-console mock shell
+are Implemented in source. Runtime verification is Unverified; the console,
+orchestration and audio-pipeline tests, browser path, audio and visual demos,
+real-model inference, and application verification have not been exercised.

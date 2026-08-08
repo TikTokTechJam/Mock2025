@@ -32,10 +32,11 @@ audio demo.
 Compose mounts source code for development and keeps dependency/database data
 in named volumes. The browser demo uses same-page WebRTC and does not require a
 signaling port or extra environment variable. No server-side media transport,
-migrations, workers, scheduled jobs, cross-modal policy, or provider processes
-exist in this foundation. The shared video engine and production plate adapter
-are in-process API libraries; the visual-privacy and spoken-PII demos remain
-local standalone commands rather than Compose services.
+migrations, external/background worker processes, scheduled jobs, cross-modal
+policy, or provider processes exist in this foundation. The shared video engine,
+production plate adapter, and bounded transcription workers are in-process API
+libraries; the visual-privacy and spoken-PII demos remain local standalone
+commands rather than Compose services.
 
 ## Commands
 
@@ -94,11 +95,18 @@ uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wa
 ~~~
 
 Input must be an uncompressed PCM16 WAV no longer than the configured in-memory
-limit. The default model is Faster-Whisper `small` on CPU with `int8` compute,
-the default VAD is the energy baseline, and the default safety padding is 250
-milliseconds. Use `--help` to review the explicit model, VAD, language, device,
-padding, and merge settings. The first model-backed run may download model
-artifacts to the local model cache.
+limit. The runner feeds the same timestamped `AudioChunk` and bounded
+`AudioPipeline` interfaces used by the future transport path. The default model
+is Faster-Whisper `small` on CPU with `int8` compute, the default VAD is the
+energy baseline, and the default safety padding is 250 milliseconds. Use
+`--help` to review the explicit model, VAD, language, device, padding, and merge
+settings. The first model-backed run may download model artifacts to the local
+model cache.
+
+The audio pipeline fails closed with explicit local statuses for timestamp
+discontinuity, invalid input, VAD failure, queue overflow, transcription
+failure, or processing deadline lag. None is represented as an empty successful
+redaction result.
 
 ## Availability and verification
 

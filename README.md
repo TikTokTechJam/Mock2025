@@ -9,11 +9,12 @@ The current repository contains the web and API foundation, a creator privacy
 console shell backed by typed local mocks, a reusable browser-local WebRTC media
 loopback with deterministic mock processing, normalized detector contracts,
 shared model-agnostic video orchestrator/compositor, the production plate-detector
-adapter, standalone face enrollment/matching, standalone license-plate/OCR
-visual-privacy and spoken-PII detector/renderer modules, and a local
-PostgreSQL-backed Docker Compose topology. HTTP media ingestion, backend creator
-operations, server-side or production transport, cross-modal redaction policy,
-persistence, and creator controls are planned and are not implemented yet.
+adapter, timestamped audio ingestion/transcription pipeline, standalone face
+enrollment/matching, standalone license-plate/OCR visual-privacy and spoken-PII
+detector/renderer modules, and a local PostgreSQL-backed Docker Compose
+topology. HTTP media ingestion, backend creator operations, server-side or
+production transport, cross-modal redaction policy, persistence, and creator
+controls are planned and are not implemented yet.
 
 ## Repository layout
 
@@ -47,8 +48,10 @@ readiness, and start the protected preview shell. The console does not acquire
 real devices or call the API; the reusable browser media loopback is documented
 separately in `apps/web/README.md`.
 
-The API also contains a standalone local spoken-PII demo. It is not exposed as
-an API route and requires the optional audio dependencies:
+The API also contains a standalone local spoken-PII demo backed by the
+timestamped chunk normalizer, bounded speech segmenter, and transcription
+pipeline. It is not exposed as an API route and requires the optional audio
+dependencies:
 
 ```bash
 uv sync --project apps/api --extra audio
@@ -58,8 +61,8 @@ uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wa
 The demo accepts a bounded PCM16 WAV, detects speech, transcribes locally, and
 writes a copy with detected phone-number and email intervals muted. It does not
 persist raw audio or transcript text. Server-side transport, persistence,
-backend creator operations, background workers, and E2E infrastructure remain
-unimplemented.
+backend creator operations, external/background worker processes, and E2E
+infrastructure remain unimplemented.
 
 The API also contains a standalone local face demo. It requires the optional
 face dependencies and a local InsightFace model pack:

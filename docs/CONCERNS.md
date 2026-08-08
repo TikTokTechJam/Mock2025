@@ -26,11 +26,13 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
 
 ## Current concerns
 
-- The spoken-PII module has no runtime verification yet. Model accuracy,
-  timestamp quality, CPU/memory cost, and behavior on accents, noise, overlap,
-  and non-English speech remain Unverified. The current mitigation is explicit
-  model/VAD configuration, bounded input, no transcript logging, and a
-  dependency-free energy-VAD baseline.
+- The timestamped spoken-PII pipeline has no runtime verification yet. Model
+  accuracy, source-timeline quality across resampling, CPU/memory cost, queue
+  lag, and behavior on accents, noise, overlap, and non-English speech remain
+  Unverified. The current mitigation is explicit model/VAD configuration,
+  bounded normalization and transcription queues, sanitized unsafe statuses,
+  no transcript logging, and a dependency-free energy-VAD baseline.
+
 - The shared text-PII recognizer has deterministic email/phone coverage and
   explicitly configured identity/payment formats, but postal-address and other
   contextual categories have only a replaceable classifier boundary. No
