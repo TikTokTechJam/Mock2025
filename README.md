@@ -13,6 +13,22 @@ topology. HTTP media ingestion, server-side or production transport,
 cross-modal redaction compositing, persistence, and creator controls are planned
 and are not implemented yet.
 
+## Repository layout
+
+- `apps/web` — runnable Next.js browser and creator application.
+- `apps/api` — runnable FastAPI backend and current in-process privacy/media
+  processing runtime.
+- `models/` — runtime model metadata and future manifests; downloaded weights
+  stay in an ignored local cache.
+- `ml/` — offline training and evaluation tooling.
+- `datasets/` — safe dataset manifests and metadata, not raw/private datasets.
+- `docs/` — authoritative product, architecture, security, operations, and
+  continuity documentation.
+
+`apps/` contains runnable applications only. There is no separate model or
+inference service; model-backed processing remains in `apps/api` until an
+approved isolation requirement exists.
+
 ## Local development
 
 ```bash
