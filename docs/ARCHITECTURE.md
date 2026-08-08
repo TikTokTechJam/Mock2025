@@ -10,8 +10,9 @@ process boundaries, dependencies, and data flows.
 - `apps/web` is the Next.js App Router browser and creator UI. Its current page
   contains the browser-local media loopback and mock processing path.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
-  and contains normalized media contracts plus the in-process spoken-PII demo
-  in `src/privastream_api/pipeline/`.
+  and contains normalized media contracts, standalone visual-privacy adapters
+  under `src/privastream_api/privacy/vision`, and the in-process spoken-PII demo
+  under `src/privastream_api/pipeline/`.
 - `compose.yaml` defines the local development topology:
   - `web` serves the Next.js development server on port 3000;
   - `api` serves FastAPI on port 8000; and
@@ -19,10 +20,12 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-The spoken-PII detector and local PCM16 renderer are implemented inside the API
-package. The browser-local loopback is implemented without an API dependency.
-No server-side media transport, cross-modal compositor, persistence layer,
-worker, provider integration, or E2E runtime boundary exists yet.
+The standalone plate/OCR module, spoken-PII detector, and local PCM16 renderer
+are implemented inside the API package but are not exposed through the HTTP
+product surface. The browser-local loopback is implemented without an API
+dependency. No shared or cross-modal redaction compositor, server-side
+real-time media transport, persistence layer, worker, provider integration, or
+E2E runtime boundary exists yet.
 
 ## Runtime boundaries
 
@@ -30,7 +33,7 @@ worker, provider integration, or E2E runtime boundary exists yet.
 | --- | --- | --- |
 | Browser/creator UI | Request local camera/microphone access, manage the demo session, and show source plus protected-preview tracks. | Implemented browser demo; broader creator controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. The standalone spoken-PII module is the first implemented local path. | Implemented baseline; broader processing Planned |
+| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. Standalone plate/OCR and spoken-PII adapters are available; the product pipeline is not. | Implemented modules; product pipeline Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -100,16 +103,17 @@ disconnect, transport failure, or processor failure stops the session and leaves
 the output detached instead of falling back to raw media.
 
 The browser foundation, browser-local loopback, API process-health route, local
-Compose topology, and standalone spoken-PII audio path are present. Server-side
-transport, cross-modal policy, compositor, and protected delivery beyond the
-local preview remain Planned.
+Compose topology, and standalone plate/OCR and spoken-PII audio paths are
+present. Shared orchestration, cross-modal policy, redaction output, server-side
+live transport, compositor, and protected delivery beyond the local preview
+remain Planned.
 
 ## Detector and redaction contracts
 
 `privastream_api.pipeline.contracts` is the shared boundary for independent
 detector work:
 
-- `VideoRegionDetection` represents a face, license-plate, or OCR result with
+- `VideoRegionDetection` represents a face, license-plate, OCR, email, or phone result with
   normalized `x`, `y`, `width`, and `height` coordinates in the inclusive
   `[0, 1]` frame space, a confidence, a frame timestamp, and an optional track
   identity.
@@ -130,6 +134,9 @@ detector work:
 - The local renderer accepts PCM16 WAV input and mutes only normalized source
   time intervals. It does not expose model-specific transcript output.
 
+The standalone plate/OCR adapters use a `FrameContext` containing source image
+data and `VideoFrame` metadata, then emit the same normalized result type.
+
 Detector implementations must not expose model-specific boxes, timestamps, or
 labels beyond these contracts. The future compositor consumes normalized values;
 it does not import a detector implementation.
@@ -138,8 +145,9 @@ it does not import a detector implementation.
 
 The target processing pipeline fails closed: if a detector required by the
 active privacy policy cannot make a safe decision, the protected output is held
-or redacted rather than released as if it were safe. This policy is Planned and
-is not implemented by the current health-only scaffold.
+or redacted rather than released as if it were safe. The standalone adapters
+surface detector failures, but the shared fail-closed output policy is Planned
+and is not implemented by the current HTTP scaffold.
 
 ## Dependencies and verification
 
@@ -148,8 +156,8 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation, normalized contracts, spoken-PII detector baseline, local
-renderer, and browser-local loopback are Implemented in source. Runtime
-verification is Unverified; the browser path, audio demo, model inference, and
-the earlier Compose startup attempt have not been exercised to a verification
-result.
+The foundation, normalized contracts, standalone visual-privacy adapters,
+spoken-PII detector baseline, local renderer, and browser-local loopback are
+Implemented in source. Runtime verification is Unverified; the browser path,
+audio and visual demos, real-model inference, and application verification have
+not been exercised.

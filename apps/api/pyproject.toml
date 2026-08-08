@@ -8,6 +8,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+vision = [
+    "easyocr>=1.7.2,<2",
+    "opencv-python-headless>=4.10,<5",
+    "ultralytics>=8.3,<9",
+]
 audio = [
     "faster-whisper==1.2.1",
     "silero-vad==6.2.1",
@@ -16,6 +21,7 @@ audio = [
 [dependency-groups]
 dev = [
     "mypy",
+    "pytest>=8,<9",
     "ruff",
 ]
 

@@ -1,0 +1,1 @@
+"""Visual privacy tests."""

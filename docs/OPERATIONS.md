@@ -29,9 +29,9 @@ accessed by the API, browser demo, or audio demo.
 Compose mounts source code for development and keeps dependency/database data
 in named volumes. The browser demo uses same-page WebRTC and does not require a
 signaling port or extra environment variable. No server-side media transport,
-migrations, workers, scheduled jobs, cross-modal compositor, or provider
-processes exist in this foundation; the standalone spoken-PII module runs
-outside Compose.
+migrations, workers, scheduled jobs, shared or cross-modal compositor, or
+provider processes exist in this foundation. The visual-privacy and spoken-PII
+modules run as local standalone commands rather than Compose services.
 
 ## Commands
 
@@ -50,6 +50,23 @@ pnpm dev:reset
 `pnpm dev:reset` removes the local PostgreSQL and dependency volumes and is
 destructive. The other shutdown path preserves volumes.
 
+## Standalone visual demo
+
+From `apps/api`, install the optional vision dependencies and run the local
+image/video redaction demo:
+
+~~~bash
+uv sync --extra vision
+uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
+~~~
+
+The command requires a local YOLO-family plate weight file. It does not download
+weights during processing and does not require WebRTC or other services. See
+`docs/PRIVACY_VISION.md` for thresholds, languages, limitations, and failure
+behavior.
+
+## Standalone audio demo
+
 For the standalone audio demo:
 
 ~~~bash
@@ -66,10 +83,10 @@ artifacts to the local model cache.
 
 ## Availability and verification
 
-The PrivaStream web/API/Compose foundation, browser-local mock media path,
-normalized detector contracts, and standalone spoken-PII module are Implemented
-in source. Server-side live media processing, cross-modal redaction, transport,
-persistence, and production deployment are Planned. Runtime verification is
-Unverified: no browser session, audio demo, model inference, tests, builds,
-migrations, services, providers, linting, formatting checks, or type checks were
-run.
+The PrivaStream web/API/Compose foundation, normalized detector contracts,
+browser-local mock media path, standalone plate/OCR module, and standalone
+spoken-PII module are Implemented in source. Product-surface redaction,
+server-side live media processing and transport, persistence, and production
+deployment are Planned. Runtime verification is Unverified: no browser session,
+audio or visual demo, model inference, tests, builds, migrations, services,
+providers, linting, formatting checks, or type checks were run.

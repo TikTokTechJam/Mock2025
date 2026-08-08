@@ -1,10 +1,14 @@
 # PrivaStream API
 
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
-exposes an unauthenticated process-health endpoint and contains a standalone
-spoken-PII demo module. The demo is local-only: it is not an API route, does not
-persist raw audio or transcript text, and does not implement live transport,
-creator controls, or durable processing.
+currently exposes only an unauthenticated process-health endpoint and contains
+two local-only standalone detector paths: visual privacy under
+`src/privastream_api/privacy/vision`, with image/video processing through
+`scripts/vision_demo.py`, and spoken PII under
+`src/privastream_api/pipeline/spoken_pii.py`, with bounded PCM16 WAV processing.
+Neither path is an API route or persists raw media or model output. Product
+surface media ingestion, redaction integration, persistence, creator controls,
+and real-time transport are planned and are not implemented.
 
 ## Prerequisites
 
@@ -46,12 +50,14 @@ uv run mypy src
 `src/privastream_api/main.py` owns the application factory and ASGI application.
 `src/privastream_api/api/router.py` composes routes, keeping future feature routes
 outside the application entry point. `src/privastream_api/pipeline/contracts.py`
-defines normalized detector interfaces and source-timestamped PCM segments.
+defines normalized detector interfaces, source-timestamped PCM segments, and
+model-neutral detection results. `src/privastream_api/privacy/vision` contains
+independent plate and OCR/PII adapters that emit normalized regions.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The only current HTTP
 route is `GET /health`.
 
-Run the local demo from the repository root:
+Run the spoken-PII local demo from the repository root:
 
 ```bash
 uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wav output.wav
@@ -80,4 +86,15 @@ CLI arguments so a run is attributable and does not silently change policy.
 ```
 
 It reports only that the API process is running. It does not indicate readiness for a
-database, media ingestion, detector execution, redaction, or transport readiness.
+database, product-surface media ingestion, redaction, or transport readiness.
+
+## Standalone visual privacy demo
+
+The optional vision dependencies and demo are documented in
+`docs/PRIVACY_VISION.md`. From `apps/api`, run the demo with a local plate weight
+file:
+
+```bash
+uv sync --extra vision
+uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
+```
