@@ -33,6 +33,19 @@ from privastream_api.pipeline.video import (
     merge_overlapping_regions,
     normalize_regions,
 )
+from privastream_api.pipeline.safety import (
+    CapabilityObservation,
+    CapabilityPolicy,
+    CapabilityState,
+    LivenessState,
+    MediaWindow,
+    PrivacyGate,
+    PrivacyGateConfig,
+    PrivacyGateSnapshot,
+    PrivacyReadiness,
+    PublicationAction,
+    PublicationDecision,
+)
 
 __all__ = [
     "AudioChunk",
@@ -43,7 +56,18 @@ __all__ = [
     "AudioProcessingResult",
     "AudioProcessingStatus",
     "AudioReleaseDecision",
+    "CapabilityObservation",
+    "CapabilityPolicy",
+    "CapabilityState",
     "DetectorRun",
+    "LivenessState",
+    "MediaWindow",
+    "PrivacyGate",
+    "PrivacyGateConfig",
+    "PrivacyGateSnapshot",
+    "PrivacyReadiness",
+    "PublicationAction",
+    "PublicationDecision",
     "ProtectedVideoFrame",
     "RasterFrame",
     "TemporalRegionStore",

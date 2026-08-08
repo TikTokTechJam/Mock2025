@@ -22,6 +22,14 @@ timestamps, PCM format preservation, and blocked release for unsafe outcomes
 are also part of this integration boundary, including `unsafe_unclassified`
 when VAD-positive speech has no usable transcript timestamps.
 
+The centralized privacy-gate boundary is Implemented but Unverified:
+sanitized capability observations and source windows → readiness/liveness
+evaluation → `publish_protected`, `full_redact`, or `block` decision. Coverage
+targets required and optional capability failure, watermark/lag gaps, processor
+disconnect, panic entry, explicit recovery, and conservative recovery
+hysteresis. No transport or real protected-output path consumes these decisions
+yet.
+
 The browser media loopback journey is Implemented but Unverified: local camera /
 microphone permission → WebRTC offer/answer and ICE exchange → returned remote
 tracks → canvas video redaction and Web Audio mute transform → processed

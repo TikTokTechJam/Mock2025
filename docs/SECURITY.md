@@ -37,6 +37,13 @@ adapter validates the source-image boundary, emits only normalized plate
 geometry, and preserves unavailable or execution failures for the scheduler
 rather than converting them to empty detections.
 
+The centralized `PrivacyGate` accepts only sanitized capability observations,
+source-timeline watermarks, lag, liveness, and explicit control events. It
+returns a safe publication action and reason code without inspecting media or
+exposing detector payloads. Required failures, missing coverage, unhealthy
+liveness, and panic remain fail-closed; a future transport must apply the
+decision before publication.
+
 The standalone face module requires explicit creator consent before enrollment,
 keeps only one aggregate embedding in the in-memory hackathon store while the
 enrollment is active, and supports replacement/deletion. Enrollment images are

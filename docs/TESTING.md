@@ -29,6 +29,13 @@ interval mapping, muting across chunk boundaries for supported PCM formats, and
 safe/blocked release watermark decisions, including `unsafe_unclassified` when
 VAD-positive speech has no usable transcript timestamps.
 
+The privacy-gate unit boundary should use deterministic capability observations
+to cover required versus optional failures, missing or pending source
+watermarks, configured lag limits, separate process liveness, immediate panic,
+explicit exit, consecutive healthy recovery, sanitized reason codes, and
+`publish_protected`/`full_redact`/`block` decisions. It must not load media,
+detectors, models, transport, or browser clients.
+
 The browser media boundary should cover permission denial, successful local
 offer/answer and ICE exchange, camera/microphone track return, visible fixed
 video redaction, deterministic audio muting, source-clock updates, bounded
