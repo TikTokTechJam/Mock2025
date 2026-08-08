@@ -33,3 +33,20 @@ Thumbs.db
 *.sqlite3
 coverage/
 htmlcov/
+
+# Local model artifacts and ML outputs
+.cache/models/
+models/cache/
+models/**/*.bin
+models/**/*.ckpt
+models/**/*.onnx
+models/**/*.pt
+models/**/*.pth
+models/**/*.safetensors
+ml/**/checkpoints/
+ml/**/outputs/
+
+# Local or private dataset artifacts
+datasets/local/
+datasets/raw/
+datasets/processed/

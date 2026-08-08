@@ -13,6 +13,14 @@ process boundaries, dependencies, and data flows.
   and contains normalized media contracts, standalone visual-privacy adapters
   under `src/privastream_api/privacy/vision`, and the in-process spoken-PII demo
   under `src/privastream_api/pipeline/`.
+- `models/` contains runtime model metadata and the future manifest boundary;
+  it is not a model server and must not contain downloaded weights.
+- `ml/` contains offline training, fine-tuning, and evaluation tooling. Runtime
+  API code must not import training-only dependencies by default.
+- `datasets/` contains safe dataset manifests, schemas, split metadata, and
+  provenance; raw or private datasets are not part of the repository.
+- `docs/` contains the authoritative product, architecture, security,
+  operations, and current-state documentation.
 - `compose.yaml` defines the local development topology:
   - `web` serves the Next.js development server on port 3000;
   - `api` serves FastAPI on port 8000; and
@@ -25,7 +33,8 @@ are implemented inside the API package but are not exposed through the HTTP
 product surface. The browser-local loopback is implemented without an API
 dependency. No shared or cross-modal redaction compositor, server-side
 real-time media transport, persistence layer, worker, provider integration, or
-E2E runtime boundary exists yet.
+E2E runtime boundary exists yet. `apps/` contains only runnable application
+boundaries; there is no separate model/inference service.
 
 ## Runtime boundaries
 
