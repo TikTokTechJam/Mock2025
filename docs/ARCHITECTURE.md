@@ -11,8 +11,9 @@ process boundaries, dependencies, and data flows.
   contains the browser-local media loopback and mock processing path.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
   and contains normalized media contracts, standalone visual-privacy adapters
-  under `src/privastream_api/privacy/vision`, and the in-process spoken-PII demo
-  under `src/privastream_api/pipeline/`.
+  under `src/privastream_api/privacy/vision`, the model-agnostic video
+  orchestrator/compositor under `src/privastream_api/pipeline/video.py`, and the
+  in-process spoken-PII demo under `src/privastream_api/pipeline/`.
 - `models/` contains runtime model metadata and the future manifest boundary;
   it is not a model server and must not contain downloaded weights.
 - `ml/` contains offline training, fine-tuning, and evaluation tooling. Runtime
@@ -28,13 +29,13 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-The standalone plate/OCR module, spoken-PII detector, and local PCM16 renderer
-are implemented inside the API package but are not exposed through the HTTP
-product surface. The browser-local loopback is implemented without an API
-dependency. No shared or cross-modal redaction compositor, server-side
-real-time media transport, persistence layer, worker, provider integration, or
-E2E runtime boundary exists yet. `apps/` contains only runnable application
-boundaries; there is no separate model/inference service.
+The standalone plate/OCR module, shared video orchestrator/compositor, spoken-
+PII detector, and local PCM16 renderer are implemented inside the API package
+but are not exposed through the HTTP product surface. The browser-local loopback
+is implemented without an API dependency. No cross-modal redaction policy,
+server-side real-time media transport, persistence layer, worker, provider
+integration, or E2E runtime boundary exists yet. `apps/` contains only runnable
+application boundaries; there is no separate model/inference service.
 
 ## Runtime boundaries
 
@@ -42,7 +43,7 @@ boundaries; there is no separate model/inference service.
 | --- | --- | --- |
 | Browser/creator UI | Request local camera/microphone access, manage the demo session, and show source plus protected-preview tracks. | Implemented browser demo; broader creator controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. Standalone plate/OCR and spoken-PII adapters are available; the product pipeline is not. | Implemented modules; product pipeline Planned |
+| Media processing/inference | Run normalized detector adapters, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video engine and adapters; product pipeline Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -77,7 +78,31 @@ The intended flow is:
 3. Detectors return model-neutral results defined by the API contract module.
 4. A future policy layer applies whitelist, redaction, temporal-stability, and
    fail-closed rules.
-5. A future compositor creates the protected output for the selected transport.
+5. The shared video compositor creates a `ProtectedVideoFrame`; a future
+   transport and publication-safety layer decide how protected output is
+   delivered.
+
+### Current shared video engine
+
+The implemented model-agnostic video path is:
+
+```mermaid
+flowchart LR
+    A[VideoFrame] --> B[VideoOrchestrator]
+    B --> C[Registered detector adapters]
+    C --> D[Validated VideoPrivacyRegion values]
+    D --> E[Temporal TTL and spatial association]
+    E --> F[Padding, clamping, and conservative merge]
+    F --> G[VideoCompositor]
+    G --> H[ProtectedVideoFrame]
+```
+
+The orchestrator schedules detectors at configured cadence, applies per-detector
+deadlines and concurrency limits, preserves temporal masks across skipped or
+failed detector frames until TTL expiry, and releases completed frames in input
+order. Detector failures remain explicit in the output metadata. The compositor
+provides blur, pixelate, solid cover, and full-frame safe-cover primitives; the
+central safety gate still owns whether a frame may be published.
 
 ### Current browser loopback path
 
@@ -126,6 +151,13 @@ detector work:
   normalized `x`, `y`, `width`, and `height` coordinates in the inclusive
   `[0, 1]` frame space, a confidence, a frame timestamp, and an optional track
   identity.
+- `VideoFrame` is the canonical source-frame envelope. Its optional payload is
+  kept opaque to detector adapters; the dependency-free compositor accepts its
+  `RasterFrame` adapter surface.
+- `VideoPrivacyRegion` is the validated, padded, clamped, TTL-bearing region
+  retained by the shared video engine. `ProtectedVideoFrame` carries ordered
+  output, active regions, sanitized detector runs, and render status without
+  claiming publication safety.
 - `AudioRedactionInterval` represents a time-based spoken-PII redaction with
   millisecond start and end offsets, confidence, detector identity, and an
   optional reason.
@@ -147,8 +179,10 @@ The standalone plate/OCR adapters use a `FrameContext` containing source image
 data and `VideoFrame` metadata, then emit the same normalized result type.
 
 Detector implementations must not expose model-specific boxes, timestamps, or
-labels beyond these contracts. The future compositor consumes normalized values;
-it does not import a detector implementation.
+labels beyond these contracts. The compositor consumes normalized values; it
+does not import a detector implementation. A timeout, unavailable detector,
+invalid result, or execution error is recorded explicitly and is never converted
+to a successful empty detection.
 
 ## Failure boundaries and privacy invariant
 
@@ -165,8 +199,8 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation, normalized contracts, standalone visual-privacy adapters,
-spoken-PII detector baseline, local renderer, and browser-local loopback are
-Implemented in source. Runtime verification is Unverified; the browser path,
-audio and visual demos, real-model inference, and application verification have
-not been exercised.
+The foundation, normalized contracts, shared video engine, standalone
+visual-privacy adapters, spoken-PII detector baseline, local renderer, and
+browser-local loopback are Implemented in source. Runtime verification is
+Unverified; the orchestration tests, browser path, audio and visual demos,
+real-model inference, and application verification have not been exercised.

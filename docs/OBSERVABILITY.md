@@ -29,6 +29,11 @@ in the page. It does not log camera frames, audio samples, or raw media
 metadata. These are local UI signals only; no browser session status is sent to
 the API or persisted.
 
+The shared video engine exposes aggregate per-stage detector calls, success,
+skip, timeout, failure, duration, queue wait, pending-frame, and processing
+measurements through `VideoMetrics.snapshot()`. These metrics contain no frame
+payloads, coordinates, OCR text, plate values, or raw detector errors.
+
 ## Verification
 
 The API health and browser session signals are Unverified; no runtime

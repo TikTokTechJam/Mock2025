@@ -7,11 +7,11 @@ speech redacted as configured.
 
 The current repository contains the web and API foundation, a browser-local
 WebRTC media loopback with deterministic mock processing, normalized detector
-contracts, standalone license-plate/OCR visual-privacy and spoken-PII
-detector/renderer modules, and a local PostgreSQL-backed Docker Compose
-topology. HTTP media ingestion, server-side or production transport,
-cross-modal redaction compositing, persistence, and creator controls are planned
-and are not implemented yet.
+contracts, a shared model-agnostic video orchestrator/compositor, standalone
+license-plate/OCR visual-privacy and spoken-PII detector/renderer modules, and a
+local PostgreSQL-backed Docker Compose topology. HTTP media ingestion,
+server-side or production transport, cross-modal redaction policy, persistence,
+and creator controls are planned and are not implemented yet.
 
 ## Repository layout
 

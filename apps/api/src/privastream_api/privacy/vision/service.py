@@ -6,18 +6,23 @@ from collections.abc import Sequence
 from dataclasses import dataclass
 from typing import Any, Protocol
 
-from privastream_api.pipeline.contracts import VideoFrame, VideoRegionDetection
+from privastream_api.pipeline.contracts import (
+    VideoDetectorExecutionError,
+    VideoDetectorUnavailable,
+    VideoFrame,
+    VideoRegionDetection,
+)
 
 
 class DetectorError(RuntimeError):
     """Base error for detector availability or inference failures."""
 
 
-class DetectorUnavailableError(DetectorError):
+class DetectorUnavailableError(VideoDetectorUnavailable, DetectorError):
     """A configured detector cannot run in the current environment."""
 
 
-class DetectorExecutionError(DetectorError):
+class DetectorExecutionError(VideoDetectorExecutionError, DetectorError):
     """A detector failed while processing a frame."""
 
 

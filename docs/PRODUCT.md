@@ -10,6 +10,7 @@ sensitive content is redacted before delivery.
 | --- | --- | --- | --- | --- |
 | Browser media loopback demo | `GET /` on the web app | Uses a local WebRTC loopback and deterministic mock video/audio processing, then attaches only processed tracks to the protected preview. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
+| Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
 | Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
 
@@ -28,7 +29,8 @@ or transport media as product state.
 4. The creator inspects and controls the protected preview or output.
 
 The local capture and protected-preview portion is Implemented through the
-browser demo. Policy selection, real detectors, temporal coordination, and
+browser demo. The shared video engine is Implemented as an internal, transport-
+independent primitive. Policy selection, cross-modal coordination, and
 protected delivery beyond that local preview are Planned.
 
 ## Privacy and safety boundaries
@@ -45,9 +47,11 @@ protected delivery beyond that local preview are Planned.
 
 Authentication, creator enrollment, product-surface media upload, server-side
 or production live transport, face detection integration, cross-modal
-synchronization, shared redaction compositing, persistence, and production
-deployment are not implemented here. The browser loopback and standalone demos
-are local or best-effort paths, not production delivery capabilities.
+synchronization, cross-modal redaction policy, persistence, and production
+deployment are not implemented here. The shared video compositor is an
+internal rendering primitive and does not decide whether output is safe to
+publish. The browser loopback and standalone demos are local or best-effort
+paths, not production delivery capabilities.
 
 ## Detailed privacy protection specification
 
