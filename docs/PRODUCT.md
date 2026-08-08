@@ -8,7 +8,8 @@ sensitive content is redacted before delivery.
 
 | Capability | Entry point | Current result | Availability | Verification |
 | --- | --- | --- | --- | --- |
-| Browser media loopback demo | `GET /` on the web app | Uses a local WebRTC loopback and deterministic mock video/audio processing, then attaches only processed tracks to the protected preview. | Implemented | Unverified |
+| Creator privacy console shell | `GET /` on the web app | Presents mock source selection, permission UX, enrollment consent/status controls, privacy capability toggles, readiness, safety, session states, and a protected-output boundary without exposing raw diagnostics. | Implemented | Unverified |
+| Browser media loopback client | `apps/web/src/lib/browser-media-session.ts` (not directly exposed by `/`) | Provides the reusable local WebRTC loopback and deterministic mock video/audio processing client for protected stream integration. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
 | Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
@@ -27,9 +28,11 @@ or transport media as product state.
    redaction compositor.
 4. The creator inspects and controls the protected preview or output.
 
-The local capture and protected-preview portion is Implemented through the
-browser demo. Policy selection, real detectors, temporal coordination, and
-protected delivery beyond that local preview are Planned.
+The creator-console shell, mock policy selection, readiness presentation, and
+protected-preview boundary are Implemented against typed local façades. Real
+device acquisition, backend readiness and safety semantics, detector
+processing, temporal coordination, and protected delivery beyond the local
+mock/loopback paths are Planned.
 
 ## Privacy and safety boundaries
 
@@ -43,11 +46,12 @@ protected delivery beyond that local preview are Planned.
 
 ## Current non-goals
 
-Authentication, creator enrollment, product-surface media upload, server-side
+Authentication, creator enrollment backend, product-surface media upload, server-side
 or production live transport, face detection integration, cross-modal
 synchronization, shared redaction compositing, persistence, and production
 deployment are not implemented here. The browser loopback and standalone demos
-are local or best-effort paths, not production delivery capabilities.
+are local or best-effort paths, and the creator console uses typed mock façades;
+none are production delivery capabilities.
 
 ## Detailed privacy protection specification
 

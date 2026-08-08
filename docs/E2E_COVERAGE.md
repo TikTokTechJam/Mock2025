@@ -23,6 +23,13 @@ session startup, source timestamp updates, visible fixed-region redaction,
 deterministic audio transformation, device disconnect, and processor failure
 without raw-preview fallback.
 
+The creator-console journey is Implemented but Unverified: local `/` route →
+mock source and permission presentation → consent-gated enrollment shell →
+capability toggles and mock readiness → session state and safety controls →
+separate unprotected source and protected-output handles. The coverage target
+includes required-readiness blocking, degraded optional protection, panic stop,
+stopped/reset recovery, and absence of raw PII or embedding diagnostics.
+
 ## Environment
 
 The end-to-end environment must be isolated from normal development data and external side effects. Define deterministic fixtures, controlled dependencies, reset behavior, startup gates, teardown, and resource names without exposing credentials.

@@ -38,3 +38,9 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   processor failure handling remain Unverified. The current mitigation is a
   local-only boundary, explicit session error state, bounded video scheduling,
   and no raw-output fallback.
+- The creator console uses deterministic local façades rather than backend
+  enrollment, readiness, safety, or authorization clients. Its state transitions,
+  accessibility behavior, protected-handle separation, and responsive layout
+  remain Unverified. The current mitigation is explicit mock labeling, consent
+  gating, no raw diagnostics, required-readiness blocking, and a separate
+  unprotected source preview.

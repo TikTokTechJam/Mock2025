@@ -23,13 +23,19 @@ intervals. It does not write raw transcript text, PII values, or source audio
 to ordinary logs. Dependency/model logs are not currently normalized into the
 application observability contract.
 
-The browser media demo exposes session state, the latest source-clock
+The reusable browser media client exposes session state, the latest source-clock
 timestamp, the bounded pending-frame value, and processor or disconnect errors
 in the page. It does not log camera frames, audio samples, or raw media
 metadata. These are local UI signals only; no browser session status is sent to
 the API or persisted.
 
+The creator console exposes mock session state, capability readiness, enrollment
+status, safety state, permission presentation, and source/protected handle
+availability. These values are local UI signals and are not backend readiness,
+authorization, audit events, or persisted media state. The console does not show
+raw enrollment samples, transcripts, PII values, or embeddings.
+
 ## Verification
 
-The API health and browser session signals are Unverified; no runtime
-verification pass was run.
+The API health, browser session, and creator-console signals are Unverified; no
+runtime verification pass was run.

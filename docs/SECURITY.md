@@ -15,6 +15,14 @@ processor failure stops the output without attaching raw capture as a fallback.
 This is a local demo boundary, not an authentication, authorization, or
 production delivery guarantee.
 
+The creator console adds mock-only façades for enrollment, readiness, safety,
+and media sessions. Enrollment is consent-gated in the UI, displays no raw
+sample, transcript, PII value, or embedding, and presents deletion as a mock
+state transition. The protected-output component accepts only a typed protected
+stream handle; an unprotected source handle is rendered separately. These mock
+states do not authorize a user, create biometric data, or establish backend
+readiness.
+
 ## Detailed security and privacy specification
 
 ## 1. Purpose
