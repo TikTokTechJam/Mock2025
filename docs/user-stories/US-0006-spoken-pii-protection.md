@@ -19,7 +19,7 @@ Spoken phone numbers, email addresses, identifiers, and other supported sensitiv
 - Transcription/classification lag, queue overflow, or model failure makes the affected window unsafe rather than silently passing raw speech.
 
 ## Scope
-- PCM normalization, VAD, transcription, spoken-text normalization, PII classification, interval mapping, and audio redaction.
+- PCM/stream adaptation, VAD/transcription integration, speech-specific normalization, shared text-PII recognition, interval mapping, and audio redaction.
 
 ## Out of Scope
 - General-purpose transcript storage/search.
@@ -29,7 +29,7 @@ Spoken phone numbers, email addresses, identifiers, and other supported sensitiv
 ## Decisions
 - Use source-media timestamps from ingestion through redaction.
 - Silence/mute is the MVP redaction action.
-- Classification remains separate from the audio renderer.
+- Modality-independent text-PII recognition is shared with visual PII through issue #32; speech-specific normalization and timestamp mapping remain in the spoken path.
 
 ## Concerns
 - Transcription latency directly affects how long audio must be buffered.
@@ -39,4 +39,4 @@ Spoken phone numbers, email addresses, identifiers, and other supported sensitiv
 A standalone local spoken-PII slice exists, but the complete user story remains Planned until integrated with the real protected-media session and verified end-to-end.
 
 ## Touched By
-Issues #3, #8, #9, #10, #11, #13, #14, #15, #17, #20.
+Issues #3, #8, #9, #10, #11, #13, #14, #15, #17, #20, #32.
