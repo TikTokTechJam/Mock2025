@@ -9,9 +9,23 @@ from privastream_api.pipeline.audio import (
     AudioPipelineConfig,
     SpeechSegmenter,
     SpeechSegmenterConfig,
+    mute_audio_chunk,
 )
-from privastream_api.pipeline.contracts import AudioChunk, AudioSegment
-from privastream_api.pipeline.spoken_pii import SpeechWindow, TranscriptWord
+from privastream_api.pipeline.contracts import (
+    AudioChunk,
+    AudioRedactionInterval,
+    AudioSegment,
+)
+from privastream_api.pipeline.spoken_pii import (
+    RedactionConfig,
+    SpeechWindow,
+    TranscriptWord,
+)
+from privastream_api.privacy.text_pii import (
+    ConfiguredTextPiiPattern,
+    TextPiiRecognizer,
+    TextPiiRecognizerConfig,
+)
 
 
 class AlwaysVoiceVad:
@@ -147,3 +161,72 @@ def test_pipeline_does_not_convert_transcription_failure_to_empty_success() -> N
     result = pipeline.process((_chunk(0, 0),))
 
     assert result.status == "unsafe_transcription_failure"
+    assert not result.safe_to_release
+    assert result.protected_chunks == ()
+
+
+def test_pipeline_blocks_release_for_unclassified_speech() -> None:
+    pipeline = AudioPipeline(AlwaysVoiceVad(), FixedTranscriber())
+
+    result = pipeline.process((_chunk(0, 0),))
+
+    assert result.status == "unsafe_unclassified"
+    assert not result.safe_to_release
+
+
+def test_pipeline_uses_shared_recognizer_and_mutes_across_chunk_boundaries() -> None:
+    recognizer = TextPiiRecognizer(
+        TextPiiRecognizerConfig(
+            email_enabled=False,
+            phone_enabled=False,
+            configured_patterns=(
+                ConfiguredTextPiiPattern(
+                    category="government_id",
+                    pattern=r"\bID\d{3}\b",
+                    source="configured-test-id",
+                ),
+            ),
+        )
+    )
+    pipeline = AudioPipeline(
+        AlwaysVoiceVad(),
+        FixedTranscriber((TranscriptWord("ID123", 90, 110),)),
+        redaction=RedactionConfig(padding_ms=0),
+        text_recognizer=recognizer,
+    )
+
+    result = pipeline.process((_chunk(0, 0), _chunk(100, 1)))
+
+    assert result.status == "ok"
+    assert result.redaction_intervals[0].reason == "government_id"
+    assert result.redaction_intervals[0].start_ms == 90
+    assert result.redaction_intervals[0].end_ms == 110
+    assert result.safe_to_release
+    assert result.release_watermark_ms == 200
+    assert result.release_lag_ms is not None
+    assert result.protected_chunks[0].samples[-1] == 0.0
+    assert result.protected_chunks[1].samples[0] == 0.0
+    assert result.protected_chunks[0].samples[0] == 0.2
+    assert result.protected_chunks[1].samples[-1] == 0.2
+
+
+def test_mute_audio_chunk_preserves_pcm16_format() -> None:
+    sample = (16_384).to_bytes(2, "little", signed=True)
+    chunk = AudioChunk(
+        start_timestamp_ms=0,
+        sample_rate_hz=16_000,
+        channels=1,
+        pcm_format="pcm16",
+        samples=sample * 1_600,
+        sequence_id=0,
+    )
+
+    muted = mute_audio_chunk(
+        chunk,
+        (AudioRedactionInterval("spoken_pii", 0, 10, 0.9, "test", "government_id"),),
+    )
+
+    assert isinstance(muted.samples, bytes)
+    assert muted.pcm_format == "pcm16"
+    assert muted.normalized_samples()[0] == 0.0
+    assert muted.normalized_samples()[-1] == 0.5

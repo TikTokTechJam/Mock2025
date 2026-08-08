@@ -7,12 +7,13 @@ samples and transcript words remain in memory for the bounded processing call.
 
 from __future__ import annotations
 
+import struct
 from collections import deque
 from collections.abc import Sequence
 from concurrent.futures import Future, ThreadPoolExecutor, TimeoutError
 from dataclasses import dataclass
 from fractions import Fraction
-from math import isfinite
+from math import ceil, isfinite
 from time import monotonic
 from typing import Literal
 
@@ -26,6 +27,7 @@ from privastream_api.pipeline.spoken_pii import (
     detect_spoken_pii,
     normalize_redaction_intervals,
 )
+from privastream_api.privacy.text_pii import TextPiiRecognizer
 
 
 AudioProcessingStatus = Literal[
@@ -35,9 +37,29 @@ AudioProcessingStatus = Literal[
     "unsafe_timestamp_discontinuity",
     "unsafe_vad_failure",
     "unsafe_queue_overflow",
+    "unsafe_unclassified",
     "unsafe_transcription_failure",
     "unsafe_deadline",
 ]
+AudioReleaseStatus = Literal["safe", "blocked"]
+
+
+class _UnclassifiedAudioError(RuntimeError):
+    """A VAD-positive window produced no usable transcript timestamps."""
+
+
+@dataclass(frozen=True, slots=True)
+class AudioReleaseDecision:
+    """Safe-release watermark and processing lag for a source batch."""
+
+    status: AudioReleaseStatus
+    watermark_ms: int | None
+    lag_ms: int | None
+    reason: str | None = None
+
+    @property
+    def safe_to_release(self) -> bool:
+        return self.status == "safe"
 
 
 @dataclass(frozen=True, slots=True)
@@ -73,6 +95,69 @@ class SpeechSegment:
             channels=1,
             samples=self.samples,
         )
+
+
+def mute_audio_chunk(
+    chunk: AudioChunk,
+    intervals: Sequence[AudioRedactionInterval],
+) -> AudioChunk:
+    """Mute every source frame overlapping a canonical privacy interval.
+
+    The original chunk format and source timestamps are preserved. A frame is
+    muted when it overlaps an interval at all, which is conservative at chunk
+    and sample boundaries.
+    """
+
+    if not intervals:
+        return chunk
+    samples = list(chunk.normalized_samples())
+    for frame_index in range(chunk.frame_count):
+        frame_start_ms = Fraction(
+            chunk.start_timestamp_ms * chunk.sample_rate_hz + frame_index * 1000,
+            chunk.sample_rate_hz,
+        )
+        frame_end_ms = Fraction(
+            chunk.start_timestamp_ms * chunk.sample_rate_hz + (frame_index + 1) * 1000,
+            chunk.sample_rate_hz,
+        )
+        if not any(
+            frame_start_ms < interval.end_ms and frame_end_ms > interval.start_ms
+            for interval in intervals
+        ):
+            continue
+        sample_start = frame_index * chunk.channels
+        for channel in range(chunk.channels):
+            samples[sample_start + channel] = 0.0
+
+    encoded: bytes | tuple[float, ...]
+    normalized = tuple(samples)
+    if isinstance(chunk.samples, tuple):
+        encoded = normalized
+    elif chunk.pcm_format == "pcm16":
+        encoded = b"".join(
+            max(-32768, min(32767, round(max(-1.0, min(1.0, sample)) * 32768)))
+            .to_bytes(2, "little", signed=True)
+            for sample in normalized
+        )
+    else:
+        encoded = b"".join(struct.pack("<f", sample) for sample in normalized)
+    return AudioChunk(
+        start_timestamp_ms=chunk.start_timestamp_ms,
+        sample_rate_hz=chunk.sample_rate_hz,
+        channels=chunk.channels,
+        pcm_format=chunk.pcm_format,
+        samples=encoded,
+        sequence_id=chunk.sequence_id,
+    )
+
+
+def mute_audio_chunks(
+    chunks: Sequence[AudioChunk],
+    intervals: Sequence[AudioRedactionInterval],
+) -> tuple[AudioChunk, ...]:
+    """Apply one interval set independently across every source chunk."""
+
+    return tuple(mute_audio_chunk(chunk, intervals) for chunk in chunks)
 
 
 @dataclass(frozen=True, slots=True)
@@ -388,8 +473,27 @@ class AudioProcessingResult:
     speech_segments: tuple[SpeechSegment, ...] = ()
     transcripts: tuple[TimestampedTranscript, ...] = ()
     redaction_intervals: tuple[AudioRedactionInterval, ...] = ()
+    protected_chunks: tuple[AudioChunk, ...] = ()
+    release: AudioReleaseDecision = AudioReleaseDecision(
+        status="blocked",
+        watermark_ms=None,
+        lag_ms=None,
+        reason="audio decision unavailable",
+    )
     queue_depth: int = 0
     processing_elapsed_ms: int = 0
+
+    @property
+    def safe_to_release(self) -> bool:
+        return self.release.safe_to_release
+
+    @property
+    def release_watermark_ms(self) -> int | None:
+        return self.release.watermark_ms
+
+    @property
+    def release_lag_ms(self) -> int | None:
+        return self.release.lag_ms
 
 
 @dataclass(frozen=True, slots=True)
@@ -424,6 +528,7 @@ class AudioPipeline:
         transcriber: LocalTranscriber,
         config: AudioPipelineConfig | None = None,
         redaction: RedactionConfig | None = None,
+        text_recognizer: TextPiiRecognizer | None = None,
     ) -> None:
         self.config = config or AudioPipelineConfig()
         self.normalizer = AudioNormalizer(
@@ -432,6 +537,7 @@ class AudioPipeline:
         self.vad = vad
         self.transcriber = transcriber
         self.redaction = redaction or RedactionConfig()
+        self.text_recognizer = text_recognizer or TextPiiRecognizer()
 
     def process(self, chunks: Sequence[AudioChunk]) -> AudioProcessingResult:
         started = monotonic()
@@ -464,9 +570,12 @@ class AudioPipeline:
             )
 
         if not segments:
+            elapsed_ms = self._elapsed_ms(started)
             return AudioProcessingResult(
                 status="no_speech",
-                processing_elapsed_ms=self._elapsed_ms(started),
+                protected_chunks=source_chunks,
+                release=self._safe_release(source_chunks, elapsed_ms),
+                processing_elapsed_ms=elapsed_ms,
             )
         queued_duration_ms = sum(segment.duration_ms for segment in segments)
         if (
@@ -508,6 +617,14 @@ class AudioPipeline:
                         queue_depth=len(futures),
                         processing_elapsed_ms=self._elapsed_ms(started),
                     )
+                except _UnclassifiedAudioError:
+                    executor.shutdown(wait=False, cancel_futures=True)
+                    return AudioProcessingResult(
+                        status="unsafe_unclassified",
+                        speech_segments=tuple(segments),
+                        queue_depth=len(futures),
+                        processing_elapsed_ms=self._elapsed_ms(started),
+                    )
                 except Exception:
                     executor.shutdown(wait=False, cancel_futures=True)
                     return AudioProcessingResult(
@@ -527,13 +644,27 @@ class AudioPipeline:
                 queue_depth=len(futures),
                 processing_elapsed_ms=self._elapsed_ms(started),
             )
+        elapsed_ms = self._elapsed_ms(started)
+        try:
+            protected_chunks = mute_audio_chunks(source_chunks, intervals)
+        except Exception:
+            return AudioProcessingResult(
+                status="unsafe_input",
+                speech_segments=tuple(segments),
+                transcripts=tuple(transcripts),
+                redaction_intervals=tuple(intervals),
+                queue_depth=len(futures),
+                processing_elapsed_ms=elapsed_ms,
+            )
         return AudioProcessingResult(
             status="ok",
             speech_segments=tuple(segments),
             transcripts=tuple(transcripts),
             redaction_intervals=tuple(intervals),
+            protected_chunks=protected_chunks,
+            release=self._safe_release(source_chunks, elapsed_ms),
             queue_depth=len(futures),
-            processing_elapsed_ms=self._elapsed_ms(started),
+            processing_elapsed_ms=elapsed_ms,
         )
 
     def _process_segment(
@@ -548,6 +679,8 @@ class AudioPipeline:
             )
             if segment.start_timestamp_ms <= word.start_ms < word.end_ms <= segment.end_timestamp_ms
         )
+        if not words:
+            raise _UnclassifiedAudioError("speech window has no usable transcript")
         transcript = TimestampedTranscript(
             segment_sequence_id=segment.sequence_id,
             start_ms=segment.start_timestamp_ms,
@@ -555,7 +688,9 @@ class AudioPipeline:
             words=words,
         )
         intervals = normalize_redaction_intervals(
-            detect_spoken_pii(words), audio_segment, self.redaction
+            detect_spoken_pii(words, recognizer=self.text_recognizer),
+            audio_segment,
+            self.redaction,
         )
         return transcript, intervals
 
@@ -573,6 +708,26 @@ class AudioPipeline:
     @staticmethod
     def _elapsed_ms(started: float) -> int:
         return max(0, round((monotonic() - started) * 1000))
+
+    @staticmethod
+    def _safe_release(
+        chunks: Sequence[AudioChunk], processing_elapsed_ms: int
+    ) -> AudioReleaseDecision:
+        if not chunks:
+            return AudioReleaseDecision(
+                status="blocked",
+                watermark_ms=None,
+                lag_ms=None,
+                reason="no source audio",
+            )
+        source_start_ms = chunks[0].start_timestamp_ms
+        source_end_ms = ceil(chunks[-1].end_timestamp_ms)
+        source_duration_ms = max(0, source_end_ms - source_start_ms)
+        return AudioReleaseDecision(
+            status="safe",
+            watermark_ms=source_end_ms,
+            lag_ms=max(0, processing_elapsed_ms - source_duration_ms),
+        )
 
 
 def chunks_from_segment(

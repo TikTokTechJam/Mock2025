@@ -31,7 +31,10 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   lag, and behavior on accents, noise, overlap, and non-English speech remain
   Unverified. The current mitigation is explicit model/VAD configuration,
   bounded normalization and transcription queues, sanitized unsafe statuses,
-  no transcript logging, and a dependency-free energy-VAD baseline.
+  no transcript logging, source-chunk muting across interval boundaries, and a
+  dependency-free energy-VAD baseline. Shared-recognizer integration,
+  segment-only timestamp fallback, release watermark/lag, and chunk-boundary
+  protection still require an explicit runtime pass.
 
 - The shared text-PII recognizer has deterministic email/phone coverage and
   explicitly configured identity/payment formats, but postal-address and other

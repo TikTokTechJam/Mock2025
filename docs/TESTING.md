@@ -22,7 +22,12 @@ mock VAD/transcriber implementations to cover exact sample-derived end times,
 mono normalization and resampling, sequence/timestamp discontinuity, pre/post
 roll, bounded long-speech splitting, queue count/duration limits, transcription
 deadlines, explicit VAD/transcription failures, and sanitized outcomes. It must
-not load Faster-Whisper, Silero, real provider data, or personal audio.
+not load Faster-Whisper, Silero, real provider data, or personal audio. The
+production integration boundary should additionally cover injection of the
+shared text recognizer, segment-only transcript timestamp fallback, source-time
+interval mapping, muting across chunk boundaries for supported PCM formats, and
+safe/blocked release watermark decisions, including `unsafe_unclassified` when
+VAD-positive speech has no usable transcript timestamps.
 
 The browser media boundary should cover permission denial, successful local
 offer/answer and ICE exchange, camera/microphone track return, visible fixed

@@ -128,8 +128,8 @@ the shared engine.
 
 ### Current timestamped audio path
 
-The issue-8 audio path is transport-independent and feeds the same interfaces
-from the prerecorded runner that a future live transport can use:
+The timestamped audio path is transport-independent and feeds the same
+interfaces from the prerecorded runner that a future live transport can use:
 
 ```mermaid
 flowchart LR
@@ -138,8 +138,10 @@ flowchart LR
     C --> D[SpeechSegment]
     D --> E[Bounded transcription workers]
     E --> F[TimestampedTranscript]
-    F --> G[Spoken-PII interval normalizer]
+    F --> G[Shared TextPiiRecognizer]
     G --> H[AudioRedactionInterval]
+    H --> I[Source-chunk muter]
+    I --> J[Protected chunks + release decision]
 ```
 
 `AudioChunk.end_timestamp_ms` is derived from sample count, and normalized
@@ -147,9 +149,14 @@ chunks retain source start timestamps while converting to mono float32 at the
 configured model rate. `SpeechSegmenter` retains only configured pre-roll
 context, applies post-roll, and splits long speech at deterministic sample
 boundaries. The queue bounds segment count and duration; transcription deadline,
-VAD, input-timeline, and worker failures return explicit unsafe statuses. The
-pipeline keeps transcript words in an in-memory result for the local sink and
-does not log or persist them.
+VAD, unclassified speech, input-timeline, and worker failures return explicit
+unsafe statuses. The
+spoken adapter normalizes transcript tokens and maps the shared recognizer's
+spans back to source timestamps. The pipeline applies canonical intervals to the
+original chunks, including intervals that cross chunk boundaries, and returns a
+safe release watermark/lag only after protected chunks are produced. It keeps
+transcript words in an in-memory result for the local sink and does not log or
+persist them.
 
 ### Current browser loopback path
 
@@ -232,6 +239,9 @@ detector work:
 - `AudioRedactionInterval` represents a time-based spoken-PII redaction with
   millisecond start and end offsets, confidence, detector identity, and an
   optional reason.
+- `AudioReleaseDecision` reports whether the processed source batch is safe to
+  release, its source-timeline watermark, processing lag, and a safe reason
+  when blocked.
 - `AudioChunk` is the timestamped input envelope. It carries sequence identity,
   sample rate, channel count, PCM format, and sample buffer; its exact end time
   is derived from sample count rather than wall-clock processing time.
@@ -249,19 +259,23 @@ detector work:
   temporal retention, or rendering.
 - `AudioPiiDetector` accepts an `AudioSegment` and returns normalized
   `AudioRedactionInterval` values.
-- `SpokenPiiDetector` implements the audio detector boundary by composing a
-  bounded VAD, a local word-timestamp transcriber, structured phone/email
-  matching, configurable safety padding, and adjacent-interval merging.
+- `SpokenPiiDetector` implements the speech-specific bridge by composing a
+  bounded VAD, a local word-timestamp transcriber, spoken-token normalization,
+  the shared `TextPiiRecognizer`, configurable safety padding, and
+  adjacent-interval merging.
 - `AudioPipeline` owns ordered chunk validation, bounded transcription queue
-  limits, processing deadlines, and sanitized unsafe outcomes. It composes the
-  existing `VoiceActivityDetector` and `LocalTranscriber` interfaces rather
-  than coupling streaming policy to Faster-Whisper.
+  limits, processing deadlines, source-chunk muting, release watermark/lag, and
+  sanitized unsafe outcomes. It composes the existing
+  `VoiceActivityDetector` and `LocalTranscriber` interfaces rather than
+  coupling streaming policy to Faster-Whisper.
 - `EnergyVoiceActivityDetector` is the dependency-free baseline; the optional
   `SileroVoiceActivityDetector` uses the Silero adapter without changing the
   normalized contract. `FasterWhisperTranscriber` is loaded lazily so the API
   health process does not load an ML model.
-- The local renderer accepts PCM16 WAV input and mutes only normalized source
-  time intervals. It does not expose model-specific transcript output.
+- `mute_audio_chunk` and `mute_audio_chunks` apply canonical intervals to the
+  original PCM16 or float32 source chunks, conservatively muting any overlapping
+  frame while preserving format, sequence, and source timestamps. They do not
+  expose model-specific transcript output.
 
 The standalone plate/OCR adapters use a `FrameContext` containing source image
 data and `VideoFrame` metadata, then emit the same normalized result type. The

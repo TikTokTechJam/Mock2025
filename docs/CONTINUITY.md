@@ -27,7 +27,8 @@ transport, persistence, and E2E infrastructure remain absent.
 - The shared video engine has not received a dedicated orchestration or raster
   compositor verification pass.
 - The timestamped audio pipeline has not received a dedicated streaming,
-  model, or failure-injection verification pass.
+  model, or failure-injection verification pass. Shared-recognizer integration,
+  source-chunk muting, and release watermark behavior are also Unverified.
 - The standalone face module has not received a real-model or local-runner
   verification pass.
 
@@ -44,7 +45,7 @@ transport, persistence, and E2E infrastructure remain absent.
 | Standalone face enrollment and matching | Implemented | Unverified | Explicit consent, in-memory aggregate enrollment, conservative matching, normalized bystander regions, and deterministic model doubles; no real-model pass run. |
 | Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
 | Production plate adapter | Implemented | Unverified | Reuses source-frame plate inference and registers with the shared scheduler; no model or integration pass run. |
-| Timestamped audio pipeline and spoken-PII renderer | Implemented | Unverified | Bounded chunk normalization, VAD segmentation, transcription queue, interval mapping, and PCM16 muting; no streaming or model pass run. |
+| Timestamped audio pipeline and spoken-PII renderer | Implemented | Unverified | Bounded chunk normalization, VAD segmentation, shared text-PII interval mapping, source-chunk muting, and release watermark/lag; no streaming or model pass run. |
 | Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 
 ## Next Actions
@@ -54,7 +55,9 @@ transport, persistence, and E2E infrastructure remain absent.
 2. Request a dedicated video-engine verification pass with deterministic mock
    detectors, timeout/failure injection, and raster fixtures.
 3. Request a dedicated timestamped-audio verification pass with deterministic
-   chunks, mock VAD/transcription, queue overflow, deadline, and failure cases.
+   chunks, mock VAD/transcription, shared-recognizer integration,
+   chunk-boundary muting, release watermark, queue overflow, deadline, and
+   failure cases.
 4. Request a dedicated browser media verification pass with controlled camera
    and microphone permissions, including disconnect and failure scenarios.
 5. Request a dedicated face, visual, and audio verification pass with

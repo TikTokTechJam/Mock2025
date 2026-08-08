@@ -7,9 +7,11 @@ memory for one bounded audio-pipeline invocation. The normalizer and ring
 buffer retain only the configured media window, and the transcription queue is
 bounded by segment count and duration. It does not log transcript text,
 detected PII, raw samples, or provider/model errors, and writes only the
-explicitly requested muted audio output. Model caches and output files remain
-local operator-controlled artifacts outside the current product retention
-contract.
+explicitly requested muted audio output. The audio pipeline applies intervals
+to the original source chunks before returning a safe release decision; failed,
+late, or unclassified processing remains blocked. Model caches and output files
+remain local operator-controlled artifacts outside the current product
+retention contract.
 
 The browser media demo requests explicit camera and microphone permission,
 keeps capture and processed tracks in browser memory, and does not upload them

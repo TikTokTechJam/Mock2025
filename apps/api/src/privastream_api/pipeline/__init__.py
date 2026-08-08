@@ -8,12 +8,15 @@ from privastream_api.pipeline.audio import (
     AudioPipelineConfig,
     AudioProcessingResult,
     AudioProcessingStatus,
+    AudioReleaseDecision,
     SpeechSegment,
     SpeechSegmenter,
     SpeechSegmenterConfig,
     TimestampedTranscript,
     chunk_from_segment,
     chunks_from_segment,
+    mute_audio_chunk,
+    mute_audio_chunks,
 )
 
 from privastream_api.pipeline.video import (
@@ -39,6 +42,7 @@ __all__ = [
     "AudioPipelineConfig",
     "AudioProcessingResult",
     "AudioProcessingStatus",
+    "AudioReleaseDecision",
     "DetectorRun",
     "ProtectedVideoFrame",
     "RasterFrame",
@@ -55,6 +59,8 @@ __all__ = [
     "TimestampedTranscript",
     "chunk_from_segment",
     "chunks_from_segment",
+    "mute_audio_chunk",
+    "mute_audio_chunks",
     "merge_overlapping_regions",
     "normalize_regions",
 ]

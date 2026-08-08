@@ -165,6 +165,10 @@ normalized transcript words while retaining character-to-word offsets, sends
 the joined text to the shared recognizer, and maps each returned span back to
 the covered source-time words. The resulting intervals use
 `kind="spoken_pii"` and retain the matched category as the safe `reason` field.
+`pipeline/audio.py` injects this same recognizer into the production-shaped
+audio pipeline and applies the resulting intervals to source chunks; it does
+not maintain a second structured phone, email, identity, or payment pattern
+set.
 
 Speech/VAD/transcription failures remain audio-path failures. A recognizer
 failure must not be treated as a successful transcript with no sensitive

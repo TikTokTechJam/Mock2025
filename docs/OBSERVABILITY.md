@@ -24,11 +24,14 @@ to ordinary logs. Dependency/model logs are not currently normalized into the
 application observability contract.
 
 The timestamped audio pipeline keeps transcript words in its in-memory result
-sink and exposes only sanitized status, queue depth, processing duration, and
-redaction-interval count to callers. Timestamp discontinuity, VAD failure,
-queue overflow, transcription failure, and deadline lag are distinct unsafe
-statuses; raw audio, transcript text, PII values, and model errors are not
-included in those statuses.
+sink and exposes only sanitized status, queue depth, processing duration,
+redaction-interval count, protected-chunk count, and release status to callers.
+Successful results also expose a source-timeline release watermark and
+processing lag. Timestamp discontinuity, VAD failure, queue overflow,
+transcription failure, deadline lag, and unclassified speech are distinct unsafe
+statuses and block release. VAD-positive windows with no usable transcript are
+reported as `unsafe_unclassified`; raw audio, transcript text, PII values, and
+model errors are not included in these statuses.
 
 The standalone face CLI reports only processed-frame and protected-region
 counts. It does not report embeddings, enrollment images, face geometry, or
