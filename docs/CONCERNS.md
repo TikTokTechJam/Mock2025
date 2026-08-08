@@ -32,6 +32,13 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   Unverified. The current mitigation is explicit model/VAD configuration,
   bounded normalization and transcription queues, sanitized unsafe statuses,
   no transcript logging, and a dependency-free energy-VAD baseline.
+
+- The shared text-PII recognizer has deterministic email/phone coverage and
+  explicitly configured identity/payment formats, but postal-address and other
+  contextual categories have only a replaceable classifier boundary. No
+  contextual classifier is bundled by default, so language coverage and
+  contextual accuracy remain Unverified. A successful empty result must not be
+  used as evidence that unsupported contextual PII is absent.
 - The local demo has no fail-closed delivery boundary or creator review step.
   A muted output must not be treated as proof of complete privacy coverage.
 - The browser media loopback has not received a browser verification pass.
@@ -58,3 +65,9 @@ unprotected source preview.
   follow-up concerns. The current mitigation is a thin normalized adapter,
   exactly-once shared padding, explicit scheduler failures, and deterministic
 mocked integration coverage.
+- The standalone face module has not received a real-model verification pass.
+  InsightFace model-pack availability, ArcFace threshold calibration, pose and
+  lighting robustness, and local blur quality remain Unverified. The current
+  mitigation is explicit local-model configuration, deterministic model doubles,
+  conservative unknown/ambiguous protection, bounded enrollment samples, and no
+  embedding or raw-image logging.

@@ -15,6 +15,7 @@ sensitive content is redacted before delivery.
 | Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Timestamped audio ingestion and transcription pipeline | `privastream_api.pipeline.audio.AudioPipeline` | Normalizes source-timestamped chunks, emits bounded speech segments, transcribes through replaceable VAD/ASR interfaces, and returns explicit unsafe outcomes for discontinuity, overload, failure, or deadline lag. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
+| Standalone face enrollment and matching | `privastream_api.privacy.face` and `apps/api/scripts/face_demo.py` | Uses a local InsightFace/ArcFace adapter, explicit consented enrollment, in-memory creator matching, and conservative `face_bystander` regions for a local image or clip. | Implemented | Unverified |
 | Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
 
 The HTTP product surface does not accept media. The browser demo does not
@@ -51,8 +52,9 @@ engine is Implemented as an internal transport-independent primitive.
 
 ## Current non-goals
 
-Authentication, creator enrollment backend, product-surface media upload, server-side
-or production live transport, face detection integration, cross-modal
+Authentication, creator enrollment backend, user-facing creator enrollment,
+product-surface media upload, server-side or production live transport,
+production face-pipeline integration, cross-modal
 synchronization, cross-modal redaction policy, persistence, and production
 deployment are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
@@ -78,14 +80,17 @@ The MVP prioritizes predictable privacy behavior over broad or speculative PII d
 
 The MVP provides protection for the following supported PII categories:
 
-| Category          | Media                                 | MVP support                                               |
-| ----------------- | ------------------------------------- | --------------------------------------------------------- |
-| `face`            | Video                                 | Supported                                                 |
-| `license_plate`   | Video                                 | Supported                                                 |
-| `phone_number`    | Audio / transcript / OCR-derived text | Supported                                                 |
-| `email`           | Audio / transcript / OCR-derived text | Supported                                                 |
-| `address`         | Audio / transcript / OCR-derived text | Supported when reliably identifiable                      |
-| `identity_number` | Audio / transcript / OCR-derived text | Supported when matched by configured patterns/classifiers |
+| Category | Media | MVP support |
+| --- | --- | --- |
+| `face` | Video | Supported |
+| `face_bystander` | Video | Supported |
+| `license_plate` | Video | Supported |
+| `phone_number` | Audio / transcript / OCR-derived text | Supported by the deterministic structured recognizer |
+| `email` | Audio / transcript / OCR-derived text | Supported by the deterministic structured recognizer |
+| `postal_address` | Audio / transcript / OCR-derived text | Contextual classifier boundary only; not supported by the default recognizer |
+| `government_id` | Audio / transcript / OCR-derived text | Supported when matched by an explicitly configured format |
+| `payment_identifier` | Audio / transcript / OCR-derived text | Supported when matched by an explicitly configured format |
+| `custom_sensitive_text` | Detector output | Adapter or composite category; not directly matched by the default recognizer |
 
 The system does **not** claim to detect every occurrence of PII. Protection is limited to the configured detectors, models, patterns, and confidence thresholds.
 
@@ -128,19 +133,28 @@ The detector may use transcript, OCR, or another approved text extraction mechan
 
 The system does not guarantee detection of arbitrary or heavily obfuscated email addresses.
 
-### 2.5 Addresses
+### 2.5 Postal addresses
 
-Addresses are protected only when they can be reliably identified as addresses by the configured classifier or detector.
+Postal addresses are protected only when they can be reliably identified by an
+explicit contextual classifier or detector. The default shared text recognizer
+does not include an address model.
 
 Arbitrary geographic references, landmarks, place names, or incomplete location descriptions are not automatically considered PII.
 
 ### 2.6 Government and identity numbers
 
-Government/identity numbers are protected only when they match configured patterns and/or approved classifiers.
+Government/identity numbers are protected only when they match an explicitly
+configured `government_id` pattern or approved contextual classifier.
 
 Examples may include configured national identification, passport, driver's-license, or other government-issued identifier formats.
 
 The system must not assume that every numeric string is an identity number.
+
+### 2.7 Payment identifiers
+
+Payment identifiers are protected only when they match an explicitly configured
+`payment_identifier` pattern or approved contextual classifier. The system must
+not assume that every account-like or numeric string is a payment identifier.
 
 ---
 
@@ -207,11 +221,14 @@ The stable MVP taxonomy is:
 
 ```text
 face
+face_bystander
 license_plate
 phone_number
 email
-identity_number
-address
+postal_address
+government_id
+payment_identifier
+custom_sensitive_text
 ```
 
 New categories must be explicitly added to the shared taxonomy before detector implementations use them.

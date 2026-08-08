@@ -4,7 +4,7 @@ from privastream_api.privacy.vision.pii_classifier import classify_pii, normaliz
 def test_email_and_phone_are_classified() -> None:
     matches = classify_pii("Email: Owner@Example.com or call +65 8123 4567")
 
-    assert [match.kind for match in matches] == ["email", "phone"]
+    assert [match.category for match in matches] == ["email", "phone_number"]
 
 
 def test_benign_ocr_text_is_not_classified() -> None:

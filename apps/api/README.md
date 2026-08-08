@@ -3,17 +3,21 @@
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
 currently exposes only an unauthenticated process-health endpoint and contains
 the model-agnostic shared video orchestration path under
-`src/privastream_api/pipeline/video.py`, plus local-only visual-privacy and
-spoken-audio paths. Visual privacy is under
+`src/privastream_api/pipeline/video.py`, plus local-only visual-privacy,
+spoken-audio, and face-detector paths. Visual privacy is under
 `src/privastream_api/privacy/vision`, with image/video processing through
 `scripts/vision_demo.py`. The completed plate detector also has a thin
 `PlateVideoDetector` registration path for the shared scheduler; it returns
 source-frame geometry without applying standalone padding or cadence. Spoken PII
 is under
 `src/privastream_api/pipeline/spoken_pii.py`, with bounded PCM16 WAV processing.
-Neither path is an API route or persists raw media or model output. Product
-surface media ingestion, redaction integration, persistence, creator controls,
-and real-time transport are planned and are not implemented.
+The face-specific path under `src/privastream_api/privacy/face` provides
+standalone InsightFace/ArcFace detection, consented creator enrollment, and
+conservative creator-vs-bystander matching through `scripts/face_demo.py`.
+These detector paths are not API routes and do not persist raw media or model
+output. Product-surface media ingestion, redaction integration, durable
+enrollment persistence,
+creator controls, and real-time transport are planned and are not implemented.
 
 ## Prerequisites
 
@@ -62,12 +66,18 @@ without importing detector implementations. `src/privastream_api/privacy/vision`
 contains independent plate and OCR/PII adapters that emit normalized regions.
 `PlateVideoDetector` and `register_plate_detector` bridge the plate
 implementation into the shared video scheduler without importing model-specific
-code into the orchestrator.
+code into the orchestrator. `src/privastream_api/privacy/face` contains the
+independent face model adapter, creator enrollment store, matcher, and
+bystander-region detector. It does not apply production padding or temporal
+composition.
 `src/privastream_api/pipeline/audio.py` contains the timestamped chunk
 normalizer, bounded ring-buffer segmenter, transcription queue, explicit unsafe
 outcomes, and in-memory timestamped transcript sink. It composes the VAD and
 transcriber interfaces from `spoken_pii.py`; the only current HTTP route is
 `GET /health`.
+`src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
+transcription, PII interval, and PCM16 renderer path. The only current HTTP
+route is `GET /health`.
 
 Run the spoken-PII local demo from the repository root:
 
@@ -114,3 +124,17 @@ file:
 uv sync --extra vision
 uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
 ```
+
+## Standalone face demo
+
+Install the optional local InsightFace/ArcFace path and run the image/video
+runner:
+
+```bash
+uv sync --extra face
+uv run python scripts/face_demo.py --input demo.mp4 --output protected.mp4 --model-root models/insightface
+```
+
+Add `--enrollment creator.jpg --consent` for explicit creator enrollment. See
+`docs/PRIVACY_FACE.md` for the matching policy, lifecycle rules, local model
+requirements, and limitations.

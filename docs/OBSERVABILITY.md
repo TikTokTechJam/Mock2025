@@ -30,6 +30,11 @@ queue overflow, transcription failure, and deadline lag are distinct unsafe
 statuses; raw audio, transcript text, PII values, and model errors are not
 included in those statuses.
 
+The standalone face CLI reports only processed-frame and protected-region
+counts. It does not report embeddings, enrollment images, face geometry, or
+model response payloads. Face-model and threshold behavior remain a local
+operator concern until a product diagnostics contract is approved.
+
 The reusable browser media client exposes session state, the latest source-clock
 timestamp, the bounded pending-frame value, and processor or disconnect errors
 in the page. It does not log camera frames, audio samples, or raw media

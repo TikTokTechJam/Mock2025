@@ -23,7 +23,7 @@ verification are Unverified.
 | Plate detector | `UltralyticsPlateDetector` using a local YOLO-family weight file | `PlateModel.predict` |
 | Production plate adapter | `PlateVideoDetector` and `register_plate_detector` | `FrameImageProvider` and #4 scheduler settings |
 | OCR engine | `EasyOcrEngine` by default | `OcrEngine.read` |
-| PII classifier | Deterministic email and phone recognizers | `classify_pii` |
+| Shared text-PII recognizer | Shared normalized text-PII service used by OCR and spoken paths; detailed contract is in [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md) | `privastream_api.privacy.text_pii` |
 | Composition service | `VisionPrivacyService` concatenates independent results | `VisualPrivacyDetector.detect` |
 
 The default OCR language is English (`en`). Additional EasyOCR language codes
@@ -62,21 +62,20 @@ The adapter accepts an injectable `FrameImageProvider` because the canonical
 
 `OcrEngine` returns in-memory OCR blocks containing only text, polygon, and
 confidence. The default EasyOCR adapter is lazy and is never initialized at
-module import time. Before matching, the classifier applies Unicode NFKC
-normalization, case folding, whitespace collapsing, and limited OCR punctuation
-cleanup.
+module import time. Visual OCR normalization applies Unicode NFKC normalization,
+case folding, whitespace collapsing, and limited OCR punctuation cleanup before
+calling the shared `TextPiiRecognizer`. Spoken-transcript normalization remains
+owned by the spoken path; both paths then consume the same recognizer service.
+The shared contract, taxonomy, configuration, and failure semantics are owned
+by [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md).
 
-The MVP recognizes:
-
-- email addresses; and
-- phone-like numbers containing 8 to 15 digits, with common separators and an
-  optional country-code prefix.
-
-Benign OCR text is not redacted automatically. If a block contains sensitive
-content and character-to-sub-box mapping is unavailable, the whole block is
-returned as a privacy region. A block containing multiple PII kinds is emitted
-as `kind="text"` so the compositor can apply the privacy action without making
-a false precision claim. Raw OCR text is never written to application output.
+Benign OCR text, dates, prices, and short/random numeric strings are not
+redacted automatically. If a block contains sensitive content and
+character-to-sub-box mapping is unavailable, the whole block is returned as a
+privacy region. A block containing multiple PII categories is emitted as
+`kind="custom_sensitive_text"` so the compositor can apply the privacy action
+without making a false precision claim. Raw OCR text and matched values are
+never written to application output.
 
 The default OCR threshold is `0.4`, cadence is every 5 frames, and the latest
 regions may be reused for 2 subsequent frames. Plate cadence, OCR cadence,
@@ -109,8 +108,10 @@ reports frame and region counts only; it does not print recognized text.
   HTTP media ingestion, or the final fail-closed publication decision. Shared
   temporal coordination and composition are owned by the video engine; the
   production plate adapter only registers the detector and returns regions.
-- OCR/model failures surface as detector errors and are not converted to an
-  empty result. A caller integrating this module must apply the platform's
-  fail-closed policy before releasing output.
+- OCR/model or contextual-recognizer failures surface as explicit detector or
+  text-recognizer errors and are not converted to an empty result. A caller
+  integrating this module must apply the platform's fail-closed policy before
+  releasing output; see [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md) for the
+  shared error contract.
 - Unit tests use deterministic model/OCR doubles. Real-model accuracy,
   language coverage, latency, and output quality remain Unverified.

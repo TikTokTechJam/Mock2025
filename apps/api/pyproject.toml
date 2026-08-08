@@ -8,6 +8,11 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
+face = [
+    "insightface>=0.7.3,<1",
+    "onnxruntime>=1.18,<2",
+    "opencv-python-headless>=4.10,<5",
+]
 vision = [
     "easyocr>=1.7.2,<2",
     "opencv-python-headless>=4.10,<5",

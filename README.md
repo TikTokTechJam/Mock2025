@@ -9,12 +9,12 @@ The current repository contains the web and API foundation, a creator privacy
 console shell backed by typed local mocks, a reusable browser-local WebRTC media
 loopback with deterministic mock processing, normalized detector contracts,
 shared model-agnostic video orchestrator/compositor, the production plate-detector
-adapter, timestamped audio ingestion/transcription pipeline,
-standalone license-plate/OCR visual-privacy and spoken-PII detector/renderer
-modules, and a local PostgreSQL-backed Docker Compose topology. HTTP media
-ingestion, backend creator operations, server-side or production transport,
-cross-modal redaction policy, persistence, and creator controls are planned and
-are not implemented yet.
+adapter, timestamped audio ingestion/transcription pipeline, standalone face
+enrollment/matching, standalone license-plate/OCR visual-privacy and spoken-PII
+detector/renderer modules, and a local PostgreSQL-backed Docker Compose
+topology. HTTP media ingestion, backend creator operations, server-side or
+production transport, cross-modal redaction policy, persistence, and creator
+controls are planned and are not implemented yet.
 
 ## Repository layout
 
@@ -64,7 +64,15 @@ persist raw audio or transcript text. Server-side transport, persistence,
 backend creator operations, external/background worker processes, and E2E
 infrastructure remain unimplemented.
 
+The API also contains a standalone local face demo. It requires the optional
+face dependencies and a local InsightFace model pack:
+
+```bash
+uv sync --project apps/api --extra face
+uv run --project apps/api python apps/api/scripts/face_demo.py --input demo.mp4 --output protected.mp4 --model-root models/insightface
+```
+
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and
-local commands. See [Visual Privacy](docs/PRIVACY_VISION.md) for the standalone
-plate/OCR module.
+local commands. See [Visual Privacy](docs/PRIVACY_VISION.md) and
+[Face Privacy](docs/PRIVACY_FACE.md) for the standalone detector modules.

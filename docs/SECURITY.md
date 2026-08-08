@@ -35,6 +35,19 @@ adapter validates the source-image boundary, emits only normalized plate
 geometry, and preserves unavailable or execution failures for the scheduler
 rather than converting them to empty detections.
 
+The standalone face module requires explicit creator consent before enrollment,
+keeps only one aggregate embedding in the in-memory hackathon store while the
+enrollment is active, and supports replacement/deletion. Enrollment images are
+not stored by the service, and face embeddings are not present in status,
+runner summaries, or ordinary representations. The local runner is not an
+authenticated product boundary.
+
+The shared text-PII recognizer keeps normalized text and transcript/OCR spans in
+memory only for the active call. It returns categories, confidence, character
+offsets, and non-sensitive source identifiers; it does not return matched text
+or log/persist classifier payloads. Its detailed contract and modality handoff
+are documented in [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md).
+
 ## Detailed security and privacy specification
 
 ## 1. Purpose
@@ -302,11 +315,14 @@ The MVP taxonomy is:
 
 ```text
 face
+face_bystander
 license_plate
 phone_number
 email
-identity_number
-address
+postal_address
+government_id
+payment_identifier
+custom_sensitive_text
 ```
 
 Detector-specific categories are not allowed unless the shared taxonomy is updated.

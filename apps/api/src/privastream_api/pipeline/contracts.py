@@ -13,7 +13,17 @@ from fractions import Fraction
 from math import isfinite
 from typing import Literal, Protocol
 
-VideoDetectionKind = Literal["face", "license_plate", "text", "email", "phone"]
+VideoDetectionKind = Literal[
+    "face",
+    "face_bystander",
+    "license_plate",
+    "email",
+    "phone_number",
+    "postal_address",
+    "government_id",
+    "payment_identifier",
+    "custom_sensitive_text",
+]
 AudioDetectionKind = Literal["spoken_pii"]
 AudioPcmFormat = Literal["pcm16", "float32"]
 
@@ -243,7 +253,7 @@ class AudioRedactionInterval:
 class FaceDetector(Protocol):
     """Detect non-whitelisted or otherwise sensitive faces in a video frame."""
 
-    kind: Literal["face"]
+    kind: Literal["face", "face_bystander"]
 
     def detect(self, frame: VideoFrame) -> Sequence[VideoRegionDetection]:
         """Return normalized face regions for ``frame``."""
@@ -261,7 +271,14 @@ class LicensePlateDetector(Protocol):
 class OcrDetector(Protocol):
     """Detect sensitive on-screen text regions in a video frame."""
 
-    kind: Literal["text"]
+    kind: Literal[
+        "email",
+        "phone_number",
+        "postal_address",
+        "government_id",
+        "payment_identifier",
+        "custom_sensitive_text",
+    ]
 
     def detect(self, frame: VideoFrame) -> Sequence[VideoRegionDetection]:
         """Return normalized OCR regions for ``frame``."""
