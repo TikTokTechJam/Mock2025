@@ -11,6 +11,8 @@ sensitive content is redacted before delivery.
 | Creator privacy console shell | `GET /` on the web app | Presents mock source selection, permission UX, enrollment consent/status controls, privacy capability toggles, readiness, safety, session states, and a protected-output boundary without exposing raw diagnostics. | Implemented | Unverified |
 | Browser media loopback client | `apps/web/src/lib/browser-media-session.ts` (not directly exposed by `/`) | Provides the reusable local WebRTC loopback and deterministic mock video/audio processing client for protected stream integration. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
+| Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
+| Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
 | Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
 
@@ -30,9 +32,10 @@ or transport media as product state.
 
 The creator-console shell, mock policy selection, readiness presentation, and
 protected-preview boundary are Implemented against typed local façades. Real
-device acquisition, backend readiness and safety semantics, detector
-processing, temporal coordination, and protected delivery beyond the local
-mock/loopback paths are Planned.
+device acquisition, backend readiness and safety semantics, cross-modal
+coordination, detector processing, temporal coordination, and protected
+delivery beyond the local mock/loopback paths are Planned. The shared video
+engine is Implemented as an internal transport-independent primitive.
 
 ## Privacy and safety boundaries
 
@@ -48,10 +51,12 @@ mock/loopback paths are Planned.
 
 Authentication, creator enrollment backend, product-surface media upload, server-side
 or production live transport, face detection integration, cross-modal
-synchronization, shared redaction compositing, persistence, and production
-deployment are not implemented here. The browser loopback and standalone demos
-are local or best-effort paths, and the creator console uses typed mock façades;
-none are production delivery capabilities.
+synchronization, cross-modal redaction policy, persistence, and production
+deployment are not implemented here. The shared video compositor is an
+internal rendering primitive and does not decide whether output is safe to
+publish. The browser loopback and standalone demos are local or best-effort
+paths, and the creator console uses typed mock façades; none are production
+delivery capabilities.
 
 ## Detailed privacy protection specification
 

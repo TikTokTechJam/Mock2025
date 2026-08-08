@@ -35,6 +35,13 @@ availability. These values are local UI signals and are not backend readiness,
 authorization, audit events, or persisted media state. The console does not show
 raw enrollment samples, transcripts, PII values, or embeddings.
 
+The shared video engine exposes aggregate per-stage detector calls, success,
+skip, timeout, failure, duration, queue wait, pending-frame, and processing
+measurements through `VideoMetrics.snapshot()`. These metrics contain no frame
+payloads, coordinates, OCR text, plate values, or raw detector errors. The
+production plate adapter uses the same sanitized success and failure statuses;
+it does not add model-specific payload logging.
+
 ## Verification
 
 The API health, browser session, and creator-console signals are Unverified; no

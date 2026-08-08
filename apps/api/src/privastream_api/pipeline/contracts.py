@@ -16,6 +16,14 @@ VideoDetectionKind = Literal["face", "license_plate", "text", "email", "phone"]
 AudioDetectionKind = Literal["spoken_pii"]
 
 
+class VideoDetectorUnavailable(RuntimeError):
+    """A configured video detector cannot run in the current environment."""
+
+
+class VideoDetectorExecutionError(RuntimeError):
+    """A video detector failed while processing a frame."""
+
+
 def _require_non_negative(name: str, value: int) -> None:
     if value < 0:
         raise ValueError(f"{name} must be non-negative")
@@ -28,12 +36,13 @@ def _require_unit_interval(name: str, value: float) -> None:
 
 @dataclass(frozen=True, slots=True)
 class VideoFrame:
-    """Minimal frame metadata supplied to a video detector."""
+    """Canonical source frame metadata and optional media payload."""
 
     width: int
     height: int
     timestamp_ms: int
     frame_id: str | None = None
+    payload: object | None = None
 
     def __post_init__(self) -> None:
         if self.width <= 0 or self.height <= 0:

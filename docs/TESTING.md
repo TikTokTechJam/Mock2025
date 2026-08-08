@@ -32,6 +32,19 @@ protected-output type separation, and sanitized diagnostics. These checks must
 use deterministic mock clients and must not require real camera, microphone,
 backend, ML, or biometric fixtures.
 
+The shared video-engine unit boundary should use deterministic mock detectors and
+raster fixtures to cover cadence skips, per-detector deadlines, bounded
+concurrency, ordered release, explicit timeout/unavailable/invalid/error states,
+TTL persistence and expiry, coordinate padding/clamping, overlap merging, and
+blur/pixelate/cover/full-frame cover primitives. It must not load face, plate,
+OCR, or transport implementations.
+
+The production plate-adapter boundary should use a mocked #19 model and a
+deterministic source-image provider to cover source-frame geometry, registration
+with `VideoOrchestrator`, exactly-once production padding, successful zero
+detections, and propagation of unavailable or execution failures. It must not
+require downloaded weights or real media.
+
 ## Isolation
 
 Use dedicated data, resources, credentials, and controlled dependencies for tests that can mutate state or contact external systems. Reset safely and prevent accidental actions outside the test boundary.

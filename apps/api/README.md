@@ -2,9 +2,14 @@
 
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
 currently exposes only an unauthenticated process-health endpoint and contains
-two local-only standalone detector paths: visual privacy under
+the model-agnostic shared video orchestration path under
+`src/privastream_api/pipeline/video.py`, plus two local-only standalone detector
+paths: visual privacy under
 `src/privastream_api/privacy/vision`, with image/video processing through
-`scripts/vision_demo.py`, and spoken PII under
+`scripts/vision_demo.py`. The completed plate detector also has a thin
+`PlateVideoDetector` registration path for the shared scheduler; it returns
+source-frame geometry without applying standalone padding or cadence. Spoken PII
+is under
 `src/privastream_api/pipeline/spoken_pii.py`, with bounded PCM16 WAV processing.
 Neither path is an API route or persists raw media or model output. Product
 surface media ingestion, redaction integration, persistence, creator controls,
@@ -51,8 +56,13 @@ uv run mypy src
 `src/privastream_api/api/router.py` composes routes, keeping future feature routes
 outside the application entry point. `src/privastream_api/pipeline/contracts.py`
 defines normalized detector interfaces, source-timestamped PCM segments, and
-model-neutral detection results. `src/privastream_api/privacy/vision` contains
-independent plate and OCR/PII adapters that emit normalized regions.
+model-neutral detection results. `src/privastream_api/pipeline/video.py`
+validates, schedules, temporally retains, and composes normalized video regions
+without importing detector implementations. `src/privastream_api/privacy/vision`
+contains independent plate and OCR/PII adapters that emit normalized regions.
+`PlateVideoDetector` and `register_plate_detector` bridge the plate
+implementation into the shared video scheduler without importing model-specific
+code into the orchestrator.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The only current HTTP
 route is `GET /health`.
