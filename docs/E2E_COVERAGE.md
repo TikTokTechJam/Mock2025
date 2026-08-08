@@ -11,12 +11,16 @@ For each journey, record the starting state, actions, expected visible results, 
 The standalone spoken-PII demo journey is Implemented but Unverified: bounded
 PCM16 input → source-timestamped `AudioChunk` → mono/model-rate normalization →
 bounded VAD ring buffer and speech segments → local word-timestamp transcription
-→ phone/email interval normalization → padded/merged intervals → muted PCM16
-output.
+→ shared text-PII recognition and source-timestamp mapping → padded/merged
+intervals → protected source chunks, including chunk-boundary muting → safe
+release watermark/lag.
 The coverage target includes silence-only input, a representative phone number,
 a representative email address, source timestamps offset from zero, invalid
 audio, timestamp discontinuity, queue overflow, deadline lag, and a
-model/dependency failure without logging transcript text.
+model/dependency failure without logging transcript text. Segment-only ASR
+timestamps, PCM format preservation, and blocked release for unsafe outcomes
+are also part of this integration boundary, including `unsafe_unclassified`
+when VAD-positive speech has no usable transcript timestamps.
 
 The browser media loopback journey is Implemented but Unverified: local camera /
 microphone permission → WebRTC offer/answer and ICE exchange → returned remote

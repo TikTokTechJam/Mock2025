@@ -269,6 +269,32 @@ class FasterWhisperTranscriber:
                             confidence=float(word.probability),
                         )
                     )
+                if not transcribed_segment.words:
+                    segment_text = str(getattr(transcribed_segment, "text", "")).strip()
+                    if segment_text:
+                        segment_start = window.start_ms + round(
+                            float(getattr(transcribed_segment, "start", 0)) * 1000
+                        )
+                        segment_end = window.start_ms + round(
+                            float(
+                                getattr(
+                                    transcribed_segment,
+                                    "end",
+                                    (window.end_ms - window.start_ms) / 1000,
+                                )
+                            )
+                            * 1000
+                        )
+                        segment_start = max(window.start_ms, segment_start)
+                        segment_end = min(window.end_ms, segment_end)
+                        if segment_end > segment_start:
+                            words.append(
+                                TranscriptWord(
+                                    text=segment_text,
+                                    start_ms=segment_start,
+                                    end_ms=segment_end,
+                                )
+                            )
         return tuple(words)
 
 
@@ -285,10 +311,10 @@ _DIGIT_WORDS = {
     "eight": "8",
     "nine": "9",
 }
+
+
 def _normalize_spoken_token(token: str) -> str:
-    normalized = token.strip().lower()
-    if normalized in _DIGIT_WORDS:
-        return _DIGIT_WORDS[normalized]
+    normalized = token.strip().lower().strip(" ,;:!?")
     replacements = {
         "at": "@",
         "dot": ".",
@@ -298,7 +324,10 @@ def _normalize_spoken_token(token: str) -> str:
         "hyphen": "-",
         "plus": "+",
     }
-    return replacements.get(normalized, normalized.strip(" ,;:!?"))
+    return " ".join(
+        _DIGIT_WORDS.get(piece, replacements.get(piece, piece.strip(" ,;:!?")))
+        for piece in normalized.split()
+    )
 
 
 def _find_interval(

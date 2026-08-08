@@ -103,10 +103,15 @@ energy baseline, and the default safety padding is 250 milliseconds. Use
 settings. The first model-backed run may download model artifacts to the local
 model cache.
 
+The pipeline applies canonical spoken-PII intervals to the original source
+chunks before returning protected chunks. A safe release watermark and lag are
+available only after this step; blocked or unsafe results must not be published
+as protected output by a future transport boundary.
+
 The audio pipeline fails closed with explicit local statuses for timestamp
-discontinuity, invalid input, VAD failure, queue overflow, transcription
-failure, or processing deadline lag. None is represented as an empty successful
-redaction result.
+discontinuity, invalid input, VAD failure, queue overflow, unclassified speech,
+transcription failure, or processing deadline lag. None is represented as an
+empty successful redaction result.
 
 ## Availability and verification
 

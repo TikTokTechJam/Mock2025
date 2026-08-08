@@ -72,8 +72,9 @@ bystander-region detector. It does not apply production padding or temporal
 composition.
 `src/privastream_api/pipeline/audio.py` contains the timestamped chunk
 normalizer, bounded ring-buffer segmenter, transcription queue, explicit unsafe
-outcomes, and in-memory timestamped transcript sink. It composes the VAD and
-transcriber interfaces from `spoken_pii.py`; the only current HTTP route is
+outcomes, in-memory timestamped transcript sink, shared text-PII recognizer
+bridge, source-chunk muting, and safe-release watermark. It composes the VAD
+and transcriber interfaces from `spoken_pii.py`; the only current HTTP route is
 `GET /health`.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The only current HTTP

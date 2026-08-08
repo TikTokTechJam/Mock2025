@@ -50,8 +50,9 @@ separately in `apps/web/README.md`.
 
 The API also contains a standalone local spoken-PII demo backed by the
 timestamped chunk normalizer, bounded speech segmenter, and transcription
-pipeline. It is not exposed as an API route and requires the optional audio
-dependencies:
+pipeline. It applies shared text-PII intervals to source chunks and blocks
+unsafe release; it is not exposed as an API route and requires the optional
+audio dependencies:
 
 ```bash
 uv sync --project apps/api --extra audio
