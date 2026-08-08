@@ -16,6 +16,13 @@ Define authentication, session or token handling, ownership checks, role checks,
 
 Keep credentials, tokens, private keys, connection strings, and unnecessary personal data out of code, logs, examples, artifacts, and errors. Define storage, rotation, redaction, and access rules.
 
+The standalone spoken-PII demo keeps PCM samples and transcript words in
+process memory for one bounded invocation. The module does not log transcript
+text, detected PII, or raw samples, and the renderer writes only the explicitly
+requested muted audio output. Model caches and output files remain local
+operator-controlled artifacts and are outside the current product retention
+contract.
+
 ## Abuse Controls
 
 Bound expensive operations, input size, rule complexity, retries, concurrency, and externally visible actions. Rate-limit sensitive actions and make important changes auditable.
@@ -27,3 +34,7 @@ Validate provider responses, isolate provider failures, avoid exposing raw provi
 ## Claims
 
 Do not claim guarantees about delivery, prediction, financial outcomes, availability, or historical performance. Mark uncertainty and verification boundaries clearly.
+
+Spoken-PII detection is best-effort model and pattern matching. A detected
+interval is not proof that all sensitive speech was found; the current demo has
+no fail-closed delivery boundary or creator review workflow.

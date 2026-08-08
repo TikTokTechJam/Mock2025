@@ -13,6 +13,10 @@ vision = [
     "opencv-python-headless>=4.10,<5",
     "ultralytics>=8.3,<9",
 ]
+audio = [
+    "faster-whisper==1.2.1",
+    "silero-vad==6.2.1",
+]
 
 [dependency-groups]
 dev = [

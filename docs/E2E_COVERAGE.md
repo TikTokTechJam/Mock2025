@@ -8,6 +8,13 @@ Map complete user and system journeys across the real boundaries that the isolat
 
 For each journey, record the starting state, actions, expected visible results, API or worker effects, ownership checks, error paths, recovery path, and current verification status.
 
+The standalone spoken-PII demo journey is Implemented but Unverified: bounded
+PCM16 input → VAD speech windows → local word-timestamp transcription → phone /
+email interval normalization → padded/merged intervals → muted PCM16 output.
+The coverage target includes silence-only input, a representative phone number,
+a representative email address, source timestamps offset from zero, invalid
+audio, and a model/dependency failure without logging transcript text.
+
 ## Environment
 
 The end-to-end environment must be isolated from normal development data and external side effects. Define deterministic fixtures, controlled dependencies, reset behavior, startup gates, teardown, and resource names without exposing credentials.

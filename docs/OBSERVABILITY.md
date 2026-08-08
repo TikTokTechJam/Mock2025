@@ -18,6 +18,11 @@ Use docker compose logs for local process output. The scaffold does not yet
 define structured application logs, correlation identifiers, persistent status,
 metrics, queue measurements, or incident automation.
 
+The standalone spoken-PII CLI reports only the number of output redaction
+intervals. It does not write raw transcript text, PII values, or source audio
+to ordinary logs. Dependency/model logs are not currently normalized into the
+application observability contract.
+
 ## Verification
 
 The health signals are Unverified; no runtime verification pass was run.

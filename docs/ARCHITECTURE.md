@@ -9,9 +9,9 @@ process boundaries, dependencies, and data flows.
 
 - `apps/web` is the Next.js App Router browser and creator-UI foundation.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
-  and contains the dependency-free media contracts in
-  `src/privastream_api/pipeline/contracts.py`, plus standalone visual-privacy
-  adapters under `src/privastream_api/privacy/vision`.
+  and contains normalized media contracts, standalone visual-privacy adapters
+  under `src/privastream_api/privacy/vision`, and the in-process spoken-PII demo
+  under `src/privastream_api/pipeline/`.
 - `compose.yaml` defines the local development topology:
   - `web` serves the Next.js development server on port 3000;
   - `api` serves FastAPI on port 8000; and
@@ -19,10 +19,11 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-No shared redaction compositor, real-time media transport, persistence layer,
-worker, provider integration, or E2E runtime boundary exists yet. The
-standalone plate/OCR module is implemented but is not exposed through the HTTP
-product surface.
+The standalone plate/OCR module, spoken-PII detector, and local PCM16 renderer
+are implemented inside the API package but are not exposed through the HTTP
+product surface. No shared or cross-modal redaction compositor, real-time media
+transport, persistence layer, worker, provider integration, or E2E runtime
+boundary exists yet.
 
 ## Runtime boundaries
 
@@ -30,7 +31,7 @@ product surface.
 | --- | --- | --- |
 | Browser/creator UI | Accept future creator controls and show protected output. The current page is a static foundation. | Implemented foundation; media controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. Standalone plate/OCR adapters are available; the product pipeline is not. | Implemented module; product pipeline Planned |
+| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. Standalone plate/OCR and spoken-PII adapters are available; the product pipeline is not. | Implemented modules; product pipeline Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. | Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -68,8 +69,9 @@ The intended flow is:
 5. A future compositor creates the protected output for the selected transport.
 
 The browser foundation, API process-health route, local Compose topology, and
-standalone plate/OCR path are present. Shared orchestration, redaction output,
-and transport integration are Planned.
+standalone plate/OCR and spoken-PII audio paths are present. Shared orchestration,
+cross-modal policy, redaction output, live transport, compositor, and protected
+delivery remain Planned.
 
 ## Detector and redaction contracts
 
@@ -87,6 +89,15 @@ detector work:
   `VideoFrame` and return normalized `VideoRegionDetection` values.
 - `AudioPiiDetector` accepts an `AudioSegment` and returns normalized
   `AudioRedactionInterval` values.
+- `SpokenPiiDetector` implements the audio detector boundary by composing a
+  bounded VAD, a local word-timestamp transcriber, structured phone/email
+  matching, configurable safety padding, and adjacent-interval merging.
+- `EnergyVoiceActivityDetector` is the dependency-free baseline; the optional
+  `SileroVoiceActivityDetector` uses the Silero adapter without changing the
+  normalized contract. `FasterWhisperTranscriber` is loaded lazily so the API
+  health process does not load an ML model.
+- The local renderer accepts PCM16 WAV input and mutes only normalized source
+  time intervals. It does not expose model-specific transcript output.
 
 The standalone plate/OCR adapters use a `FrameContext` containing source image
 data and `VideoFrame` metadata, then emit the same normalized result type.
@@ -110,6 +121,7 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation, normalized contracts, and standalone visual-privacy adapters are
-Implemented in source. Runtime verification is Unverified; no Compose startup,
-real-model pass, or application verification was run.
+The foundation, normalized contracts, standalone visual-privacy adapters,
+spoken-PII detector baseline, and local renderer are Implemented in source.
+Runtime verification is Unverified; the audio and visual demos, real-model
+inference, and application verification have not been exercised.
