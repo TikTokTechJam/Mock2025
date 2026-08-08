@@ -63,6 +63,13 @@ deterministic source-image provider to cover source-frame geometry, registration
 with `VideoOrchestrator`, exactly-once production padding, successful zero
 detections, and propagation of unavailable or execution failures. It must not
 require downloaded weights or real media.
+
+The production OCR/visual-PII adapter boundary should use mocked #19 OCR blocks,
+the shared #32 recognizer, and a deterministic source-image provider to cover
+OCR normalization, sensitive-span-to-block mapping, benign text, registration
+with `VideoOrchestrator`, exactly-once production padding, successful zero
+detections, and propagation of OCR or recognizer failures. It must not require
+downloaded OCR models or real media.
 The standalone face unit boundary should use deterministic model doubles to
 cover explicit consent, zero-face and multi-face enrollment rejection,
 normalization and aggregate replacement, deletion, creator matches, unknown or

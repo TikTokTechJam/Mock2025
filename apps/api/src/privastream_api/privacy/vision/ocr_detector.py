@@ -2,12 +2,13 @@
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from math import isfinite
 from typing import Any, Protocol
 
-from privastream_api.pipeline.contracts import VideoRegionDetection
+from privastream_api.pipeline.contracts import VideoFrame, VideoRegionDetection
+from privastream_api.pipeline.video import VideoOrchestrator
 from privastream_api.privacy.text_pii import (
     PiiSpan,
     TextPiiRecognizer,
@@ -17,12 +18,14 @@ from privastream_api.privacy.text_pii import (
 )
 from privastream_api.privacy.vision.pii_classifier import normalize_ocr_text
 from privastream_api.privacy.vision.service import (
+    DetectorError,
     DetectorExecutionError,
     DetectorUnavailableError,
     FrameContext,
 )
 
 Point = tuple[float, float]
+FrameImageProvider = Callable[[VideoFrame], Any]
 
 
 @dataclass(frozen=True, slots=True)
@@ -70,6 +73,27 @@ class OcrDetectorConfig:
             raise ValueError("region_ttl_frames must be non-negative")
         if not self.languages or any(not language.strip() for language in self.languages):
             raise ValueError("at least one OCR language is required")
+
+
+@dataclass(frozen=True, slots=True)
+class OcrOrchestrationConfig:
+    """#4 scheduler settings for the production OCR/PII adapter."""
+
+    name: str = "ocr-pii"
+    cadence_frames: int = 5
+    timeout_ms: int = 250
+    ttl_ms: int = 250
+    max_concurrency: int = 1
+
+    def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("name must not be empty")
+        if self.cadence_frames <= 0:
+            raise ValueError("cadence_frames must be positive")
+        if self.timeout_ms <= 0 or self.ttl_ms <= 0:
+            raise ValueError("timeout_ms and ttl_ms must be positive")
+        if self.max_concurrency <= 0:
+            raise ValueError("max_concurrency must be positive")
 
 
 class EasyOcrEngine:
@@ -149,11 +173,33 @@ class OcrPiiDetector:
             return list(self._cached_regions)
         return None
 
+    async def detect_source_frame(self, frame: FrameContext) -> list[VideoRegionDetection]:
+        """Infer once and return source-block regions without demo padding.
+
+        The shared video engine owns production cadence, TTL, and padding. This
+        method reuses the same OCR and text-recognition path as ``detect`` while
+        exposing detector-native source geometry to that engine.
+        """
+
+        return await self._detect_once(frame, padding_ratio=0)
+
     async def detect(self, frame: FrameContext) -> list[VideoRegionDetection]:
+        """Run the standalone OCR/PII detector with local cadence and padding."""
+
         if frame.frame_index % self.config.cadence_frames != 0:
             cached = self._cached_for(frame.frame_index)
             return cached if cached is not None else []
 
+        regions = await self._detect_once(
+            frame, padding_ratio=self.config.region_padding_ratio
+        )
+        self._cached_regions = tuple(regions)
+        self._cached_frame_index = frame.frame_index
+        return regions
+
+    async def _detect_once(
+        self, frame: FrameContext, *, padding_ratio: float
+    ) -> list[VideoRegionDetection]:
         try:
             blocks = self._engine.read(frame.image)
         except DetectorError:
@@ -173,8 +219,8 @@ class OcrPiiDetector:
             if not matches:
                 continue
             x1, y1, x2, y2 = _polygon_box(block.polygon)
-            padding_x = frame.source.width * self.config.region_padding_ratio
-            padding_y = frame.source.height * self.config.region_padding_ratio
+            padding_x = frame.source.width * padding_ratio
+            padding_y = frame.source.height * padding_ratio
             x1 = max(0.0, x1 - padding_x)
             y1 = max(0.0, y1 - padding_y)
             x2 = min(float(frame.source.width), x2 + padding_x)
@@ -204,6 +250,62 @@ class OcrPiiDetector:
                 )
             )
 
-        self._cached_regions = tuple(regions)
-        self._cached_frame_index = frame.frame_index
         return regions
+
+
+class OcrVideoDetector:
+    """Thin #7 adapter from the #19 OCR/PII detector into #4."""
+
+    def __init__(
+        self,
+        detector: OcrPiiDetector,
+        *,
+        image_provider: FrameImageProvider | None = None,
+    ) -> None:
+        self.detector = detector
+        self._image_provider = image_provider or _payload_image
+
+    async def detect(self, frame: VideoFrame) -> list[VideoRegionDetection]:
+        """Return source OCR-block regions; scheduler policy is applied by #4."""
+
+        image = self._image_provider(frame)
+        if image is None:
+            raise DetectorExecutionError("OCR adapter requires a source image")
+        shape = getattr(image, "shape", None)
+        if shape is not None and len(shape) >= 2:
+            image_height, image_width = shape[:2]
+            if image_width != frame.width or image_height != frame.height:
+                raise DetectorExecutionError(
+                    "OCR image dimensions do not match the source frame"
+                )
+        return await self.detector.detect_source_frame(
+            FrameContext(image=image, source=frame)
+        )
+
+
+def _payload_image(frame: VideoFrame) -> Any:
+    """Use the opaque frame payload when it is already OCR-compatible."""
+
+    return frame.payload
+
+
+def register_ocr_detector(
+    orchestrator: VideoOrchestrator,
+    detector: OcrPiiDetector,
+    *,
+    config: OcrOrchestrationConfig | None = None,
+    image_provider: FrameImageProvider | None = None,
+) -> OcrVideoDetector:
+    """Register the OCR/PII adapter with #4 and return the adapter."""
+
+    policy = config or OcrOrchestrationConfig()
+    adapter = OcrVideoDetector(detector, image_provider=image_provider)
+    orchestrator.register(
+        policy.name,
+        adapter,
+        cadence_frames=policy.cadence_frames,
+        timeout_ms=policy.timeout_ms,
+        ttl_ms=policy.ttl_ms,
+        max_concurrency=policy.max_concurrency,
+    )
+    return adapter

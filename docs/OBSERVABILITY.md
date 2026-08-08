@@ -67,8 +67,8 @@ The shared video engine exposes aggregate per-stage detector calls, success,
 skip, timeout, failure, duration, queue wait, pending-frame, and processing
 measurements through `VideoMetrics.snapshot()`. These metrics contain no frame
 payloads, coordinates, OCR text, plate values, or raw detector errors. The
-production plate adapter uses the same sanitized success and failure statuses;
-it does not add model-specific payload logging.
+production plate and OCR/PII adapters use the same sanitized success and failure
+statuses; they do not add model-specific payload or matched-text logging.
 
 ## Verification
 

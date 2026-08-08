@@ -35,7 +35,10 @@ Its full-frame safe-cover primitive is available to the central safety gate but
 the engine does not decide whether output may be published. The production plate
 adapter validates the source-image boundary, emits only normalized plate
 geometry, and preserves unavailable or execution failures for the scheduler
-rather than converting them to empty detections.
+rather than converting them to empty detections. The production OCR adapter
+similarly returns only normalized source-block regions, never exposes matched
+text, and preserves OCR or shared-recognizer failures as explicit scheduler
+failures.
 
 The centralized `PrivacyGate` accepts only sanitized capability observations,
 source-timeline watermarks, lag, liveness, and explicit control events. It

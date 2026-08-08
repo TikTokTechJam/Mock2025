@@ -4,7 +4,10 @@ from privastream_api.privacy.vision.ocr_detector import (
     EasyOcrEngine,
     OcrBlock,
     OcrDetectorConfig,
+    OcrOrchestrationConfig,
     OcrPiiDetector,
+    OcrVideoDetector,
+    register_ocr_detector,
 )
 from privastream_api.privacy.vision.plate_detector import (
     LetterboxTransform,
@@ -31,7 +34,9 @@ __all__ = [
     "LetterboxTransform",
     "OcrBlock",
     "OcrDetectorConfig",
+    "OcrOrchestrationConfig",
     "OcrPiiDetector",
+    "OcrVideoDetector",
     "PlateDetectorConfig",
     "PlateOrchestrationConfig",
     "PlateVideoDetector",
@@ -39,5 +44,6 @@ __all__ = [
     "VisionPrivacyService",
     "VisualPrivacyDetector",
     "map_letterboxed_box_to_original",
+    "register_ocr_detector",
     "register_plate_detector",
 ]
