@@ -7,7 +7,8 @@ process boundaries, dependencies, and data flows.
 
 ## Current repository topology
 
-- `apps/web` is the Next.js App Router browser and creator-UI foundation.
+- `apps/web` is the Next.js App Router browser and creator UI. Its current page
+  contains the browser-local media loopback and mock processing path.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
   and contains normalized media contracts, standalone visual-privacy adapters
   under `src/privastream_api/privacy/vision`, and the in-process spoken-PII demo
@@ -21,18 +22,19 @@ process boundaries, dependencies, and data flows.
 
 The standalone plate/OCR module, spoken-PII detector, and local PCM16 renderer
 are implemented inside the API package but are not exposed through the HTTP
-product surface. No shared or cross-modal redaction compositor, real-time media
-transport, persistence layer, worker, provider integration, or E2E runtime
-boundary exists yet.
+product surface. The browser-local loopback is implemented without an API
+dependency. No shared or cross-modal redaction compositor, server-side
+real-time media transport, persistence layer, worker, provider integration, or
+E2E runtime boundary exists yet.
 
 ## Runtime boundaries
 
 | Boundary | Responsibility | Availability |
 | --- | --- | --- |
-| Browser/creator UI | Accept future creator controls and show protected output. The current page is a static foundation. | Implemented foundation; media controls Planned |
+| Browser/creator UI | Request local camera/microphone access, manage the demo session, and show source plus protected-preview tracks. | Implemented browser demo; broader creator controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
 | Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. Standalone plate/OCR and spoken-PII adapters are available; the product pipeline is not. | Implemented modules; product pipeline Planned |
-| Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. | Planned |
+| Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
 The design starts in-process. A separate service or worker requires a concrete
@@ -68,10 +70,43 @@ The intended flow is:
    fail-closed rules.
 5. A future compositor creates the protected output for the selected transport.
 
-The browser foundation, API process-health route, local Compose topology, and
-standalone plate/OCR and spoken-PII audio paths are present. Shared orchestration,
-cross-modal policy, redaction output, live transport, compositor, and protected
-delivery remain Planned.
+### Current browser loopback path
+
+The current browser demo provides the smallest transport-independent media path:
+
+```mermaid
+flowchart LR
+    A[getUserMedia camera and microphone] --> B[Local WebRTC sender]
+    B --> C[Local WebRTC receiver]
+    C --> D[Remote media tracks]
+    D --> E[Canvas mock video redaction]
+    D --> F[Web Audio deterministic mute transform]
+    E --> G[Processed video track]
+    F --> H[Processed audio track]
+    G --> I[Protected preview MediaStream]
+    H --> I
+```
+
+The sender and receiver are separate `RTCPeerConnection` objects in the same
+browser page, with offer/answer and ICE candidate exchange performed locally.
+The incoming tracks are the processing boundary: video is rendered through a
+canvas with a fixed center redaction region, and audio passes through a gain
+node that mutes a fixed 500 ms interval every 2 seconds. The output preview is
+created only after both processed tracks exist; capture tracks are never used as
+the output preview source.
+
+The browser controller exposes each processed video frame's source timestamp
+from the media callback when available, with a monotonic capture-clock fallback,
+for later detector and A/V integration. Its single-frame scheduling loop has at
+most one pending frame, so a slow draw cannot build an unbounded queue. A device
+disconnect, transport failure, or processor failure stops the session and leaves
+the output detached instead of falling back to raw media.
+
+The browser foundation, browser-local loopback, API process-health route, local
+Compose topology, and standalone plate/OCR and spoken-PII audio paths are
+present. Shared orchestration, cross-modal policy, redaction output, server-side
+live transport, compositor, and protected delivery beyond the local preview
+remain Planned.
 
 ## Detector and redaction contracts
 
@@ -122,6 +157,7 @@ Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
 The foundation, normalized contracts, standalone visual-privacy adapters,
-spoken-PII detector baseline, and local renderer are Implemented in source.
-Runtime verification is Unverified; the audio and visual demos, real-model
-inference, and application verification have not been exercised.
+spoken-PII detector baseline, local renderer, and browser-local loopback are
+Implemented in source. Runtime verification is Unverified; the browser path,
+audio and visual demos, real-model inference, and application verification have
+not been exercised.

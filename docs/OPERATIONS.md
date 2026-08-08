@@ -20,16 +20,18 @@ provider credentials.
 | api | `uv run fastapi dev src/privastream_api/main.py` | `GET /health` |
 | db | `postgres:18.4-bookworm` | `pg_isready` |
 
-The web process currently serves the foundation page. The API process serves
-liveness, while the standalone spoken-PII demo runs as a separate local CLI
-invocation. The database is provisioned for future approved configuration and
-lifecycle state but is not accessed by the API or demo.
+The web process serves the browser media loopback at `/`; a browser must grant
+camera and microphone permission. The API process serves liveness, while the
+standalone spoken-PII demo runs as a separate local CLI invocation. The database
+is provisioned for future approved configuration and lifecycle state but is not
+accessed by the API, browser demo, or audio demo.
 
 Compose mounts source code for development and keeps dependency/database data
-in named volumes. No migrations, workers, scheduled jobs, media transport,
-shared or cross-modal compositor, or provider processes exist in this foundation.
-The visual-privacy and spoken-PII modules run as local standalone commands
-rather than Compose services.
+in named volumes. The browser demo uses same-page WebRTC and does not require a
+signaling port or extra environment variable. No server-side media transport,
+migrations, workers, scheduled jobs, shared or cross-modal compositor, or
+provider processes exist in this foundation. The visual-privacy and spoken-PII
+modules run as local standalone commands rather than Compose services.
 
 ## Commands
 
@@ -82,8 +84,9 @@ artifacts to the local model cache.
 ## Availability and verification
 
 The PrivaStream web/API/Compose foundation, normalized detector contracts,
-standalone plate/OCR module, and standalone spoken-PII module are Implemented in
-source. Product-surface redaction, live media processing, transport, persistence,
-and production deployment are Planned. Runtime verification is Unverified: no
+browser-local mock media path, standalone plate/OCR module, and standalone
+spoken-PII module are Implemented in source. Product-surface redaction,
+server-side live media processing and transport, persistence, and production
+deployment are Planned. Runtime verification is Unverified: no browser session,
 audio or visual demo, model inference, tests, builds, migrations, services,
 providers, linting, formatting checks, or type checks were run.

@@ -1,7 +1,8 @@
 # PrivaStream Web
 
-The web application is the browser foundation for PrivaStream. It uses Next.js,
-TypeScript, the App Router, Tailwind CSS, and Server Components by default.
+The web application is the browser media foundation for PrivaStream. It uses
+Next.js, TypeScript, the App Router, Tailwind CSS, and client-side browser media
+APIs for the local loopback demo.
 
 ## Prerequisites
 
@@ -40,8 +41,21 @@ pnpm typecheck:web
 - Add variables only when they are consumed by implemented code.
 - Shared variables belong in the repository root `.env.example`; web-only variables belong in `.env.example` here.
 
+## Browser media demo
+
+Open [http://localhost:3000](http://localhost:3000), select **Start session**,
+and grant camera and microphone permission. The page performs a same-browser
+WebRTC offer/answer exchange, applies a fixed video redaction and deterministic
+audio mute transform, and attaches only those processed tracks to the protected
+preview. No API signaling endpoint or extra environment variable is required.
+
+The local capture preview is for device feedback and is not the published
+output. A disconnect or processor error stops the output rather than falling
+back to raw media.
+
 ## Current Limitations
 
-Creator controls, media upload and live transport, detector integrations, redaction
-previews, API integration, deployment configuration, and a reusable design system
-are planned and are not implemented yet.
+Server-side media upload and live transport, detector integrations, production
+redaction, API integration, deployment configuration, and a reusable design
+system are planned and are not implemented yet. The browser loopback is a local
+mock path and is Unverified until an explicit browser verification pass is run.
