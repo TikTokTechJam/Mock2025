@@ -3,8 +3,8 @@
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
 currently exposes only an unauthenticated process-health endpoint and contains
 the model-agnostic shared video orchestration path under
-`src/privastream_api/pipeline/video.py`, plus two local-only standalone detector
-paths: visual privacy under
+`src/privastream_api/pipeline/video.py`, plus local-only visual-privacy and
+spoken-audio paths. Visual privacy is under
 `src/privastream_api/privacy/vision`, with image/video processing through
 `scripts/vision_demo.py`. The completed plate detector also has a thin
 `PlateVideoDetector` registration path for the shared scheduler; it returns
@@ -63,9 +63,11 @@ contains independent plate and OCR/PII adapters that emit normalized regions.
 `PlateVideoDetector` and `register_plate_detector` bridge the plate
 implementation into the shared video scheduler without importing model-specific
 code into the orchestrator.
-`src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
-transcription, PII interval, and PCM16 renderer path. The only current HTTP
-route is `GET /health`.
+`src/privastream_api/pipeline/audio.py` contains the timestamped chunk
+normalizer, bounded ring-buffer segmenter, transcription queue, explicit unsafe
+outcomes, and in-memory timestamped transcript sink. It composes the VAD and
+transcriber interfaces from `spoken_pii.py`; the only current HTTP route is
+`GET /health`.
 
 Run the spoken-PII local demo from the repository root:
 
@@ -73,9 +75,13 @@ Run the spoken-PII local demo from the repository root:
 uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wav output.wav
 ```
 
-The default VAD is the dependency-free energy baseline. Use `--vad silero` for
-the optional Silero adapter. The Faster-Whisper model, language, device,
-compute type, padding, and merge gap are configurable through CLI flags.
+The runner feeds the same `AudioChunk` and `AudioPipeline` interfaces used by
+the bounded processing path. The default VAD is the dependency-free energy
+baseline; use `--vad silero` for the optional Silero adapter. The Faster-Whisper
+model, language, device, compute type, padding, and merge gap are configurable
+through CLI flags. Timestamp discontinuity, VAD failure, queue overflow,
+transcription failure, and deadline lag fail closed with explicit local status;
+they are not converted to an empty redaction result.
 
 ## Environment rules
 

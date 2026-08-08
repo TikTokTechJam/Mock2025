@@ -200,6 +200,17 @@ class FasterWhisperTranscriber:
         self.compute_type = compute_type
         self._model: Any | None = None
 
+    @property
+    def is_ready(self) -> bool:
+        """Report whether the model has been loaded in this process."""
+
+        return self._model is not None
+
+    def load(self) -> None:
+        """Load the model once without transcribing any media."""
+
+        self._get_model()
+
     def _get_model(self) -> Any:
         if self._model is None:
             try:
@@ -538,6 +549,8 @@ def _build_demo_parser() -> argparse.ArgumentParser:
 
 
 def main(argv: Sequence[str] | None = None) -> None:
+    from privastream_api.pipeline.audio import AudioPipeline, chunks_from_segment
+
     args = _build_demo_parser().parse_args(argv)
     segment = read_pcm16_wav(args.input)
     vad: VoiceActivityDetector
@@ -545,7 +558,7 @@ def main(argv: Sequence[str] | None = None) -> None:
         vad = SileroVoiceActivityDetector()
     else:
         vad = EnergyVoiceActivityDetector()
-    detector = SpokenPiiDetector(
+    pipeline = AudioPipeline(
         vad=vad,
         transcriber=FasterWhisperTranscriber(
             model_size=args.model,
@@ -558,7 +571,10 @@ def main(argv: Sequence[str] | None = None) -> None:
             merge_gap_ms=args.merge_gap_ms,
         ),
     )
-    intervals = detector.detect(segment)
+    result = pipeline.process(chunks_from_segment(segment))
+    if result.status not in ("ok", "no_speech"):
+        raise RuntimeError(f"audio processing failed closed: {result.status}")
+    intervals = result.redaction_intervals
     mute_pcm16_wav(args.input, args.output, intervals)
     print(f"redaction_intervals={len(intervals)}")
 

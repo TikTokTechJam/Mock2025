@@ -26,11 +26,12 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
 
 ## Current concerns
 
-- The spoken-PII module has no runtime verification yet. Model accuracy,
-  timestamp quality, CPU/memory cost, and behavior on accents, noise, overlap,
-  and non-English speech remain Unverified. The current mitigation is explicit
-  model/VAD configuration, bounded input, no transcript logging, and a
-  dependency-free energy-VAD baseline.
+- The timestamped spoken-PII pipeline has no runtime verification yet. Model
+  accuracy, source-timeline quality across resampling, CPU/memory cost, queue
+  lag, and behavior on accents, noise, overlap, and non-English speech remain
+  Unverified. The current mitigation is explicit model/VAD configuration,
+  bounded normalization and transcription queues, sanitized unsafe statuses,
+  no transcript logging, and a dependency-free energy-VAD baseline.
 - The local demo has no fail-closed delivery boundary or creator review step.
   A muted output must not be treated as proof of complete privacy coverage.
 - The browser media loopback has not received a browser verification pass.
