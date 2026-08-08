@@ -44,3 +44,9 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   dependency-free deterministic mock-detector and raster-fixture coverage,
   explicit sanitized failure states, bounded concurrency, and no automatic
   full-frame fallback decision.
+- The production plate adapter has not received a runtime model or integration
+  pass. Its source-image provider, local weight configuration, and interaction
+  with the future safety gate/model manifest resolver remain environment and
+  follow-up concerns. The current mitigation is a thin normalized adapter,
+  exactly-once shared padding, explicit scheduler failures, and deterministic
+  mocked integration coverage.

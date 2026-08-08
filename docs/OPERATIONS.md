@@ -29,9 +29,10 @@ accessed by the API, browser demo, or audio demo.
 Compose mounts source code for development and keeps dependency/database data
 in named volumes. The browser demo uses same-page WebRTC and does not require a
 signaling port or extra environment variable. No server-side media transport,
-migrations, workers, scheduled jobs, shared or cross-modal compositor, or
-provider processes exist in this foundation. The visual-privacy and spoken-PII
-modules run as local standalone commands rather than Compose services.
+migrations, workers, scheduled jobs, cross-modal policy, or provider processes
+exist in this foundation. The shared video engine and production plate adapter
+are in-process API libraries; the visual-privacy and spoken-PII demos remain
+local standalone commands rather than Compose services.
 
 ## Commands
 
@@ -84,9 +85,10 @@ artifacts to the local model cache.
 ## Availability and verification
 
 The PrivaStream web/API/Compose foundation, normalized detector contracts,
-browser-local mock media path, shared video engine, standalone plate/OCR module,
-and standalone spoken-PII module are Implemented in source. Cross-modal policy,
-server-side live media processing and transport, persistence, and production
-deployment are Planned. Runtime verification is Unverified: no browser session,
-audio or visual demo, model inference, orchestration tests, builds, migrations,
-services, providers, linting, formatting checks, or type checks were run.
+browser-local mock media path, shared video engine, production plate adapter,
+standalone plate/OCR module, and standalone spoken-PII module are Implemented in
+source. Cross-modal policy, server-side live media processing and transport,
+persistence, and production deployment are Planned. Runtime verification is
+Unverified: no browser session, audio or visual demo, model inference,
+orchestration tests, builds, migrations, services, providers, linting,
+formatting checks, or type checks were run.

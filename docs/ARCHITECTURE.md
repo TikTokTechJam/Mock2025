@@ -29,13 +29,14 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-The standalone plate/OCR module, shared video orchestrator/compositor, spoken-
-PII detector, and local PCM16 renderer are implemented inside the API package
-but are not exposed through the HTTP product surface. The browser-local loopback
-is implemented without an API dependency. No cross-modal redaction policy,
-server-side real-time media transport, persistence layer, worker, provider
-integration, or E2E runtime boundary exists yet. `apps/` contains only runnable
-application boundaries; there is no separate model/inference service.
+The standalone plate/OCR module, its production plate adapter, shared video
+orchestrator/compositor, spoken-PII detector, and local PCM16 renderer are
+implemented inside the API package but are not exposed through the HTTP product
+surface. The browser-local loopback is implemented without an API dependency.
+No cross-modal redaction policy, server-side real-time media transport,
+persistence layer, worker, provider integration, or E2E runtime boundary exists
+yet. `apps/` contains only runnable application boundaries; there is no separate
+model/inference service.
 
 ## Runtime boundaries
 
@@ -103,6 +104,12 @@ failed detector frames until TTL expiry, and releases completed frames in input
 order. Detector failures remain explicit in the output metadata. The compositor
 provides blur, pixelate, solid cover, and full-frame safe-cover primitives; the
 central safety gate still owns whether a frame may be published.
+
+The plate production adapter in `privacy/vision/plate_detector.py` wraps the
+standalone plate inference boundary for this scheduler. It supplies a
+`FrameContext` from each canonical `VideoFrame`, returns source-frame regions,
+and leaves production cadence, TTL, padding, deadlines, and failure status to
+the shared engine.
 
 ### Current browser loopback path
 
@@ -176,7 +183,9 @@ detector work:
   time intervals. It does not expose model-specific transcript output.
 
 The standalone plate/OCR adapters use a `FrameContext` containing source image
-data and `VideoFrame` metadata, then emit the same normalized result type.
+data and `VideoFrame` metadata, then emit the same normalized result type. The
+production plate adapter uses an injectable source-image provider because the
+canonical frame payload remains opaque to the model runtime.
 
 Detector implementations must not expose model-specific boxes, timestamps, or
 labels beyond these contracts. The compositor consumes normalized values; it
@@ -200,7 +209,8 @@ Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
 The foundation, normalized contracts, shared video engine, standalone
-visual-privacy adapters, spoken-PII detector baseline, local renderer, and
-browser-local loopback are Implemented in source. Runtime verification is
-Unverified; the orchestration tests, browser path, audio and visual demos,
-real-model inference, and application verification have not been exercised.
+visual-privacy adapters and production plate adapter, spoken-PII detector
+baseline, local renderer, and browser-local loopback are Implemented in source.
+Runtime verification is Unverified; the orchestration tests, browser path,
+audio and visual demos, real-model inference, and application verification have
+not been exercised.

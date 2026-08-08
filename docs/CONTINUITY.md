@@ -4,12 +4,12 @@
 
 The working tree contains the PrivaStream web and API foundation, normalized
 video/audio detector contracts, standalone plate/OCR visual-privacy and spoken-
-PII detector/renderer modules, a FastAPI process-health route, a browser-local
-WebRTC loopback with mock video/audio processors, and a local PostgreSQL-backed
-Compose topology. The model-agnostic shared video orchestrator and compositor
-are implemented as an internal API pipeline. Product-surface media ingestion,
-cross-modal policy, server-side transport, persistence, creator controls, and
-E2E infrastructure remain absent.
+PII detector/renderer modules, a production plate adapter, a FastAPI
+process-health route, a browser-local WebRTC loopback with mock video/audio
+processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
+shared video orchestrator and compositor are implemented as an internal API
+pipeline. Product-surface media ingestion, cross-modal policy, server-side
+transport, persistence, creator controls, and E2E infrastructure remain absent.
 
 ## Active Work
 
@@ -32,6 +32,7 @@ E2E infrastructure remain absent.
 | Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types used by the standalone visual module. |
 | Shared video orchestration and compositor | Implemented | Unverified | Cadence, deadlines, bounded concurrency, temporal TTL, normalized composition, and deterministic unit fixtures; no verification pass run. |
 | Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
+| Production plate adapter | Implemented | Unverified | Reuses source-frame plate inference and registers with the shared scheduler; no model or integration pass run. |
 | Spoken-PII detector and PCM16 renderer | Implemented | Unverified | Local VAD/transcription/pattern/interval/muting path; no model or audio pass run. |
 | Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 

@@ -19,7 +19,10 @@ The shared video engine accepts normalized detector regions, validates and
 clamps them, and exposes only sanitized detector status and aggregate timing
 metrics. It does not log raw media, OCR values, plate text, or detector payloads.
 Its full-frame safe-cover primitive is available to the central safety gate but
-the engine does not decide whether output may be published.
+the engine does not decide whether output may be published. The production plate
+adapter validates the source-image boundary, emits only normalized plate
+geometry, and preserves unavailable or execution failures for the scheduler
+rather than converting them to empty detections.
 
 ## Detailed security and privacy specification
 
