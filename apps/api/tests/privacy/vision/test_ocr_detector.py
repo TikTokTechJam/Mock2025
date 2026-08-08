@@ -53,7 +53,7 @@ def test_email_and_phone_regions_map_to_original_frame() -> None:
 
     regions = asyncio.run(detector.detect(_frame()))
 
-    assert [region.kind for region in regions] == ["email", "phone"]
+    assert [region.kind for region in regions] == ["email", "phone_number"]
     assert regions[0].x == 0.1
     assert regions[0].width == 0.5
     assert regions[1].y == 0.5

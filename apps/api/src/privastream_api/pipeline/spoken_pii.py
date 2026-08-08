@@ -9,7 +9,6 @@ rendering consume them.
 from __future__ import annotations
 
 import argparse
-import re
 import sys
 import wave
 from array import array
@@ -20,6 +19,7 @@ from pathlib import Path
 from typing import Any, Protocol
 
 from privastream_api.pipeline.contracts import AudioRedactionInterval, AudioSegment
+from privastream_api.privacy.text_pii import PiiSpan, TextPiiRecognizer
 
 
 @dataclass(frozen=True, slots=True)
@@ -274,13 +274,6 @@ _DIGIT_WORDS = {
     "eight": "8",
     "nine": "9",
 }
-_EMAIL_PATTERN = re.compile(
-    r"[a-z0-9][a-z0-9._%+\-]*(?:\s*@\s*)[a-z0-9][a-z0-9.\-]*(?:\s*\.\s*)[a-z]{2,}",
-    re.IGNORECASE,
-)
-_PHONE_PATTERN = re.compile(r"(?<!\d)\+?\d(?:[\s().\-]*\d){6,}(?!\d)")
-
-
 def _normalize_spoken_token(token: str) -> str:
     normalized = token.strip().lower()
     if normalized in _DIGIT_WORDS:
@@ -298,7 +291,7 @@ def _normalize_spoken_token(token: str) -> str:
 
 
 def _find_interval(
-    match: re.Match[str], text_spans: Sequence[tuple[int, int, TranscriptWord]]
+    match: PiiSpan, text_spans: Sequence[tuple[int, int, TranscriptWord]]
 ) -> tuple[int, int, float] | None:
     covered = [
         word
@@ -315,9 +308,11 @@ def _find_interval(
 
 
 def detect_spoken_pii(
-    words: Sequence[TranscriptWord], detector: str = "spoken-pii-regex"
+    words: Sequence[TranscriptWord],
+    detector: str = "spoken-pii-regex",
+    recognizer: TextPiiRecognizer | None = None,
 ) -> tuple[AudioRedactionInterval, ...]:
-    """Find phone/email spans while retaining only normalized interval output."""
+    """Map shared text-PII spans onto source-timestamped audio intervals."""
 
     if not words:
         return ()
@@ -337,9 +332,9 @@ def detect_spoken_pii(
         text_spans.append((start, cursor, word))
     normalized_text = "".join(pieces)
     intervals: list[AudioRedactionInterval] = []
-    email_matches = list(_EMAIL_PATTERN.finditer(normalized_text))
-    for match in email_matches:
-        interval = _find_interval(match, text_spans)
+    spans = (recognizer or TextPiiRecognizer()).recognize(normalized_text)
+    for span in spans:
+        interval = _find_interval(span, text_spans)
         if interval is None:
             continue
         start_ms, end_ms, confidence = interval
@@ -350,27 +345,7 @@ def detect_spoken_pii(
                 end_ms=end_ms,
                 confidence=confidence,
                 detector=detector,
-                reason="email",
-            )
-        )
-    for match in _PHONE_PATTERN.finditer(normalized_text):
-        if any(
-            match.start() < email.end() and match.end() > email.start()
-            for email in email_matches
-        ):
-            continue
-        interval = _find_interval(match, text_spans)
-        if interval is None:
-            continue
-        start_ms, end_ms, confidence = interval
-        intervals.append(
-            AudioRedactionInterval(
-                kind="spoken_pii",
-                start_ms=start_ms,
-                end_ms=end_ms,
-                confidence=confidence,
-                detector=detector,
-                reason="phone_number",
+                reason=span.category,
             )
         )
     return tuple(sorted(intervals, key=lambda interval: (interval.start_ms, interval.end_ms)))
@@ -440,6 +415,7 @@ class SpokenPiiDetector:
         transcriber: LocalTranscriber,
         redaction: RedactionConfig | None = None,
         max_audio_ms: int = 120_000,
+        text_recognizer: TextPiiRecognizer | None = None,
     ) -> None:
         if max_audio_ms <= 0:
             raise ValueError("max_audio_ms must be positive")
@@ -447,6 +423,7 @@ class SpokenPiiDetector:
         self.transcriber = transcriber
         self.redaction = redaction or RedactionConfig()
         self.max_audio_ms = max_audio_ms
+        self.text_recognizer = text_recognizer or TextPiiRecognizer()
 
     def detect(self, segment: AudioSegment) -> tuple[AudioRedactionInterval, ...]:
         if not segment.samples:
@@ -457,7 +434,7 @@ class SpokenPiiDetector:
         if not windows:
             return ()
         words = self.transcriber.transcribe(segment, windows)
-        raw_intervals = detect_spoken_pii(words)
+        raw_intervals = detect_spoken_pii(words, recognizer=self.text_recognizer)
         return normalize_redaction_intervals(raw_intervals, segment, self.redaction)
 
 

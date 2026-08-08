@@ -3,12 +3,19 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from math import isfinite
 from typing import Any, Protocol
 
 from privastream_api.pipeline.contracts import VideoRegionDetection
-from privastream_api.privacy.vision.pii_classifier import classify_pii
+from privastream_api.privacy.text_pii import (
+    PiiSpan,
+    TextPiiRecognizer,
+    TextPiiRecognizerConfig,
+    TextPiiRecognizerExecutionError,
+    TextPiiRecognizerUnavailable,
+)
+from privastream_api.privacy.vision.pii_classifier import normalize_ocr_text
 from privastream_api.privacy.vision.service import (
     DetectorExecutionError,
     DetectorUnavailableError,
@@ -50,6 +57,7 @@ class OcrDetectorConfig:
     region_ttl_frames: int = 2
     languages: tuple[str, ...] = ("en",)
     gpu: bool = False
+    text_pii: TextPiiRecognizerConfig = field(default_factory=TextPiiRecognizerConfig)
 
     def __post_init__(self) -> None:
         if not 0 <= self.confidence_threshold <= 1:
@@ -113,17 +121,23 @@ def _polygon_box(polygon: tuple[Point, ...]) -> tuple[float, float, float, float
     return min(xs), min(ys), max(xs), max(ys)
 
 
-def _region_kind(matches: Sequence[object]) -> str:
-    kinds = {getattr(match, "kind") for match in matches}
-    return next(iter(kinds)) if len(kinds) == 1 else "text"
+def _region_kind(matches: Sequence[PiiSpan]) -> str:
+    kinds = {match.category for match in matches}
+    return next(iter(kinds)) if len(kinds) == 1 else "custom_sensitive_text"
 
 
 class OcrPiiDetector:
-    """Turn sensitive OCR blocks into normalized email, phone, or text regions."""
+    """Turn sensitive OCR blocks into canonical privacy regions."""
 
-    def __init__(self, config: OcrDetectorConfig, engine: OcrEngine | None = None) -> None:
+    def __init__(
+        self,
+        config: OcrDetectorConfig,
+        engine: OcrEngine | None = None,
+        text_recognizer: TextPiiRecognizer | None = None,
+    ) -> None:
         self.config = config
         self._engine = engine or EasyOcrEngine(config.languages, config.gpu)
+        self._text_recognizer = text_recognizer or TextPiiRecognizer(config.text_pii)
         self._cached_regions: tuple[VideoRegionDetection, ...] = ()
         self._cached_frame_index: int | None = None
 
@@ -150,7 +164,12 @@ class OcrPiiDetector:
         for block in blocks:
             if block.confidence < self.config.confidence_threshold:
                 continue
-            matches = classify_pii(block.text)
+            try:
+                matches = self._text_recognizer.recognize(normalize_ocr_text(block.text))
+            except TextPiiRecognizerUnavailable:
+                raise DetectorUnavailableError("OCR text recognizer is unavailable") from None
+            except TextPiiRecognizerExecutionError:
+                raise DetectorExecutionError("OCR text recognizer failed") from None
             if not matches:
                 continue
             x1, y1, x2, y2 = _polygon_box(block.polygon)
@@ -163,7 +182,14 @@ class OcrPiiDetector:
             if x2 <= x1 or y2 <= y1:
                 continue
             kind = _region_kind(matches)
-            if kind not in ("email", "phone", "text"):
+            if kind not in (
+                "email",
+                "phone_number",
+                "postal_address",
+                "government_id",
+                "payment_identifier",
+                "custom_sensitive_text",
+            ):
                 raise DetectorExecutionError("OCR classifier returned an unsupported region kind")
             regions.append(
                 VideoRegionDetection(
