@@ -9,8 +9,8 @@ process boundaries, dependencies, and data flows.
 
 - `apps/web` is the Next.js App Router browser and creator-UI foundation.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
-  and contains the dependency-free media contracts in
-  `src/privastream_api/pipeline/contracts.py`.
+  and contains normalized media contracts plus the in-process spoken-PII demo
+  in `src/privastream_api/pipeline/`.
 - `compose.yaml` defines the local development topology:
   - `web` serves the Next.js development server on port 3000;
   - `api` serves FastAPI on port 8000; and
@@ -18,8 +18,9 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-No detector implementation, redaction compositor, media transport, persistence
-layer, worker, provider integration, or E2E runtime boundary exists yet.
+The spoken-PII detector and local PCM16 renderer are implemented inside the API
+package. No cross-modal compositor, media transport, persistence layer, worker,
+provider integration, or E2E runtime boundary exists yet.
 
 ## Runtime boundaries
 
@@ -27,7 +28,7 @@ layer, worker, provider integration, or E2E runtime boundary exists yet.
 | --- | --- | --- |
 | Browser/creator UI | Accept future creator controls and show protected output. The current page is a static foundation. | Implemented foundation; media controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. | Planned |
+| Media processing/inference | Run detector modules and redaction orchestration in-process with the API until GPU/runtime isolation requires a separate process. The standalone spoken-PII module is the first implemented local path. | Implemented baseline; broader processing Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. | Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -64,8 +65,9 @@ The intended flow is:
    fail-closed rules.
 5. A future compositor creates the protected output for the selected transport.
 
-Only the browser foundation, API process-health route, and local Compose
-topology are present. The remaining steps are Planned.
+The browser foundation, API process-health route, local Compose topology, and
+standalone spoken-PII audio path are present. Live transport, cross-modal
+policy, compositor, and protected delivery remain Planned.
 
 ## Detector and redaction contracts
 
@@ -83,6 +85,15 @@ detector work:
   `VideoFrame` and return normalized `VideoRegionDetection` values.
 - `AudioPiiDetector` accepts an `AudioSegment` and returns normalized
   `AudioRedactionInterval` values.
+- `SpokenPiiDetector` implements the audio detector boundary by composing a
+  bounded VAD, a local word-timestamp transcriber, structured phone/email
+  matching, configurable safety padding, and adjacent-interval merging.
+- `EnergyVoiceActivityDetector` is the dependency-free baseline; the optional
+  `SileroVoiceActivityDetector` uses the Silero adapter without changing the
+  normalized contract. `FasterWhisperTranscriber` is loaded lazily so the API
+  health process does not load an ML model.
+- The local renderer accepts PCM16 WAV input and mutes only normalized source
+  time intervals. It does not expose model-specific transcript output.
 
 Detector implementations must not expose model-specific boxes, timestamps, or
 labels beyond these contracts. The future compositor consumes normalized values;
@@ -102,5 +113,7 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation and contracts are Implemented in source. Runtime verification is
-Unverified; no Compose startup or application verification was run.
+The foundation, normalized contracts, spoken-PII detector baseline, and local
+renderer are Implemented in source. Runtime verification is Unverified; the
+audio demo and model inference have not been exercised, and the earlier Compose
+startup attempt did not reach a healthy web/API stack.

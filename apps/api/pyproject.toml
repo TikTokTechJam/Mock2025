@@ -7,6 +7,12 @@ dependencies = [
     "fastapi[standard]==0.139.2",
 ]
 
+[project.optional-dependencies]
+audio = [
+    "faster-whisper==1.2.1",
+    "silero-vad==6.2.1",
+]
+
 [dependency-groups]
 dev = [
     "mypy",

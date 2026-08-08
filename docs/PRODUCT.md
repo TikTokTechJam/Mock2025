@@ -12,9 +12,11 @@ configured privacy-sensitive content is redacted before delivery.
 | --- | --- | --- | --- | --- |
 | Foundation landing page | `GET /` on the web app | Identifies PrivaStream and explains that media controls are not available yet. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
+| Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
 
-No media is accepted, stored, transported, inferred over, or redacted by the
-current product surface.
+The HTTP product surface does not accept media. The standalone demo accepts
+local PCM16 audio in memory, runs local speech detection and transcription, and
+renders a local muted copy. It does not store or transport media.
 
 ## Planned creator journey
 
@@ -40,8 +42,8 @@ This journey is Planned. The current UI and API do not expose these actions.
 
 ## Non-goals for this foundation
 
-Authentication, creator enrollment, media upload, live transport, face and
-license-plate detection, OCR, speech detection, audio/video synchronization,
-redaction compositing, persistence, and production deployment are not
-implemented here. Each requires a later approved capability and its owning
-documentation contract.
+Authentication, creator enrollment, HTTP media upload, live transport, face and
+license-plate detection, OCR, cross-modal synchronization, persistence, and
+production deployment are not implemented here. The spoken-PII demo is a local
+standalone capability; it does not claim complete privacy coverage, model
+accuracy, latency, or future delivery outcomes.

@@ -23,3 +23,13 @@ Do not use this document as a backlog, completion diary, issue mirror, speculati
 ## Status
 
 A concern may explain why a capability remains Planned, Unresolved, or Unverified. It must not change the meaning of the independent availability and verification vocabulary.
+
+## Current concerns
+
+- The spoken-PII module has no runtime verification yet. Model accuracy,
+  timestamp quality, CPU/memory cost, and behavior on accents, noise, overlap,
+  and non-English speech remain Unverified. The current mitigation is explicit
+  model/VAD configuration, bounded input, no transcript logging, and a
+  dependency-free energy-VAD baseline.
+- The local demo has no fail-closed delivery boundary or creator review step.
+  A muted output must not be treated as proof of complete privacy coverage.
