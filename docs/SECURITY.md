@@ -15,6 +15,12 @@ processor failure stops the output without attaching raw capture as a fallback.
 This is a local demo boundary, not an authentication, authorization, or
 production delivery guarantee.
 
+The shared video engine accepts normalized detector regions, validates and
+clamps them, and exposes only sanitized detector status and aggregate timing
+metrics. It does not log raw media, OCR values, plate text, or detector payloads.
+Its full-frame safe-cover primitive is available to the central safety gate but
+the engine does not decide whether output may be published.
+
 ## Detailed security and privacy specification
 
 ## 1. Purpose

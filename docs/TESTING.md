@@ -24,6 +24,13 @@ frame scheduling, device disconnect, and processor failure without raw-output
 fallback. Browser checks require a permission-controlled local browser session;
 they are not represented by the API health check.
 
+The shared video-engine unit boundary should use deterministic mock detectors and
+raster fixtures to cover cadence skips, per-detector deadlines, bounded
+concurrency, ordered release, explicit timeout/unavailable/invalid/error states,
+TTL persistence and expiry, coordinate padding/clamping, overlap merging, and
+blur/pixelate/cover/full-frame cover primitives. It must not load face, plate,
+OCR, or transport implementations.
+
 ## Isolation
 
 Use dedicated data, resources, credentials, and controlled dependencies for tests that can mutate state or contact external systems. Reset safely and prevent accidental actions outside the test boundary.

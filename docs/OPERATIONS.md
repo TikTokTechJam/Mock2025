@@ -84,9 +84,9 @@ artifacts to the local model cache.
 ## Availability and verification
 
 The PrivaStream web/API/Compose foundation, normalized detector contracts,
-browser-local mock media path, standalone plate/OCR module, and standalone
-spoken-PII module are Implemented in source. Product-surface redaction,
+browser-local mock media path, shared video engine, standalone plate/OCR module,
+and standalone spoken-PII module are Implemented in source. Cross-modal policy,
 server-side live media processing and transport, persistence, and production
 deployment are Planned. Runtime verification is Unverified: no browser session,
-audio or visual demo, model inference, tests, builds, migrations, services,
-providers, linting, formatting checks, or type checks were run.
+audio or visual demo, model inference, orchestration tests, builds, migrations,
+services, providers, linting, formatting checks, or type checks were run.

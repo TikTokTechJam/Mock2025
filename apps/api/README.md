@@ -2,7 +2,9 @@
 
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
 currently exposes only an unauthenticated process-health endpoint and contains
-two local-only standalone detector paths: visual privacy under
+the model-agnostic shared video orchestration path under
+`src/privastream_api/pipeline/video.py`, plus two local-only standalone detector
+paths: visual privacy under
 `src/privastream_api/privacy/vision`, with image/video processing through
 `scripts/vision_demo.py`, and spoken PII under
 `src/privastream_api/pipeline/spoken_pii.py`, with bounded PCM16 WAV processing.
@@ -51,7 +53,9 @@ uv run mypy src
 `src/privastream_api/api/router.py` composes routes, keeping future feature routes
 outside the application entry point. `src/privastream_api/pipeline/contracts.py`
 defines normalized detector interfaces, source-timestamped PCM segments, and
-model-neutral detection results. `src/privastream_api/privacy/vision` contains
+model-neutral detection results. `src/privastream_api/pipeline/video.py`
+validates, schedules, temporally retains, and composes normalized video regions
+without importing detector implementations. `src/privastream_api/privacy/vision` contains
 independent plate and OCR/PII adapters that emit normalized regions.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The only current HTTP

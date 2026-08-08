@@ -38,3 +38,9 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   processor failure handling remain Unverified. The current mitigation is a
   local-only boundary, explicit session error state, bounded video scheduling,
   and no raw-output fallback.
+- The shared video engine has not received a runtime verification pass. Detector
+  deadline behavior, queue backpressure, temporal association/expiry, and
+  raster compositor output remain Unverified. The current mitigation is
+  dependency-free deterministic mock-detector and raster-fixture coverage,
+  explicit sanitized failure states, bounded concurrency, and no automatic
+  full-frame fallback decision.
