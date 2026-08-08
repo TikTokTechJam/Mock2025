@@ -6,9 +6,10 @@ produces a protected output with faces, plates, on-screen text, and sensitive
 speech redacted as configured.
 
 The current repository contains the web and API foundation, normalized detector
-contracts, and a local PostgreSQL-backed Docker Compose topology. Media ingestion,
-detectors, redaction, real-time transport, persistence, and creator controls are
-planned and are not implemented yet.
+contracts, a standalone license-plate/OCR visual-privacy module, and a local
+PostgreSQL-backed Docker Compose topology. Product-surface media ingestion,
+redaction compositing, real-time transport, persistence, and creator controls
+are planned and are not implemented yet.
 
 ## Local development
 
@@ -22,4 +23,5 @@ The web app is served at `http://localhost:3000`; the API is served at
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and
-local commands.
+local commands. See [Visual Privacy](docs/PRIVACY_VISION.md) for the standalone
+plate/OCR module.

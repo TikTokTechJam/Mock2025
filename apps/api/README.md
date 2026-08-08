@@ -1,9 +1,11 @@
 # PrivaStream API
 
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
-currently exposes only an unauthenticated process-health endpoint. Media ingestion,
-detector implementations, redaction, persistence, creator controls, and real-time
-transport are planned and are not implemented.
+currently exposes only an unauthenticated process-health endpoint. A standalone
+visual-privacy module is available under `src/privastream_api/privacy/vision` and
+can process local images or short videos through `scripts/vision_demo.py`. Product
+surface media ingestion, redaction integration, persistence, creator controls,
+and real-time transport are planned and are not implemented.
 
 ## Prerequisites
 
@@ -39,8 +41,10 @@ uv run mypy src
 `src/privastream_api/main.py` owns the application factory and ASGI application.
 `src/privastream_api/api/router.py` composes routes, keeping future feature routes
 outside the application entry point. `src/privastream_api/pipeline/contracts.py`
-defines normalized detector interfaces without implementing a detector or pipeline.
-The only current route is `GET /health`.
+defines the normalized detector interfaces used by the standalone adapters.
+`src/privastream_api/privacy/vision` contains independent plate and OCR/PII
+adapters that emit those normalized regions. The only current HTTP route is
+`GET /health`.
 
 ## Environment rules
 
@@ -60,4 +64,15 @@ no runtime configuration, so it defines no environment variables.
 ```
 
 It reports only that the API process is running. It does not indicate readiness for a
-database, media ingestion, detector execution, redaction, or transport readiness.
+database, product-surface media ingestion, redaction, or transport readiness.
+
+## Standalone visual privacy demo
+
+The optional vision dependencies and demo are documented in
+`docs/PRIVACY_VISION.md`. From `apps/api`, run the demo with a local plate weight
+file:
+
+```bash
+uv sync --extra vision
+uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
+```

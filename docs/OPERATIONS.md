@@ -26,7 +26,8 @@ configuration and lifecycle state but is not accessed by the API.
 
 Compose mounts source code for development and keeps dependency/database data
 in named volumes. No migrations, workers, scheduled jobs, media transport,
-detectors, or provider processes exist in this foundation.
+shared compositor, or provider processes exist in this foundation. The visual
+privacy module is a local standalone command rather than a Compose service.
 
 ## Commands
 
@@ -45,10 +46,25 @@ pnpm dev:reset
 `pnpm dev:reset` removes the local PostgreSQL and dependency volumes and is
 destructive. The other shutdown path preserves volumes.
 
+## Standalone visual demo
+
+From `apps/api`, install the optional vision dependencies and run the local
+image/video redaction demo:
+
+~~~bash
+uv sync --extra vision
+uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
+~~~
+
+The command requires a local YOLO-family plate weight file. It does not download
+weights during processing and does not require WebRTC or other services. See
+`docs/PRIVACY_VISION.md` for thresholds, languages, limitations, and failure
+behavior.
+
 ## Availability and verification
 
-The PrivaStream web/API/Compose foundation and normalized detector contracts are
-Implemented in source. Media processing, redaction, transport, persistence, and
-production deployment are Planned. Runtime verification is Unverified: no
-tests, builds, migrations, services, providers, linting, formatting checks, or
-type checks were run.
+The PrivaStream web/API/Compose foundation, normalized detector contracts, and
+standalone plate/OCR module are Implemented in source. Product-surface redaction,
+transport, persistence, and production deployment are Planned. Runtime
+verification is Unverified: no tests, builds, migrations, services, providers,
+linting, formatting checks, or type checks were run.

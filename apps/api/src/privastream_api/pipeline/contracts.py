@@ -12,7 +12,7 @@ from dataclasses import dataclass
 from math import isfinite
 from typing import Literal, Protocol
 
-VideoDetectionKind = Literal["face", "license_plate", "text"]
+VideoDetectionKind = Literal["face", "license_plate", "text", "email", "phone"]
 AudioDetectionKind = Literal["spoken_pii"]
 
 

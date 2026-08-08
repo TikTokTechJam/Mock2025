@@ -12,6 +12,7 @@ configured privacy-sensitive content is redacted before delivery.
 | --- | --- | --- | --- | --- |
 | Foundation landing page | `GET /` on the web app | Identifies PrivaStream and explains that media controls are not available yet. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
+| Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
 
 No media is accepted, stored, transported, inferred over, or redacted by the
 current product surface.
@@ -40,8 +41,9 @@ This journey is Planned. The current UI and API do not expose these actions.
 
 ## Non-goals for this foundation
 
-Authentication, creator enrollment, media upload, live transport, face and
-license-plate detection, OCR, speech detection, audio/video synchronization,
-redaction compositing, persistence, and production deployment are not
-implemented here. Each requires a later approved capability and its owning
-documentation contract.
+Authentication, creator enrollment, product-surface media upload, live
+transport, face detection, speech detection, audio/video synchronization,
+shared redaction compositing, persistence, and production deployment are not
+implemented here. The standalone plate/OCR demo is intentionally not a
+user-facing or real-time product capability. Each next capability requires an
+approved contract and its owning documentation.

@@ -3,10 +3,10 @@
 ## Current Snapshot
 
 The working tree contains the PrivaStream web and API foundation, normalized
-video/audio detector contracts, a FastAPI process-health route, and a local
-PostgreSQL-backed Compose topology. Media ingestion, detector implementations,
-redaction, transport, persistence, creator controls, and E2E infrastructure
-remain absent.
+video/audio detector contracts, a standalone plate/OCR visual-privacy module,
+a FastAPI process-health route, and a local PostgreSQL-backed Compose topology.
+Product-surface media ingestion, shared redaction, transport, persistence,
+creator controls, and E2E infrastructure remain absent.
 
 ## Active Work
 
@@ -23,15 +23,16 @@ remain absent.
 | --- | --- | --- | --- |
 | Frontend foundation | Implemented | Unverified | Static Next.js PrivaStream page; no browser pass run. |
 | Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |
-| Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types; no detector implementation. |
+| Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types used by the standalone visual module. |
+| Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
 | Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 
 ## Next Actions
 
 1. Review and merge the foundation change.
 2. Request a dedicated verification pass when runtime checks are wanted.
-3. Add the next approved privacy/media lifecycle contract before implementing
-   detector behavior.
+3. Add the next approved privacy/media lifecycle contract before integrating
+   standalone regions into the shared product pipeline.
 
 ## Handoff Constraints
 
