@@ -1,30 +1,17 @@
-"""Deterministic visual PII recognizers for OCR text."""
+"""Compatibility helpers for the shared text-PII recognizer.
+
+OCR normalization remains visual-owned. Recognition itself is implemented by
+``privastream_api.privacy.text_pii.TextPiiRecognizer`` so spoken and visual
+paths cannot drift apart.
+"""
 
 from __future__ import annotations
 
-import re
 import unicodedata
-from dataclasses import dataclass
-from typing import Literal
 
-PiiKind = Literal["email", "phone"]
+from privastream_api.privacy.text_pii import PiiSpan, TextPiiRecognizer
 
-_EMAIL_PATTERN = re.compile(
-    r"(?<![\w.+-])[A-Z0-9.!#$%&'*+/=?^_{}|~-]+@"
-    r"[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?"
-    r"(?:\.[A-Z0-9](?:[A-Z0-9-]{0,61}[A-Z0-9])?)+",
-    re.IGNORECASE,
-)
-_PHONE_PATTERN = re.compile(r"(?<!\w)\+?\d[\d\s().-]{6,}\d(?!\w)")
-
-
-@dataclass(frozen=True, slots=True)
-class PiiMatch:
-    """A deterministic match in normalized OCR text."""
-
-    kind: PiiKind
-    start: int
-    end: int
+PiiMatch = PiiSpan
 
 
 def normalize_ocr_text(text: str) -> str:
@@ -32,19 +19,13 @@ def normalize_ocr_text(text: str) -> str:
 
     normalized = unicodedata.normalize("NFKC", text).casefold()
     normalized = normalized.replace("…", "...")
-    return re.sub(r"\s+", " ", normalized).strip(" |~")
+    return " ".join(normalized.split()).strip(" |~")
 
 
 def classify_pii(text: str) -> tuple[PiiMatch, ...]:
-    """Classify email and phone patterns without treating all OCR as sensitive."""
+    """Recognize normalized OCR text through the shared production service."""
 
-    normalized = normalize_ocr_text(text)
-    matches = [
-        PiiMatch(kind="email", start=match.start(), end=match.end())
-        for match in _EMAIL_PATTERN.finditer(normalized)
-    ]
-    for match in _PHONE_PATTERN.finditer(normalized):
-        digits = re.sub(r"\D", "", match.group())
-        if 8 <= len(digits) <= 15:
-            matches.append(PiiMatch(kind="phone", start=match.start(), end=match.end()))
-    return tuple(sorted(matches, key=lambda match: (match.start, match.end, match.kind)))
+    return TextPiiRecognizer().recognize(normalize_ocr_text(text))
+
+
+__all__ = ["PiiMatch", "PiiSpan", "classify_pii", "normalize_ocr_text"]

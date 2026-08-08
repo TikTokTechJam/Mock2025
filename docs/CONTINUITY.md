@@ -3,9 +3,9 @@
 ## Current Snapshot
 
 The working tree contains the PrivaStream web and API foundation, normalized
-video/audio detector contracts, standalone plate/OCR visual-privacy and spoken-
-PII detector/renderer modules, a production plate adapter, standalone face
-enrollment/matching, and a FastAPI
+video/audio detector contracts, the shared text-PII recognizer, standalone
+plate/OCR visual-privacy and spoken-PII detector/renderer modules, a production
+plate adapter, standalone face enrollment/matching, and a FastAPI
 process-health route, a browser-local WebRTC loopback with mock video/audio
 processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
 shared video orchestrator and compositor are implemented as an internal API
@@ -39,6 +39,7 @@ transport, persistence, and E2E infrastructure remain absent.
 | Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |
 | Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types used by the standalone visual module. |
 | Shared video orchestration and compositor | Implemented | Unverified | Cadence, deadlines, bounded concurrency, temporal TTL, normalized composition, and deterministic unit fixtures; no verification pass run. |
+| Shared text-PII recognizer | Implemented | Unverified | Deterministic email/phone matching, configured identity/payment formats, contextual classifier boundary, and modality integrations; no verification pass run. |
 | Standalone face enrollment and matching | Implemented | Unverified | Explicit consent, in-memory aggregate enrollment, conservative matching, normalized bystander regions, and deterministic model doubles; no real-model pass run. |
 | Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
 | Production plate adapter | Implemented | Unverified | Reuses source-frame plate inference and registers with the shared scheduler; no model or integration pass run. |
