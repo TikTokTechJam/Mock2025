@@ -8,7 +8,8 @@ process boundaries, dependencies, and data flows.
 ## Current repository topology
 
 - `apps/web` is the Next.js App Router browser and creator UI. Its current page
-  contains the browser-local media loopback and mock processing path.
+  renders the creator console shell against typed mock façades; the reusable
+  browser media loopback remains in `src/lib/browser-media-session.ts`.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
   and contains normalized media contracts, standalone visual-privacy adapters
   under `src/privastream_api/privacy/vision`, the model-agnostic video
@@ -38,11 +39,17 @@ persistence layer, worker, provider integration, or E2E runtime boundary exists
 yet. `apps/` contains only runnable application boundaries; there is no separate
 model/inference service.
 
+`apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
+client boundary. The browser loopback implements it with real browser streams,
+while `creator-console-clients.ts` implements the same boundary with typed mock
+source/protected handles alongside the enrollment, readiness, and safety
+façades.
+
 ## Runtime boundaries
 
 | Boundary | Responsibility | Availability |
 | --- | --- | --- |
-| Browser/creator UI | Request local camera/microphone access, manage the demo session, and show source plus protected-preview tracks. | Implemented browser demo; broader creator controls Planned |
+| Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries against typed façades. | Implemented mock console; production controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
 | Media processing/inference | Run normalized detector adapters, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video engine and adapters; product pipeline Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
@@ -143,11 +150,35 @@ most one pending frame, so a slow draw cannot build an unbounded queue. A device
 disconnect, transport failure, or processor failure stops the session and leaves
 the output detached instead of falling back to raw media.
 
-The browser foundation, browser-local loopback, API process-health route, local
-Compose topology, and standalone plate/OCR and spoken-PII audio paths are
-present. Shared orchestration, cross-modal policy, redaction output, server-side
-live transport, compositor, and protected delivery beyond the local preview
-remain Planned.
+The browser foundation, browser-local loopback, creator-console mock shell, API
+process-health route, local Compose topology, and standalone plate/OCR and
+spoken-PII audio paths are present. Shared orchestration, cross-modal policy,
+redaction output, server-side live transport, compositor, and protected delivery
+beyond the local preview remain Planned.
+
+### Current creator-console path
+
+The current `/` route is a UI-only shell and does not acquire real devices or
+call the API:
+
+```mermaid
+flowchart LR
+    A[Mock source and permission controls] --> B[Typed mock media client]
+    B --> C[Unprotected source handle]
+    B --> D[Protected stream handle]
+    C --> E[Unprotected source preview]
+    D --> F[Protected output preview]
+    G[Mock enrollment client] --> H[Enrollment panel]
+    I[Mock readiness client] --> J[Capability panel]
+    K[Mock safety client] --> L[Safety and session state]
+```
+
+The `Protected output` component accepts only a protected handle returned by
+the media-client façade. The source handle is rendered separately and is never
+substituted into that component. Required capability unavailability holds the
+protected handle, panic stops clear it, and mock state controls expose
+connecting, processing, degraded, blocked, panic, and stopped presentation
+without claiming that those states came from backend readiness.
 
 ## Detector and redaction contracts
 
@@ -208,9 +239,10 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation, normalized contracts, shared video engine, standalone
-visual-privacy adapters and production plate adapter, spoken-PII detector
-baseline, local renderer, and browser-local loopback are Implemented in source.
-Runtime verification is Unverified; the orchestration tests, browser path,
-audio and visual demos, real-model inference, and application verification have
-not been exercised.
+The foundation, normalized contracts, standalone visual-privacy adapters,
+shared video engine, standalone visual-privacy adapters and production plate
+adapter, spoken-PII detector baseline, local renderer, browser-local loopback,
+and creator-console mock shell are Implemented in source. Runtime verification
+is Unverified; the console, orchestration tests, browser path, audio and visual
+demos, real-model inference, and application verification have not been
+exercised.

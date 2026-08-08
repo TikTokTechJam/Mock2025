@@ -1,3 +1,9 @@
+import type {
+  MediaSessionClient,
+  MediaSessionOutput,
+  MediaSessionStartRequest,
+} from "./media-session-client";
+
 export type BrowserMediaSessionState = "idle" | "starting" | "live" | "stopping" | "error";
 
 export interface MediaFrameSnapshot {
@@ -10,10 +16,7 @@ export interface BrowserMediaSessionCallbacks {
   onError?: (message: string) => void;
 }
 
-export interface BrowserMediaSessionStartResult {
-  captureStream: MediaStream;
-  processedStream: MediaStream;
-}
+export type BrowserMediaSessionStartResult = MediaSessionOutput<MediaStream, MediaStream>;
 
 const VIDEO_FRAME_RATE = 30;
 const MAX_PENDING_VIDEO_FRAMES = 1;
@@ -65,7 +68,7 @@ function waitForVideoMetadata(video: HTMLVideoElement): Promise<void> {
   });
 }
 
-export class BrowserMediaSession {
+export class BrowserMediaSession implements MediaSessionClient<MediaStream, MediaStream> {
   private readonly callbacks: BrowserMediaSessionCallbacks;
   private captureStream: MediaStream | null = null;
   private processedStream: MediaStream | null = null;
@@ -88,7 +91,7 @@ export class BrowserMediaSession {
     this.callbacks = callbacks;
   }
 
-  public async start(): Promise<BrowserMediaSessionStartResult> {
+  public async start(_request: MediaSessionStartRequest = { cameraId: "default", microphoneId: "default", privacyPolicyId: "default" }): Promise<BrowserMediaSessionStartResult> {
     if (this.captureStream) {
       throw new Error("The browser media session has already started.");
     }
@@ -117,8 +120,8 @@ export class BrowserMediaSession {
       await this.createProcessedOutput(remoteStream);
 
       return {
-        captureStream: this.captureStream,
-        processedStream: this.processedStream as MediaStream,
+        sourceStream: this.captureStream,
+        protectedStream: this.processedStream as MediaStream,
       };
     } catch (error) {
       this.stop();

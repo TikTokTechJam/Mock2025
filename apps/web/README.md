@@ -1,8 +1,8 @@
 # PrivaStream Web
 
-The web application is the browser media foundation for PrivaStream. It uses
-Next.js, TypeScript, the App Router, Tailwind CSS, and client-side browser media
-APIs for the local loopback demo.
+The web application is the creator-console foundation for PrivaStream. It uses
+Next.js, TypeScript, the App Router, Tailwind CSS, typed local mock façades, and
+a reusable browser media client.
 
 ## Prerequisites
 
@@ -41,21 +41,23 @@ pnpm typecheck:web
 - Add variables only when they are consumed by implemented code.
 - Shared variables belong in the repository root `.env.example`; web-only variables belong in `.env.example` here.
 
-## Browser media demo
+## Creator privacy console
 
-Open [http://localhost:3000](http://localhost:3000), select **Start session**,
-and grant camera and microphone permission. The page performs a same-browser
-WebRTC offer/answer exchange, applies a fixed video redaction and deterministic
-audio mute transform, and attaches only those processed tracks to the protected
-preview. No API signaling endpoint or extra environment variable is required.
+Open [http://localhost:3000](http://localhost:3000) to use the creator console.
+The current page uses typed local mock clients for source selection, permission
+presentation, enrollment consent/status, capability readiness, safety state,
+and the protected-output boundary. It does not acquire real devices or call the
+API, and no extra port or environment variable is required.
 
-The local capture preview is for device feedback and is not the published
-output. A disconnect or processor error stops the output rather than falling
-back to raw media.
+The reusable issue-21 browser media client remains in
+`src/lib/browser-media-session.ts`. Its unprotected source and protected output
+are separate handles; a future production client can replace the mock façade
+without redesigning the console.
 
 ## Current Limitations
 
-Server-side media upload and live transport, detector integrations, production
-redaction, API integration, deployment configuration, and a reusable design
-system are planned and are not implemented yet. The browser loopback is a local
-mock path and is Unverified until an explicit browser verification pass is run.
+Backend enrollment/readiness/safety operations, server-side media upload and
+live transport, detector integrations, production redaction, deployment
+configuration, and a reusable design system are planned and are not implemented
+yet. The console and browser loopback are Unverified until explicit UI/browser
+verification passes are run.

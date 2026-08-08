@@ -38,6 +38,13 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   processor failure handling remain Unverified. The current mitigation is a
   local-only boundary, explicit session error state, bounded video scheduling,
   and no raw-output fallback.
+- The creator console uses deterministic local façades rather than backend
+  enrollment, readiness, safety, or authorization clients. Its state transitions,
+  accessibility behavior, protected-handle separation, and responsive layout
+  remain Unverified. The current mitigation is explicit mock labeling, consent
+  gating, no raw diagnostics, required-readiness blocking, and a separate
+unprotected source preview.
+
 - The shared video engine has not received a runtime verification pass. Detector
   deadline behavior, queue backpressure, temporal association/expiry, and
   raster compositor output remain Unverified. The current mitigation is
@@ -49,4 +56,4 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   with the future safety gate/model manifest resolver remain environment and
   follow-up concerns. The current mitigation is a thin normalized adapter,
   exactly-once shared padding, explicit scheduler failures, and deterministic
-  mocked integration coverage.
+mocked integration coverage.

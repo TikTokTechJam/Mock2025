@@ -24,6 +24,14 @@ frame scheduling, device disconnect, and processor failure without raw-output
 fallback. Browser checks require a permission-controlled local browser session;
 they are not represented by the API health check.
 
+The creator-console boundary should cover responsive layout, keyboard and label
+accessibility, mock source selection and permission states, consent-gated
+enrollment capture/replace/delete, capability enablement versus readiness,
+connecting/processing/protected/degraded/blocked/panic/stopped/error states,
+protected-output type separation, and sanitized diagnostics. These checks must
+use deterministic mock clients and must not require real camera, microphone,
+backend, ML, or biometric fixtures.
+
 The shared video-engine unit boundary should use deterministic mock detectors and
 raster fixtures to cover cadence skips, per-detector deadlines, bounded
 concurrency, ordered release, explicit timeout/unavailable/invalid/error states,

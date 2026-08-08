@@ -5,12 +5,14 @@ pipeline accepts live or recorded media, detects privacy-sensitive content, and
 produces a protected output with faces, plates, on-screen text, and sensitive
 speech redacted as configured.
 
-The current repository contains the web and API foundation, a browser-local
-WebRTC media loopback with deterministic mock processing, normalized detector
-contracts, a shared model-agnostic video orchestrator/compositor, the production
-plate-detector adapter, standalone license-plate/OCR visual-privacy and
-spoken-PII detector/renderer modules, and a local PostgreSQL-backed Docker
-Compose topology. HTTP media ingestion, server-side or production transport,
+The current repository contains the web and API foundation, a creator privacy
+console shell backed by typed local mocks, a reusable browser-local WebRTC media
+loopback with deterministic mock processing, normalized detector contracts,
+shared model-agnostic video orchestrator/compositor, the production plate-detector
+adapter,
+standalone license-plate/OCR visual-privacy and spoken-PII detector/renderer
+modules, and a local PostgreSQL-backed Docker Compose topology. HTTP media
+ingestion, backend creator operations, server-side or production transport,
 cross-modal redaction policy, persistence, and creator controls are planned and
 are not implemented yet.
 
@@ -40,10 +42,11 @@ pnpm dev
 The web app is served at `http://localhost:3000`; the API is served at
 `http://localhost:8000`, with process health at `/health`.
 
-The web app at `http://localhost:3000` includes a browser media demo. Select
-**Start session**, grant camera and microphone permission, and use the
-processed protected preview. The signaling and processing path stays in the
-browser; no extra port or environment variable is required.
+The web app at `http://localhost:3000` includes the creator privacy console.
+Configure the mock source and policy, grant the mock permission, review
+readiness, and start the protected preview shell. The console does not acquire
+real devices or call the API; the reusable browser media loopback is documented
+separately in `apps/web/README.md`.
 
 The API also contains a standalone local spoken-PII demo. It is not exposed as
 an API route and requires the optional audio dependencies:
@@ -56,7 +59,7 @@ uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wa
 The demo accepts a bounded PCM16 WAV, detects speech, transcribes locally, and
 writes a copy with detected phone-number and email intervals muted. It does not
 persist raw audio or transcript text. Server-side transport, persistence,
-background workers, creator controls, and E2E infrastructure remain
+backend creator operations, background workers, and E2E infrastructure remain
 unimplemented.
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
