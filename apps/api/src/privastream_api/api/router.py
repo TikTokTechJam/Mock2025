@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from freecoinalert_api.api.routes.health import health_router
+from privastream_api.api.routes.health import health_router
 
 
 api_router = APIRouter()

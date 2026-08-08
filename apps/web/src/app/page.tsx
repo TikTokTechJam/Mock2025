@@ -6,14 +6,15 @@ export default function Home() {
           Frontend foundation
         </p>
         <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">
-          FreeCoinAlert
+          PrivaStream
         </h1>
         <p className="text-lg leading-8 text-zinc-600 dark:text-zinc-300">
-          The frontend foundation is ready for configurable cryptocurrency alerts
-          delivered through Telegram.
+          A privacy-first media pipeline for protecting faces, plates, sensitive
+          text, and speech before content reaches its audience.
         </p>
         <p className="leading-7 text-zinc-600 dark:text-zinc-300">
-          Authentication, Telegram linking, and alerts are not implemented yet.
+          The creator console, media transport, detectors, and redaction pipeline
+          are planned; this page is the current browser foundation.
         </p>
       </section>
     </main>
