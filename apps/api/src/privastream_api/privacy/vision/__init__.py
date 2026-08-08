@@ -9,8 +9,11 @@ from privastream_api.privacy.vision.ocr_detector import (
 from privastream_api.privacy.vision.plate_detector import (
     LetterboxTransform,
     PlateDetectorConfig,
+    PlateOrchestrationConfig,
+    PlateVideoDetector,
     UltralyticsPlateDetector,
     map_letterboxed_box_to_original,
+    register_plate_detector,
 )
 from privastream_api.privacy.vision.service import (
     DetectorExecutionError,
@@ -30,8 +33,11 @@ __all__ = [
     "OcrDetectorConfig",
     "OcrPiiDetector",
     "PlateDetectorConfig",
+    "PlateOrchestrationConfig",
+    "PlateVideoDetector",
     "UltralyticsPlateDetector",
     "VisionPrivacyService",
     "VisualPrivacyDetector",
     "map_letterboxed_box_to_original",
+    "register_plate_detector",
 ]

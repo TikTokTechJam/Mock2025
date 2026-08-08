@@ -6,10 +6,12 @@ from collections.abc import Callable, Sequence
 from dataclasses import dataclass
 from math import isfinite
 from pathlib import Path
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
-from privastream_api.pipeline.contracts import VideoRegionDetection
+from privastream_api.pipeline.contracts import VideoFrame, VideoRegionDetection
+from privastream_api.pipeline.video import VideoOrchestrator
 from privastream_api.privacy.vision.service import (
+    DetectorError,
     DetectorExecutionError,
     DetectorUnavailableError,
     FrameContext,
@@ -17,6 +19,7 @@ from privastream_api.privacy.vision.service import (
 
 Box = tuple[float, float, float, float]
 LetterboxFunction = Callable[[Any, int], tuple[Any, "LetterboxTransform"]]
+FrameImageProvider = Callable[[VideoFrame], Any]
 
 
 @dataclass(frozen=True, slots=True)
@@ -54,6 +57,27 @@ class PlateDetectorConfig:
             raise ValueError("cadence_frames must be positive")
         if self.region_ttl_frames < 0:
             raise ValueError("region_ttl_frames must be non-negative")
+
+
+@dataclass(frozen=True, slots=True)
+class PlateOrchestrationConfig:
+    """#4 scheduler settings for the production plate adapter."""
+
+    name: str = "license-plate"
+    cadence_frames: int = 1
+    timeout_ms: int = 100
+    ttl_ms: int = 250
+    max_concurrency: int = 1
+
+    def __post_init__(self) -> None:
+        if not self.name.strip():
+            raise ValueError("name must not be empty")
+        if self.cadence_frames <= 0:
+            raise ValueError("cadence_frames must be positive")
+        if self.timeout_ms <= 0 or self.ttl_ms <= 0:
+            raise ValueError("timeout_ms and ttl_ms must be positive")
+        if self.max_concurrency <= 0:
+            raise ValueError("max_concurrency must be positive")
 
 
 class PlateModel(Protocol):
@@ -227,11 +251,33 @@ class UltralyticsPlateDetector:
             return list(self._cached_regions)
         return None
 
+    async def detect_source_frame(self, frame: FrameContext) -> list[VideoRegionDetection]:
+        """Infer once and return source-frame geometry without demo padding.
+
+        The shared video engine owns production cadence, TTL, and padding. This
+        method is the reusable inference boundary for that engine; ``detect``
+        below retains the standalone module's configured behavior.
+        """
+
+        return await self._detect_once(frame, padding_ratio=0)
+
     async def detect(self, frame: FrameContext) -> list[VideoRegionDetection]:
+        """Run the standalone detector with its local cadence, TTL, and padding."""
+
         if frame.frame_index % self.config.cadence_frames != 0:
             cached = self._cached_for(frame.frame_index)
             return cached if cached is not None else []
 
+        regions = await self._detect_once(
+            frame, padding_ratio=self.config.region_padding_ratio
+        )
+        self._cached_regions = tuple(regions)
+        self._cached_frame_index = frame.frame_index
+        return regions
+
+    async def _detect_once(
+        self, frame: FrameContext, *, padding_ratio: float
+    ) -> list[VideoRegionDetection]:
         model_input, transform = self._letterbox(frame.image, self.config.model_input_size)
         try:
             results = self._ensure_model().predict(
@@ -265,7 +311,7 @@ class UltralyticsPlateDetector:
                 if self.config.class_names is not None and name not in self.config.class_names:
                     continue
                 mapped = map_letterboxed_box_to_original(tuple(map(float, raw_box)), transform)
-                padded = _padded_box(mapped, transform, self.config.region_padding_ratio)
+                padded = _padded_box(mapped, transform, padding_ratio)
                 x1, y1, x2, y2 = padded
                 if x2 <= x1 or y2 <= y1:
                     continue
@@ -282,6 +328,64 @@ class UltralyticsPlateDetector:
                     )
                 )
 
-        self._cached_regions = tuple(regions)
-        self._cached_frame_index = frame.frame_index
         return regions
+
+
+class PlateVideoDetector:
+    """Thin #6 adapter from the #19 plate detector into #4's video contract."""
+
+    kind: Literal["license_plate"] = "license_plate"
+
+    def __init__(
+        self,
+        detector: UltralyticsPlateDetector,
+        *,
+        image_provider: FrameImageProvider | None = None,
+    ) -> None:
+        self.detector = detector
+        self._image_provider = image_provider or _payload_image
+
+    async def detect(self, frame: VideoFrame) -> list[VideoRegionDetection]:
+        """Return source-frame regions; scheduler policy is applied by #4."""
+
+        image = self._image_provider(frame)
+        if image is None or not hasattr(image, "shape") or len(image.shape) < 2:
+            raise DetectorExecutionError(
+                "plate adapter requires a model-compatible source image"
+            )
+        image_height, image_width = image.shape[:2]
+        if image_width != frame.width or image_height != frame.height:
+            raise DetectorExecutionError(
+                "plate image dimensions do not match the source frame"
+            )
+        return await self.detector.detect_source_frame(
+            FrameContext(image=image, source=frame)
+        )
+
+
+def _payload_image(frame: VideoFrame) -> Any:
+    """Use the opaque frame payload when it is already model-compatible."""
+
+    return frame.payload
+
+
+def register_plate_detector(
+    orchestrator: VideoOrchestrator,
+    detector: UltralyticsPlateDetector,
+    *,
+    config: PlateOrchestrationConfig | None = None,
+    image_provider: FrameImageProvider | None = None,
+) -> PlateVideoDetector:
+    """Register the plate adapter with #4 and return the registered adapter."""
+
+    policy = config or PlateOrchestrationConfig()
+    adapter = PlateVideoDetector(detector, image_provider=image_provider)
+    orchestrator.register(
+        policy.name,
+        adapter,
+        cadence_frames=policy.cadence_frames,
+        timeout_ms=policy.timeout_ms,
+        ttl_ms=policy.ttl_ms,
+        max_concurrency=policy.max_concurrency,
+    )
+    return adapter
