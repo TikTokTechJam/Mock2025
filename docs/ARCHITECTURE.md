@@ -15,7 +15,8 @@ process boundaries, dependencies, and data flows.
   under `src/privastream_api/privacy/vision`, the model-agnostic video
   orchestrator/compositor under `src/privastream_api/pipeline/video.py`, the
   standalone face module under `src/privastream_api/privacy/face`, and the
-  in-process spoken-PII demo under `src/privastream_api/pipeline/`.
+  shared text-PII recognizer under `src/privastream_api/privacy/text_pii.py`,
+  plus the in-process spoken-PII demo under `src/privastream_api/pipeline/`.
 - `models/` contains runtime model metadata and the future manifest boundary;
   it is not a model server and must not contain downloaded weights.
 - `ml/` contains offline training, fine-tuning, and evaluation tooling. Runtime
@@ -32,13 +33,13 @@ process boundaries, dependencies, and data flows.
   images with mounted source trees and persistent dependency volumes.
 
 The standalone face and plate/OCR modules, their production plate adapter,
-shared video orchestrator/compositor, spoken-PII detector, and local PCM16
-renderer are implemented inside the API package but are not exposed through the
-HTTP product surface. The browser-local loopback is implemented without an API
-dependency. No cross-modal redaction policy, server-side real-time media
-transport, persistence layer, worker, provider integration, or E2E runtime
-boundary exists yet. `apps/` contains only runnable application boundaries;
-there is no separate model/inference service.
+shared text-PII recognizer, shared video orchestrator/compositor, spoken-PII
+detector, and local PCM16 renderer are implemented inside the API package but
+are not exposed through the HTTP product surface. The browser-local loopback is
+implemented without an API dependency. No cross-modal redaction policy,
+server-side real-time media transport, persistence layer, worker, provider
+integration, or E2E runtime boundary exists yet. `apps/` contains only runnable
+application boundaries; there is no separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
 client boundary. The browser loopback implements it with real browser streams,
@@ -68,12 +69,13 @@ flowchart LR
     B --> C[Pipeline orchestrator]
     C --> D[Face detector]
     C --> E[License-plate detector]
-    C --> F[OCR detector]
-    C --> G[Audio PII detector]
-    D --> H[Normalized detections]
+    C --> F[OCR text adapter]
+    C --> G[Audio text adapter]
+    F --> T[Shared TextPiiRecognizer]
+    G --> T
+    D --> H[Normalized privacy results]
     E --> H
-    F --> H
-    G --> H
+    T --> H
     H --> I[Privacy policy and temporal coordination]
     I --> J[Redaction compositor]
     J --> K[Protected output]
@@ -84,10 +86,13 @@ The intended flow is:
 1. A future browser or transport adapter supplies live or recorded media.
 2. The in-process orchestrator sends video frames and audio segments to
    independent detector modules.
-3. Detectors return model-neutral results defined by the API contract module.
-4. A future policy layer applies whitelist, redaction, temporal-stability, and
+3. OCR and speech adapters normalize their extracted text and share the
+   modality-neutral `TextPiiRecognizer`; each adapter then maps spans back to
+   visual regions or source-timestamped audio intervals.
+4. Detectors return model-neutral results defined by the API contract module.
+5. A future policy layer applies whitelist, redaction, temporal-stability, and
    fail-closed rules.
-5. The shared video compositor creates a `ProtectedVideoFrame`; a future
+6. The shared video compositor creates a `ProtectedVideoFrame`; a future
    transport and publication-safety layer decide how protected output is
    delivered.
 

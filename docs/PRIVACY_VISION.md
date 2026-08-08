@@ -23,7 +23,7 @@ verification are Unverified.
 | Plate detector | `UltralyticsPlateDetector` using a local YOLO-family weight file | `PlateModel.predict` |
 | Production plate adapter | `PlateVideoDetector` and `register_plate_detector` | `FrameImageProvider` and #4 scheduler settings |
 | OCR engine | `EasyOcrEngine` by default | `OcrEngine.read` |
-| Shared text-PII recognizer | `TextPiiRecognizer` with deterministic structured patterns, configured identity/payment formats, and an optional contextual-classifier boundary | `privastream_api.privacy.text_pii` |
+| Shared text-PII recognizer | Shared normalized text-PII service used by OCR and spoken paths; detailed contract is in [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md) | `privastream_api.privacy.text_pii` |
 | Composition service | `VisionPrivacyService` concatenates independent results | `VisualPrivacyDetector.detect` |
 
 The default OCR language is English (`en`). Additional EasyOCR language codes
@@ -66,18 +66,8 @@ module import time. Visual OCR normalization applies Unicode NFKC normalization,
 case folding, whitespace collapsing, and limited OCR punctuation cleanup before
 calling the shared `TextPiiRecognizer`. Spoken-transcript normalization remains
 owned by the spoken path; both paths then consume the same recognizer service.
-
-The shared MVP recognizer recognizes:
-
-- email addresses; and
-- phone-like numbers containing 8 to 15 digits, with common separators and an
-  optional country-code prefix.
-- explicitly configured government-identity and payment-identifier formats.
-
-The `ContextualTextPiiClassifier` protocol is a replaceable boundary for
-postal-address or other context-dependent categories. It is not coupled to a
-specific model family. Every result is a `PiiSpan` with a canonical category,
-confidence, character offsets, and a non-sensitive source identifier.
+The shared contract, taxonomy, configuration, and failure semantics are owned
+by [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md).
 
 Benign OCR text, dates, prices, and short/random numeric strings are not
 redacted automatically. If a block contains sensitive content and
@@ -121,6 +111,7 @@ reports frame and region counts only; it does not print recognized text.
 - OCR/model or contextual-recognizer failures surface as explicit detector or
   text-recognizer errors and are not converted to an empty result. A caller
   integrating this module must apply the platform's fail-closed policy before
-  releasing output.
+  releasing output; see [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md) for the
+  shared error contract.
 - Unit tests use deterministic model/OCR doubles. Real-model accuracy,
   language coverage, latency, and output quality remain Unverified.

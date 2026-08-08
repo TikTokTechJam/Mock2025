@@ -31,6 +31,12 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   and non-English speech remain Unverified. The current mitigation is explicit
   model/VAD configuration, bounded input, no transcript logging, and a
   dependency-free energy-VAD baseline.
+- The shared text-PII recognizer has deterministic email/phone coverage and
+  explicitly configured identity/payment formats, but postal-address and other
+  contextual categories have only a replaceable classifier boundary. No
+  contextual classifier is bundled by default, so language coverage and
+  contextual accuracy remain Unverified. A successful empty result must not be
+  used as evidence that unsupported contextual PII is absent.
 - The local demo has no fail-closed delivery boundary or creator review step.
   A muted output must not be treated as proof of complete privacy coverage.
 - The browser media loopback has not received a browser verification pass.
