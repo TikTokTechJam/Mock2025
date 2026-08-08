@@ -24,6 +24,11 @@ The response is served by the FastAPI process and does not check PostgreSQL,
 media ingestion, detector execution, redaction, real-time transport, or any other
 dependency. No media or creator-control endpoint exists yet.
 
+The standalone spoken-PII module is intentionally not an HTTP endpoint. Its
+local command accepts bounded PCM16 WAV input and writes a muted WAV result; the
+module's detailed input, interval, and renderer contract belongs to
+`ARCHITECTURE.md` until an approved API operation is defined.
+
 ## Errors and ownership
 
 No authenticated or owner-scoped API operation exists yet. No feature request
@@ -32,5 +37,5 @@ enforce authorization server-side before being added to this document.
 
 ## Availability
 
-The health contract is present in the working-tree scaffold and is Planned
-until merged. Runtime verification is Unverified.
+The health contract is Implemented in the merged foundation. Runtime
+verification is Unverified.

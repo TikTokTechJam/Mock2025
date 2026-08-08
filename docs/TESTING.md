@@ -12,6 +12,11 @@ A test or check is verification only when it is explicitly requested or part of 
 
 Define the purpose and boundary of unit, integration, interface, worker, browser, end-to-end, performance, and recovery checks. Keep each level deterministic and avoid duplicating another level's contract.
 
+The spoken-PII unit boundary should cover source-time mapping, silence gating,
+spoken phone/email normalization, padding and merging, and PCM16 muting with
+synthetic in-memory fixtures. Model inference requires a separate local fixture
+or explicitly controlled model pass; it must not use real personal audio.
+
 ## Isolation
 
 Use dedicated data, resources, credentials, and controlled dependencies for tests that can mutate state or contact external systems. Reset safely and prevent accidental actions outside the test boundary.

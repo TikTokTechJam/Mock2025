@@ -43,12 +43,18 @@ class VideoFrame:
 
 @dataclass(frozen=True, slots=True)
 class AudioSegment:
-    """Minimal segment metadata supplied to an audio detector."""
+    """PCM segment supplied to an audio detector.
+
+    ``samples`` contains interleaved, normalized floating-point PCM values in
+    the source timeline. An empty value is allowed for metadata-only callers;
+    detector implementations that need audio must reject it explicitly.
+    """
 
     start_ms: int
     end_ms: int
     sample_rate_hz: int
     channels: int
+    samples: tuple[float, ...] = ()
 
     def __post_init__(self) -> None:
         _require_non_negative("start_ms", self.start_ms)
@@ -56,6 +62,34 @@ class AudioSegment:
             raise ValueError("end_ms must be greater than start_ms")
         if self.sample_rate_hz <= 0 or self.channels <= 0:
             raise ValueError("sample rate and channel count must be positive")
+        normalized_samples = tuple(self.samples)
+        object.__setattr__(self, "samples", normalized_samples)
+        if not normalized_samples:
+            return
+        if len(normalized_samples) % self.channels:
+            raise ValueError("sample count must be divisible by channel count")
+        for sample in normalized_samples:
+            if not isfinite(sample) or not -1 <= sample <= 1:
+                raise ValueError("samples must be finite normalized values between -1 and 1")
+        sample_duration_ms = len(normalized_samples) / self.channels / self.sample_rate_hz * 1000
+        if abs(sample_duration_ms - (self.end_ms - self.start_ms)) > 1:
+            raise ValueError("segment timestamps must match the PCM sample duration")
+
+    @property
+    def duration_ms(self) -> int:
+        """Return the source duration represented by this segment."""
+
+        return self.end_ms - self.start_ms
+
+    def mono_samples(self) -> tuple[float, ...]:
+        """Downmix interleaved samples to mono without changing source time."""
+
+        if self.channels == 1:
+            return self.samples
+        return tuple(
+            sum(self.samples[index : index + self.channels]) / self.channels
+            for index in range(0, len(self.samples), self.channels)
+        )
 
 
 @dataclass(frozen=True, slots=True)
