@@ -15,16 +15,18 @@ sensitive content is redacted before delivery.
 | Privacy readiness and publication gate | `privastream_api.pipeline.safety.PrivacyGate` | Evaluates required/optional capability observations, source-time watermark/lag coverage, liveness, panic, and conservative recovery; returns `publish_protected`, `full_redact`, or `block` decisions. | Implemented | Unverified |
 | Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Timestamped audio ingestion and transcription pipeline | `privastream_api.pipeline.audio.AudioPipeline` | Normalizes source-timestamped chunks, emits bounded speech segments, maps shared text-PII spans to canonical intervals, returns protected source chunks with release watermark/lag, and reports explicit unsafe outcomes for discontinuity, overload, failure, or deadline lag. | Implemented | Unverified |
+| Production face integration and control surface | `privastream_api.privacy.face.production` and `/privacy/face/*` | Registers #18 with the shared scheduler, owns process-local enrollment lifecycle, and exposes authorization-protected enrollment/readiness metadata without selecting publication safety. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
 | Standalone face enrollment and matching | `privastream_api.privacy.face` and `apps/api/scripts/face_demo.py` | Uses a local InsightFace/ArcFace adapter, explicit consented enrollment, in-memory creator matching, and conservative `face_bystander` regions for a local image or clip. | Implemented | Unverified |
 | Standalone spoken-PII demo | `python -m privastream_api.pipeline.spoken_pii` | Accepts a bounded PCM16 WAV and writes a copy with detected phone-number and email intervals muted. | Implemented | Unverified |
 
 The HTTP product surface does not accept media. The browser demo does not
-upload media to the API or provide server-side live transport. The standalone
-demos process local inputs and render local protected copies; the timestamped
-audio pipeline is an in-process library behind the local runner and returns
-protected chunks only after applying its intervals. These paths do not store or
-transport media as product state.
+upload media to the API or provide server-side live transport. The protected
+face control surface accepts bounded enrollment samples and returns readiness
+metadata after an injected creator authorization check; it does not transport
+media or decide publication safety. The timestamped audio pipeline and other
+standalone demos process local inputs or act as in-process libraries; they do
+not store or transport media as product state.
 
 ## Planned creator journey
 
@@ -37,11 +39,15 @@ transport media as product state.
 
 The creator-console shell, mock policy selection, readiness presentation, and
 protected-preview boundary are Implemented against typed local façades. The
-central safety gate is an in-process API primitive, but real device acquisition,
-backend readiness and safety integration, cross-modal
-coordination, detector processing, temporal coordination, and protected
+central safety gate is an in-process API primitive, and the production face
+adapter/control routes are protected internal API boundaries. Real device
+acquisition, creator UI wiring, backend authorization-provider integration,
+cross-modal coordination, end-to-end detector processing, temporal coordination,
+and protected
 delivery beyond the local mock/loopback paths are Planned. The shared video
-engine is Implemented as an internal transport-independent primitive.
+engine is Implemented as an internal transport-independent primitive. The
+production face adapter and control routes are not a replacement for the
+centralized #13 publication decision or the future #12 UI client.
 
 ## Privacy and safety boundaries
 
@@ -55,11 +61,10 @@ engine is Implemented as an internal transport-independent primitive.
 
 ## Current non-goals
 
-Authentication, creator enrollment backend, user-facing creator enrollment,
-product-surface media upload, server-side or production live transport,
-production face-pipeline integration, cross-modal
-synchronization, integrated redaction policy, persistence, and production
-deployment are not implemented here. The shared video compositor is an
+Authentication provider wiring, user-facing creator enrollment, product-surface
+media upload, server-side or production live transport, durable enrollment
+persistence, cross-modal synchronization, cross-modal redaction policy, and
+production deployment are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
 publish. The browser loopback and standalone demos are local or best-effort
 paths, and the creator console uses typed mock façades; none are production
@@ -378,6 +383,13 @@ Creator face enrollment is an explicit opt-in operation.
 The creator must knowingly provide an enrollment image or approved enrollment sequence.
 
 Enrollment is used only to determine whether a detected face corresponds to the enrolled creator.
+
+The production face control surface accepts bounded multipart enrollment samples
+through `POST` and `PUT /privacy/face/enrollment` after an injected creator
+authorization check. It supports safe status, replacement, and deletion
+responses without exposing images or embeddings. The repository is process-local
+until a durable database contract is approved; the future #12 client and #13
+publication gate consume this boundary separately.
 
 The system must not:
 

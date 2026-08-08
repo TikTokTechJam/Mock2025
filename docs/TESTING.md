@@ -70,6 +70,14 @@ ambiguous matches, low-quality and failed embeddings, coordinate clamping, and
 explicit model errors. It must not require InsightFace weights or retain raw
 face images.
 
+The production face-integration boundary should use the real #18 public
+interfaces with deterministic model doubles to cover #4 registration, canonical
+`face_bystander` regions, creator suppression, process-local create/replace/
+delete lifecycle, readiness transitions, detector-unavailable/error propagation,
+bounded multipart enrollment, safe response fields, and default-deny route
+authorization. It must not duplicate face matching or require model weights,
+real media, raw images, or an external database.
+
 ## Isolation
 
 Use dedicated data, resources, credentials, and controlled dependencies for tests that can mutate state or contact external systems. Reset safely and prevent accidental actions outside the test boundary.

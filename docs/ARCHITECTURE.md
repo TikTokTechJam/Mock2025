@@ -11,7 +11,7 @@ process boundaries, dependencies, and data flows.
   renders the creator console shell against typed mock façades; the reusable
   browser media loopback remains in `src/lib/browser-media-session.ts`.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
-  and contains normalized media contracts, standalone visual-privacy adapters
+  plus protected face enrollment/readiness control routes and contains normalized media contracts, standalone visual-privacy adapters
   under `src/privastream_api/privacy/vision`, the model-agnostic video
   orchestrator/compositor under `src/privastream_api/pipeline/video.py`, the
   centralized privacy readiness/publication gate under
@@ -35,15 +35,17 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-The standalone face and plate/OCR modules, their production plate adapter,
-shared text-PII recognizer, shared video orchestrator/compositor, timestamped
-audio pipeline, spoken-PII detector, local PCM16 renderer, and centralized
-privacy gate are implemented inside the API package but are not exposed through
-the HTTP product surface. The browser-local loopback is implemented without an
-API dependency. Cross-modal synchronization, server-side real-time media
-transport, persistence layer, external worker process, provider integration,
-and E2E runtime boundary do not exist yet. `apps/` contains only runnable
-application boundaries; there is no separate model/inference service.
+The standalone face and plate/OCR modules, their production adapters, process-local
+face enrollment repository and readiness tracker, shared text-PII recognizer,
+shared video orchestrator/compositor, timestamped audio pipeline, spoken-PII
+detector, local PCM16 renderer, and centralized privacy gate are implemented
+inside the API package. Face control routes are protected by an injected
+server-side creator authorizer and are not a media transport surface. The
+browser-local loopback is implemented without an API dependency. Cross-modal
+synchronization and redaction policy, server-side real-time media transport,
+durable persistence, external worker process, provider integration, and E2E
+runtime boundary do not exist yet. `apps/` contains only runnable application
+boundaries; there is no separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
 client boundary. The browser loopback implements it with real browser streams,
@@ -56,11 +58,11 @@ façades.
 | Boundary | Responsibility | Availability |
 | --- | --- | --- |
 | Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries against typed façades. | Implemented mock console; production controls Planned |
-| API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run normalized detector adapters, timestamped audio segmentation/transcription, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. | Implemented video/audio source paths, face, and visual adapters; product integration Planned |
+| API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current surface reports process liveness and exposes an injected-authorization face enrollment/readiness boundary. | Implemented foundation and face control boundary; broader product operations Planned |
+| Media processing/inference | Run normalized detector adapters, timestamped audio segmentation/transcription, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video/audio source paths, face, visual, and production face adapters; product pipeline Planned |
 | Privacy safety policy | Evaluate required/optional capability readiness, source-time watermark/lag coverage, liveness, panic, recovery, and publication actions in one in-process gate. | Implemented internal gate; transport integration Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
-| Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
+| Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. Face enrollment is process-local; PostgreSQL is provisioned locally but unused. | Implemented process-local face lifecycle; durable persistence Planned |
 
 The design starts in-process. A separate service or worker requires a concrete
 runtime or GPU dependency; conceptual separation alone is not a reason to add
@@ -163,6 +165,13 @@ safe release watermark/lag only after protected chunks are produced. It keeps
 transcript words in an in-memory result for the local sink and does not log or
 persist them.
 
+The face production adapter in `privacy/face/production.py` wraps
+`CreatorFaceDetector` from #18 for the same scheduler. It returns only canonical
+`face_bystander` regions, preserves unavailable and execution failures for the
+scheduler, and records sanitized readiness input for #13. The same module owns
+the process-local enrollment repository and protected control-plane route
+boundary; it does not copy face inference or matching logic.
+
 ### Current browser loopback path
 
 The current browser demo provides the smallest transport-independent media path:
@@ -197,9 +206,10 @@ the output detached instead of falling back to raw media.
 
 The browser foundation, browser-local loopback, creator-console mock shell, API
 process-health route, local Compose topology, shared video engine, timestamped
-spoken-PII audio path, and standalone face, plate/OCR, and text-PII paths are
-present. Cross-modal policy, backend creator operations, server-side live
-transport, and protected delivery beyond the local preview remain Planned.
+spoken-PII audio path, production face integration, and standalone face, plate/OCR,
+and text-PII paths are present. Cross-modal policy, unwired creator UI
+operations, server-side live transport, and protected delivery beyond the local
+preview remain Planned.
 
 ### Current creator-console path
 
@@ -294,6 +304,11 @@ data and `VideoFrame` metadata, then emit the same normalized result type. The
 production plate adapter uses an injectable source-image provider because the
 canonical frame payload remains opaque to the model runtime.
 
+The production face adapter uses the canonical frame payload as its source-image
+provider and delegates all observation, embedding, and identity behavior to the
+standalone face module. Its `FaceReadinessTracker` reports model, enrollment,
+and detector failure reasons without making a publication decision.
+
 Detector implementations must not expose model-specific boxes, timestamps, or
 labels beyond these contracts. The compositor consumes normalized values; it
 does not import a detector implementation. A timeout, unavailable detector,
@@ -306,7 +321,10 @@ The target processing pipeline fails closed: if a detector required by the
 active privacy policy cannot make a safe decision, the protected output is held
 or redacted rather than released as if it were safe. The in-process
 `PrivacyGate` evaluates sanitized detector observations, but HTTP and transport
-consumers have not yet been integrated with its decisions.
+consumers have not yet been integrated with its decisions. The standalone
+adapters and production face adapter surface detector failures, while the face
+readiness route supplies sanitized input to the gate and does not authorize
+publication.
 
 ## Dependencies and verification
 
@@ -317,9 +335,9 @@ readiness, detector accuracy, redaction correctness, or transport readiness.
 
 The foundation, normalized contracts, shared video engine, standalone
 visual-privacy adapters and production plate adapter, timestamped audio
-pipeline, standalone face and shared text-PII modules, spoken-PII detector
-baseline, local renderer, privacy gate, browser-local loopback, and
-creator-console mock shell are Implemented in source. Runtime verification is
-Unverified; the console,
-orchestration and audio-pipeline tests, browser path, audio and visual demos,
-real-model inference, and application verification have not been exercised.
+pipeline, standalone face and production face integration, shared text-PII
+modules, spoken-PII detector baseline, local renderer, privacy gate,
+browser-local loopback, and creator-console mock shell are Implemented in source.
+Runtime verification is Unverified; the console, orchestration and audio-pipeline
+tests, browser path, audio and visual demos, real-model inference, API control
+routes, and application verification have not been exercised.

@@ -6,17 +6,22 @@ The working tree contains the PrivaStream web and API foundation, normalized
 video/audio detector contracts, the shared text-PII recognizer, standalone
 plate/OCR visual-privacy and spoken-PII detector/renderer modules, a timestamped
 audio ingestion/transcription pipeline, a production plate adapter, standalone
-face enrollment/matching, a FastAPI process-health route, a browser-local
+face enrollment/matching, production face integration and protected
+enrollment/readiness routes, and a FastAPI process-health route, a browser-local
 WebRTC loopback with mock video/audio
 processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
 shared video orchestrator and compositor are implemented as an internal API
-pipeline, the centralized privacy readiness/publication gate is present, and
-the creator-console mock shell is present. Product-surface media
-ingestion, backend creator operations, cross-modal policy, server-side
-transport, persistence, and E2E infrastructure remain absent.
+pipeline, the centralized privacy readiness/publication gate is present, and the
+creator-console mock shell is present. Product-surface media ingestion, UI wiring,
+backend creator operations beyond protected face controls, cross-modal policy,
+server-side transport, durable persistence, and E2E infrastructure remain absent.
 
 ## Active Work
 
+- Review the creator-console mock contract and prepare an explicit UI/browser
+  verification pass.
+- Wire the authorized #12 client to the protected face enrollment/readiness
+  routes after the authentication and safety boundaries are available.
 - Review the centralized privacy gate and timestamped audio, face, and shared
   text-PII paths and prepare explicit focused verification passes.
 
@@ -35,6 +40,8 @@ transport, persistence, and E2E infrastructure remain absent.
   source-chunk muting, and release watermark behavior are also Unverified.
 - The standalone face module has not received a real-model or local-runner
   verification pass.
+- The production face adapter, control routes, authorization injection, and
+  readiness handoff to #13 have not received a runtime integration pass.
 
 ## Verification Status
 
@@ -51,6 +58,8 @@ transport, persistence, and E2E infrastructure remain absent.
 | Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
 | Production plate adapter | Implemented | Unverified | Reuses source-frame plate inference and registers with the shared scheduler; no model or integration pass run. |
 | Timestamped audio pipeline and spoken-PII renderer | Implemented | Unverified | Bounded chunk normalization, VAD segmentation, shared text-PII interval mapping, source-chunk muting, and release watermark/lag; no streaming or model pass run. |
+| Production face adapter, enrollment repository, and readiness routes | Implemented | Unverified | Delegates to #18, supports process-local create/replace/delete, preserves scheduler failures, and defaults API authorization to deny; no integration pass run. |
+| Spoken-PII detector and PCM16 renderer | Implemented | Unverified | Local VAD/transcription/pattern/interval/muting path; no model or audio pass run. |
 | Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 
 ## Next Actions
@@ -68,10 +77,13 @@ transport, persistence, and E2E infrastructure remain absent.
    failure cases.
 5. Request a dedicated browser media verification pass with controlled camera
    and microphone permissions, including disconnect and failure scenarios.
-6. Request a dedicated face, visual, and audio verification pass with
-   controlled local fixtures and models when runtime checks are wanted.
-7. Add the next approved privacy/media lifecycle contract before exposing the
-   standalone detectors through server transport or creator controls.
+6. Request a dedicated face, visual, and audio verification pass with controlled
+   local fixtures and models when runtime checks are wanted.
+7. Provide the approved authorization provider, durable repository contract, and
+   #13 publication-safety consumer before wiring the face control surface into
+   the creator UI or server media transport.
+8. Add the next approved privacy/media lifecycle contract before exposing the
+   remaining standalone detectors through server transport or creator controls.
 
 ## Handoff Constraints
 

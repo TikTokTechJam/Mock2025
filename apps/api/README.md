@@ -1,7 +1,8 @@
 # PrivaStream API
 
 The API is the Python and FastAPI control-plane foundation for PrivaStream. It
-currently exposes only an unauthenticated process-health endpoint and contains
+exposes an unauthenticated process-health endpoint plus protected face
+enrollment/readiness control routes and contains
 the model-agnostic shared video orchestration path under
 `src/privastream_api/pipeline/video.py`, plus local-only visual-privacy,
 spoken-audio, and face-detector paths. Visual privacy is under
@@ -14,10 +15,12 @@ is under
 The face-specific path under `src/privastream_api/privacy/face` provides
 standalone InsightFace/ArcFace detection, consented creator enrollment, and
 conservative creator-vs-bystander matching through `scripts/face_demo.py`.
-These detector paths are not API routes and do not persist raw media or model
-output. Product-surface media ingestion, redaction integration, durable
-enrollment persistence,
-creator controls, and real-time transport are planned and are not implemented.
+These detector paths do not persist raw media or model output. The production
+face adapter delegates detection and matching to the standalone module, while
+its process-local enrollment repository and readiness surface are separate
+integration boundaries. Product-surface media ingestion, durable enrollment
+persistence, creator UI wiring, and real-time transport are planned and are not
+implemented.
 
 ## Prerequisites
 
@@ -82,8 +85,9 @@ conservative recovery, and sanitized publication decisions. It does not inspect
 media or expose an HTTP route; transport integration remains outside the
 current API surface.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
-transcription, PII interval, and PCM16 renderer path. The only current HTTP
-route is `GET /health`.
+transcription, PII interval, and PCM16 renderer path. The current HTTP surface
+includes `GET /health` and the authorization-protected face routes documented in
+`docs/API.md`.
 
 Run the spoken-PII local demo from the repository root:
 
@@ -119,6 +123,24 @@ CLI arguments so a run is attributable and does not silently change policy.
 
 It reports only that the API process is running. It does not indicate readiness for a
 database, product-surface media ingestion, redaction, or transport readiness.
+
+## Production face control surface
+
+The production face integration registers the standalone `CreatorFaceDetector`
+with the shared `VideoOrchestrator`, preserves detector failures for the future
+privacy gate, and exposes safe enrollment lifecycle and readiness metadata:
+
+- `GET /privacy/face/enrollment`
+- `POST /privacy/face/enrollment` to create consented enrollment
+- `PUT /privacy/face/enrollment` to replace it
+- `DELETE /privacy/face/enrollment` to revoke it
+- `GET /privacy/face/readiness`
+
+The mutation endpoints accept bounded multipart image samples and an explicit
+`consent=true` field. All routes require an injected server-side creator
+authorizer; the default application returns `503` until that boundary is
+configured. The current repository is process-local because durable database
+storage is outside this issue. See `docs/API.md` and `docs/PRIVACY_FACE.md`.
 
 ## Standalone visual privacy demo
 
