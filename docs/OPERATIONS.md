@@ -69,6 +69,21 @@ weights during processing and does not require WebRTC or other services. See
 `docs/PRIVACY_VISION.md` for thresholds, languages, limitations, and failure
 behavior.
 
+## Standalone face demo
+
+From `apps/api`, install the optional face dependencies and provide a local
+InsightFace model pack:
+
+~~~bash
+uv sync --extra face
+uv run python scripts/face_demo.py --input demo.mp4 --output protected.mp4 --model-root models/insightface
+~~~
+
+Creator enrollment is opt-in. Repeat `--enrollment` for local sample images and
+add `--consent`; without enrollment, every detected face is protected. No model
+weights are downloaded by the face adapter during processing. See
+`docs/PRIVACY_FACE.md` for thresholds, data lifecycle, and limitations.
+
 ## Standalone audio demo
 
 For the standalone audio demo:
@@ -89,10 +104,10 @@ artifacts to the local model cache.
 
 The PrivaStream web/API/Compose foundation, creator-console mock shell,
 normalized detector contracts, browser-local mock media path, shared video
-engine, production plate adapter, standalone plate/OCR module, and standalone
-spoken-PII module are Implemented in source. Cross-modal policy, backend
-readiness/enrollment/safety, server-side live media processing and transport,
-persistence, and production deployment are Planned. Runtime verification is
-Unverified: no browser session,
+engine, production plate adapter, standalone face and plate/OCR modules, and
+standalone spoken-PII module are Implemented in source. Cross-modal policy,
+backend readiness/enrollment/safety, server-side live media processing and
+transport, persistence, and production deployment are Planned. Runtime
+verification is Unverified: no browser session,
 audio or visual demo, model inference, orchestration tests, builds, migrations,
 services, providers, linting, formatting checks, or type checks were run.

@@ -57,3 +57,9 @@ unprotected source preview.
   follow-up concerns. The current mitigation is a thin normalized adapter,
   exactly-once shared padding, explicit scheduler failures, and deterministic
 mocked integration coverage.
+- The standalone face module has not received a real-model verification pass.
+  InsightFace model-pack availability, ArcFace threshold calibration, pose and
+  lighting robustness, and local blur quality remain Unverified. The current
+  mitigation is explicit local-model configuration, deterministic model doubles,
+  conservative unknown/ambiguous protection, bounded enrollment samples, and no
+  embedding or raw-image logging.

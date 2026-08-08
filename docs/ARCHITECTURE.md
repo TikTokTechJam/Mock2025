@@ -13,7 +13,8 @@ process boundaries, dependencies, and data flows.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
   and contains normalized media contracts, standalone visual-privacy adapters
   under `src/privastream_api/privacy/vision`, the model-agnostic video
-  orchestrator/compositor under `src/privastream_api/pipeline/video.py`, and the
+  orchestrator/compositor under `src/privastream_api/pipeline/video.py`, the
+  standalone face module under `src/privastream_api/privacy/face`, and the
   in-process spoken-PII demo under `src/privastream_api/pipeline/`.
 - `models/` contains runtime model metadata and the future manifest boundary;
   it is not a model server and must not contain downloaded weights.
@@ -30,14 +31,14 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-The standalone plate/OCR module, its production plate adapter, shared video
-orchestrator/compositor, spoken-PII detector, and local PCM16 renderer are
-implemented inside the API package but are not exposed through the HTTP product
-surface. The browser-local loopback is implemented without an API dependency.
-No cross-modal redaction policy, server-side real-time media transport,
-persistence layer, worker, provider integration, or E2E runtime boundary exists
-yet. `apps/` contains only runnable application boundaries; there is no separate
-model/inference service.
+The standalone face and plate/OCR modules, their production plate adapter,
+shared video orchestrator/compositor, spoken-PII detector, and local PCM16
+renderer are implemented inside the API package but are not exposed through the
+HTTP product surface. The browser-local loopback is implemented without an API
+dependency. No cross-modal redaction policy, server-side real-time media
+transport, persistence layer, worker, provider integration, or E2E runtime
+boundary exists yet. `apps/` contains only runnable application boundaries;
+there is no separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
 client boundary. The browser loopback implements it with real browser streams,
@@ -51,7 +52,7 @@ façades.
 | --- | --- | --- |
 | Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries against typed façades. | Implemented mock console; production controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run normalized detector adapters, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video engine and adapters; product pipeline Planned |
+| Media processing/inference | Run normalized detector adapters, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video engine, face, and visual adapters; product pipeline Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -151,9 +152,9 @@ disconnect, transport failure, or processor failure stops the session and leaves
 the output detached instead of falling back to raw media.
 
 The browser foundation, browser-local loopback, creator-console mock shell, API
-process-health route, local Compose topology, and standalone plate/OCR and
-spoken-PII audio paths are present. Shared orchestration, cross-modal policy,
-redaction output, server-side live transport, compositor, and protected delivery
+process-health route, local Compose topology, shared video engine, and standalone
+face, plate/OCR, and spoken-PII audio paths are present. Cross-modal policy,
+backend creator operations, server-side live transport, and protected delivery
 beyond the local preview remain Planned.
 
 ### Current creator-console path
@@ -185,7 +186,7 @@ without claiming that those states came from backend readiness.
 `privastream_api.pipeline.contracts` is the shared boundary for independent
 detector work:
 
-- `VideoRegionDetection` represents a face, license-plate, OCR, email, or phone result with
+- `VideoRegionDetection` represents a face, protected bystander face, license-plate, OCR, email, or phone result with
   normalized `x`, `y`, `width`, and `height` coordinates in the inclusive
   `[0, 1]` frame space, a confidence, a frame timestamp, and an optional track
   identity.
@@ -201,6 +202,13 @@ detector work:
   optional reason.
 - `FaceDetector`, `LicensePlateDetector`, and `OcrDetector` each accept a
   `VideoFrame` and return normalized `VideoRegionDetection` values.
+- `CreatorFaceEnrollmentService` accepts explicitly consented image samples,
+  aggregates normalized ArcFace embeddings in an in-memory hackathon store, and
+  supports replacement and deletion without exposing embedding values.
+- `CreatorFaceDetector` consumes the replaceable `FaceModel` boundary and emits
+  only `face_bystander` regions. Unknown, low-quality, failed, and ambiguous
+  creator matches remain protected. It does not own production padding,
+  temporal retention, or rendering.
 - `AudioPiiDetector` accepts an `AudioSegment` and returns normalized
   `AudioRedactionInterval` values.
 - `SpokenPiiDetector` implements the audio detector boundary by composing a
@@ -239,10 +247,10 @@ uv. Docker Compose supplies the local process and PostgreSQL boundaries.
 Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
-The foundation, normalized contracts, standalone visual-privacy adapters,
-shared video engine, standalone visual-privacy adapters and production plate
-adapter, spoken-PII detector baseline, local renderer, browser-local loopback,
-and creator-console mock shell are Implemented in source. Runtime verification
-is Unverified; the console, orchestration tests, browser path, audio and visual
-demos, real-model inference, and application verification have not been
+The foundation, normalized contracts, standalone visual-privacy adapters, shared
+video engine, production plate adapter, standalone face module, spoken-PII
+detector baseline, local renderer, browser-local loopback, and creator-console
+mock shell are Implemented in source. Runtime verification is Unverified; the
+console, orchestration tests, browser path, audio and visual demos, real-model
+inference, and application verification have not been
 exercised.
