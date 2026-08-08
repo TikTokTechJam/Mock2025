@@ -1,0 +1,15 @@
+FROM node:24.18.0-bookworm-slim
+
+ENV PNPM_HOME=/pnpm
+ENV PATH=${PNPM_HOME}:${PATH}
+ENV PNPM_STORE_PATH=/pnpm/store
+
+RUN corepack enable \
+    && corepack prepare pnpm@11.4.0 --activate \
+    && mkdir -p /workspace/node_modules /workspace/apps/web/node_modules /pnpm/store \
+    && chown -R node:node /workspace /pnpm
+
+WORKDIR /workspace
+USER node
+
+EXPOSE 3000

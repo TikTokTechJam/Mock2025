@@ -1,0 +1,1 @@
+"""FreeCoinAlert API package."""
