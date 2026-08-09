@@ -87,3 +87,11 @@ mocked integration coverage.
   scheduler behavior remain Unverified. The current mitigation is a thin
   adapter over #18, default-deny route authorization, sanitized status/error
   codes, and deterministic integration fixtures.
+- The cross-modal synchronizer has no dedicated runtime or end-to-end
+  verification pass. Source-clock alignment, active-speaker hints, face-box
+  lower-face precision, bounded lookahead under real transcription latency, and
+  integration with the #13 publication gate remain Unverified. The current
+  mitigation is a dependency-free bounded source-time coordinator, conservative
+  all-face fallback for ambiguous scenes, explicit unsafe late/overflow/
+  discontinuity outcomes, sanitized aggregate metrics, and no transport path
+  that can bypass final safety policy.

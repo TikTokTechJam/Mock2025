@@ -23,6 +23,7 @@ VideoDetectionKind = Literal[
     "government_id",
     "payment_identifier",
     "custom_sensitive_text",
+    "spoken_pii",
 ]
 AudioDetectionKind = Literal["spoken_pii"]
 AudioPcmFormat = Literal["pcm16", "float32"]

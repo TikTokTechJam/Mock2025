@@ -13,11 +13,11 @@ adapter, timestamped audio ingestion/transcription pipeline, standalone face
 enrollment/matching, the production face adapter and protected
 enrollment/readiness control surface, standalone license-plate/OCR
 visual-privacy and spoken-PII detector/renderer modules, centralized privacy
-readiness/publication decisions, and a local PostgreSQL-backed Docker Compose
-topology. HTTP media ingestion, backend creator operations beyond protected face
-enrollment, server-side or production transport, cross-modal redaction policy,
-durable persistence, and creator UI controls are planned and are not implemented
-yet.
+readiness/publication decisions, cross-modal spoken-PII visual augmentation,
+and a local PostgreSQL-backed Docker Compose topology. HTTP media ingestion,
+backend creator operations beyond protected face enrollment, server-side or
+production transport, final cross-modal publication policy, durable persistence,
+and creator UI controls are planned and are not implemented yet.
 
 ## Repository layout
 

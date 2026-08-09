@@ -15,6 +15,7 @@ sensitive content is redacted before delivery.
 | Privacy readiness and publication gate | `privastream_api.pipeline.safety.PrivacyGate` | Evaluates required/optional capability observations, source-time watermark/lag coverage, liveness, panic, and conservative recovery; returns `publish_protected`, `full_redact`, or `block` decisions. | Implemented | Unverified |
 | Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Timestamped audio ingestion and transcription pipeline | `privastream_api.pipeline.audio.AudioPipeline` | Normalizes source-timestamped chunks, emits bounded speech segments, maps shared text-PII spans to canonical intervals, returns protected source chunks with release watermark/lag, and reports explicit unsafe outcomes for discontinuity, overload, failure, or deadline lag. | Implemented | Unverified |
+| Cross-modal spoken-PII visual augmentation | `privastream_api.pipeline.cross_modal.CrossModalSynchronizer` | Correlates source-timestamped spoken-PII intervals with bounded video frames, applies configured pre/post padding, derives mouth/lower-face or conservative full-face regions from supplied geometry, and reports explicit unsafe or late-decision outcomes. | Implemented | Unverified |
 | Production face integration and control surface | `privastream_api.privacy.face.production` and `/privacy/face/*` | Registers #18 with the shared scheduler, owns process-local enrollment lifecycle, and exposes authorization-protected enrollment/readiness metadata without selecting publication safety. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
 | Standalone face enrollment and matching | `privastream_api.privacy.face` and `apps/api/scripts/face_demo.py` | Uses a local InsightFace/ArcFace adapter, explicit consented enrollment, in-memory creator matching, and conservative `face_bystander` regions for a local image or clip. | Implemented | Unverified |
@@ -42,7 +43,7 @@ protected-preview boundary are Implemented against typed local façades. The
 central safety gate is an in-process API primitive, and the production face
 adapter/control routes are protected internal API boundaries. Real device
 acquisition, creator UI wiring, backend authorization-provider integration,
-cross-modal coordination, end-to-end detector processing, temporal coordination,
+end-to-end cross-modal integration, detector processing, temporal coordination,
 and protected
 delivery beyond the local mock/loopback paths are Planned. The shared video
 engine is Implemented as an internal transport-independent primitive. The
@@ -63,8 +64,8 @@ centralized #13 publication decision or the future #12 UI client.
 
 Authentication provider wiring, user-facing creator enrollment, product-surface
 media upload, server-side or production live transport, durable enrollment
-persistence, cross-modal synchronization, cross-modal redaction policy, and
-production deployment are not implemented here. The shared video compositor is an
+persistence, end-to-end cross-modal media integration, final cross-modal
+publication policy, and production deployment are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
 publish. The browser loopback and standalone demos are local or best-effort
 paths, and the creator console uses typed mock façades; none are production

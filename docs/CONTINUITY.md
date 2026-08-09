@@ -11,9 +11,10 @@ enrollment/readiness routes, and a FastAPI process-health route, a browser-local
 WebRTC loopback with mock video/audio
 processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
 shared video orchestrator and compositor are implemented as an internal API
-pipeline, the centralized privacy readiness/publication gate is present, and the
-creator-console mock shell is present. Product-surface media ingestion, UI wiring,
-backend creator operations beyond protected face controls, cross-modal policy,
+pipeline, the cross-modal synchronization primitive and centralized privacy
+readiness/publication gate are present, and the creator-console mock shell is
+present. Product-surface media ingestion, UI wiring, backend creator operations
+beyond protected face controls, final cross-modal publication policy,
 server-side transport, durable persistence, and E2E infrastructure remain absent.
 
 ## Active Work
@@ -22,8 +23,9 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
   verification pass.
 - Wire the authorized #12 client to the protected face enrollment/readiness
   routes after the authentication and safety boundaries are available.
-- Review the centralized privacy gate and timestamped audio, face, and shared
-  text-PII paths and prepare explicit focused verification passes.
+- Review the centralized privacy gate and timestamped audio, face, shared
+  text-PII, and cross-modal paths and prepare explicit focused verification
+  passes.
 
 ## Current Blockers
 
@@ -42,6 +44,9 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
   verification pass.
 - The production face adapter, control routes, authorization injection, and
   readiness handoff to #13 have not received a runtime integration pass.
+- The cross-modal synchronizer has not received a dedicated source-timeline or
+  integration verification pass, and no transport or publication consumer uses
+  its decisions.
 
 ## Verification Status
 
@@ -60,6 +65,7 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
 | Timestamped audio pipeline and spoken-PII renderer | Implemented | Unverified | Bounded chunk normalization, VAD segmentation, shared text-PII interval mapping, source-chunk muting, and release watermark/lag; no streaming or model pass run. |
 | Production face adapter, enrollment repository, and readiness routes | Implemented | Unverified | Delegates to #18, supports process-local create/replace/delete, preserves scheduler failures, and defaults API authorization to deny; no integration pass run. |
 | Spoken-PII detector and PCM16 renderer | Implemented | Unverified | Local VAD/transcription/pattern/interval/muting path; no model or audio pass run. |
+| Cross-modal spoken-PII visual synchronizer | Implemented | Unverified | Bounded source-time lookahead, interval indexing, padding, face association/fallback, unsafe late/overflow/discontinuity outcomes, and sanitized metrics; no dedicated pass or transport integration run. |
 | Local Compose topology | Implemented | Unverified | `web`, `api`, and PostgreSQL services; Compose was not started. |
 
 ## Next Actions
