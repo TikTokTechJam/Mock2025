@@ -50,6 +50,13 @@ availability. These values are local UI signals and are not backend readiness,
 authorization, audit events, or persisted media state. The console does not show
 raw enrollment samples, transcripts, PII values, or embeddings.
 
+The in-process `PrivacyGate` exposes sanitized readiness (`ready`, `degraded`, or
+`unsafe`), process liveness, panic/recovery state, publication action, reason
+code, processed watermark, and lag to its caller. It never logs media,
+transcripts, PII values, detector payloads, or arbitrary failure text. The
+`/health` route remains process liveness only and does not report privacy
+readiness.
+
 The shared video engine exposes aggregate per-stage detector calls, success,
 skip, timeout, failure, duration, queue wait, pending-frame, and processing
 measurements through `VideoMetrics.snapshot()`. These metrics contain no frame

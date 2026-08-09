@@ -11,10 +11,11 @@ loopback with deterministic mock processing, normalized detector contracts,
 shared model-agnostic video orchestrator/compositor, the production plate-detector
 adapter, timestamped audio ingestion/transcription pipeline, standalone face
 enrollment/matching, standalone license-plate/OCR visual-privacy and spoken-PII
-detector/renderer modules, and a local PostgreSQL-backed Docker Compose
-topology. HTTP media ingestion, backend creator operations, server-side or
-production transport, cross-modal redaction policy, persistence, and creator
-controls are planned and are not implemented yet.
+detector/renderer modules, centralized privacy readiness/publication decisions,
+and a local PostgreSQL-backed Docker Compose topology. HTTP media ingestion,
+backend creator operations, server-side or production transport, integrated
+cross-modal redaction policy, persistence, and creator controls are planned and
+are not implemented yet.
 
 ## Repository layout
 

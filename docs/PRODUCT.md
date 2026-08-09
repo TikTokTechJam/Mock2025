@@ -12,6 +12,7 @@ sensitive content is redacted before delivery.
 | Browser media loopback client | `apps/web/src/lib/browser-media-session.ts` (not directly exposed by `/`) | Provides the reusable local WebRTC loopback and deterministic mock video/audio processing client for protected stream integration. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
 | Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
+| Privacy readiness and publication gate | `privastream_api.pipeline.safety.PrivacyGate` | Evaluates required/optional capability observations, source-time watermark/lag coverage, liveness, panic, and conservative recovery; returns `publish_protected`, `full_redact`, or `block` decisions. | Implemented | Unverified |
 | Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Timestamped audio ingestion and transcription pipeline | `privastream_api.pipeline.audio.AudioPipeline` | Normalizes source-timestamped chunks, emits bounded speech segments, maps shared text-PII spans to canonical intervals, returns protected source chunks with release watermark/lag, and reports explicit unsafe outcomes for discontinuity, overload, failure, or deadline lag. | Implemented | Unverified |
 | Standalone visual privacy demo | `apps/api/scripts/vision_demo.py` | Processes a local image or short video with plate and OCR/PII adapters when optional dependencies and local weights are supplied. | Implemented | Unverified |
@@ -35,8 +36,9 @@ transport media as product state.
 4. The creator inspects and controls the protected preview or output.
 
 The creator-console shell, mock policy selection, readiness presentation, and
-protected-preview boundary are Implemented against typed local façades. Real
-device acquisition, backend readiness and safety semantics, cross-modal
+protected-preview boundary are Implemented against typed local façades. The
+central safety gate is an in-process API primitive, but real device acquisition,
+backend readiness and safety integration, cross-modal
 coordination, detector processing, temporal coordination, and protected
 delivery beyond the local mock/loopback paths are Planned. The shared video
 engine is Implemented as an internal transport-independent primitive.
@@ -56,7 +58,7 @@ engine is Implemented as an internal transport-independent primitive.
 Authentication, creator enrollment backend, user-facing creator enrollment,
 product-surface media upload, server-side or production live transport,
 production face-pipeline integration, cross-modal
-synchronization, cross-modal redaction policy, persistence, and production
+synchronization, integrated redaction policy, persistence, and production
 deployment are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
 publish. The browser loopback and standalone demos are local or best-effort
@@ -441,7 +443,8 @@ Detector identifiers and technical metadata may be exposed to authorized diagnos
 
 ## 13. Product Status Semantics
 
-The privacy pipeline should expose an explicit readiness state.
+The in-process privacy gate exposes an explicit readiness state; the current
+HTTP and transport surfaces do not consume it yet.
 
 At minimum:
 

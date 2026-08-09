@@ -76,6 +76,11 @@ outcomes, in-memory timestamped transcript sink, shared text-PII recognizer
 bridge, source-chunk muting, and safe-release watermark. It composes the VAD
 and transcriber interfaces from `spoken_pii.py`; the only current HTTP route is
 `GET /health`.
+`src/privastream_api/pipeline/safety.py` contains the centralized privacy gate
+for required/optional readiness, source-time coverage, liveness, panic,
+conservative recovery, and sanitized publication decisions. It does not inspect
+media or expose an HTTP route; transport integration remains outside the
+current API surface.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The only current HTTP
 route is `GET /health`.

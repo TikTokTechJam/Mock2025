@@ -113,14 +113,21 @@ discontinuity, invalid input, VAD failure, queue overflow, unclassified speech,
 transcription failure, or processing deadline lag. None is represented as an
 empty successful redaction result.
 
+The in-process `PrivacyGate` is the single source of publication decisions for
+future media consumers. It reports separate process liveness and privacy
+readiness, applies required/optional capability policy, and requires explicit
+panic recovery with consecutive healthy evaluations. It is not an HTTP route or
+an active transport integration; `/health` continues to report liveness only.
+
 ## Availability and verification
 
 The PrivaStream web/API/Compose foundation, creator-console mock shell,
 normalized detector contracts, browser-local mock media path, shared video
-engine, production plate adapter, standalone face and plate/OCR modules, and
-standalone spoken-PII module are Implemented in source. Cross-modal policy,
-backend readiness/enrollment/safety, server-side live media processing and
-transport, persistence, and production deployment are Planned. Runtime
+engine, production plate adapter, standalone face and plate/OCR modules,
+standalone spoken-PII module, and in-process privacy gate are Implemented in
+source. Cross-modal policy, backend readiness/enrollment/safety integration,
+server-side live media processing and transport, persistence, and production
+deployment are Planned. Runtime
 verification is Unverified: no browser session,
 audio or visual demo, model inference, orchestration tests, builds, migrations,
 services, providers, linting, formatting checks, or type checks were run.

@@ -14,6 +14,8 @@ process boundaries, dependencies, and data flows.
   and contains normalized media contracts, standalone visual-privacy adapters
   under `src/privastream_api/privacy/vision`, the model-agnostic video
   orchestrator/compositor under `src/privastream_api/pipeline/video.py`, the
+  centralized privacy readiness/publication gate under
+  `src/privastream_api/pipeline/safety.py`, the
   standalone face module under `src/privastream_api/privacy/face`, and the
   shared text-PII recognizer under `src/privastream_api/privacy/text_pii.py`,
   plus the timestamped audio ingestion/transcription path under
@@ -35,13 +37,13 @@ process boundaries, dependencies, and data flows.
 
 The standalone face and plate/OCR modules, their production plate adapter,
 shared text-PII recognizer, shared video orchestrator/compositor, timestamped
-audio pipeline, spoken-PII detector, and local PCM16 renderer are implemented
-inside the API package but are not exposed through the HTTP product surface. The
-browser-local loopback is implemented without an API dependency. No
-cross-modal redaction policy, server-side real-time media transport, persistence
-layer, external worker process, provider integration, or E2E runtime boundary
-exists yet. `apps/` contains only runnable application boundaries; there is no
-separate model/inference service.
+audio pipeline, spoken-PII detector, local PCM16 renderer, and centralized
+privacy gate are implemented inside the API package but are not exposed through
+the HTTP product surface. The browser-local loopback is implemented without an
+API dependency. Cross-modal synchronization, server-side real-time media
+transport, persistence layer, external worker process, provider integration,
+and E2E runtime boundary do not exist yet. `apps/` contains only runnable
+application boundaries; there is no separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
 client boundary. The browser loopback implements it with real browser streams,
@@ -55,7 +57,8 @@ façades.
 | --- | --- | --- |
 | Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries against typed façades. | Implemented mock console; production controls Planned |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current route only reports process liveness. | Implemented foundation; product operations Planned |
-| Media processing/inference | Run normalized detector adapters, timestamped audio segmentation/transcription, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. Cross-modal policy and product publication remain outside this boundary. | Implemented video/audio source paths, face, and visual adapters; product pipeline Planned |
+| Media processing/inference | Run normalized detector adapters, timestamped audio segmentation/transcription, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. | Implemented video/audio source paths, face, and visual adapters; product integration Planned |
+| Privacy safety policy | Evaluate required/optional capability readiness, source-time watermark/lag coverage, liveness, panic, recovery, and publication actions in one in-process gate. | Implemented internal gate; transport integration Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. PostgreSQL is provisioned locally but unused. | Planned |
 
@@ -79,8 +82,10 @@ flowchart LR
     E --> H
     T --> H
     H --> I[Privacy policy and temporal coordination]
-    I --> J[Redaction compositor]
-    J --> K[Protected output]
+    I --> J[PrivacyGate]
+    J --> K[PublicationDecision]
+    K --> L[Redaction compositor or safe fallback]
+    L --> M[Protected output, fallback, or block]
 ```
 
 The intended flow is:
@@ -92,11 +97,11 @@ The intended flow is:
    modality-neutral `TextPiiRecognizer`; each adapter then maps spans back to
    visual regions or source-timestamped audio intervals.
 4. Detectors return model-neutral results defined by the API contract module.
-5. A future policy layer applies whitelist, redaction, temporal-stability, and
-   fail-closed rules.
-6. The shared video compositor creates a `ProtectedVideoFrame`; a future
-   transport and publication-safety layer decide how protected output is
-   delivered.
+5. The centralized `PrivacyGate` evaluates capability policy, readiness,
+   source-time coverage, liveness, panic, recovery, and fail-closed rules.
+6. The shared video compositor creates a `ProtectedVideoFrame`; the gate
+   returns a `PublicationDecision`, and a future transport applies that decision
+   without duplicating safety logic.
 
 ### Current shared video engine
 
@@ -118,7 +123,7 @@ deadlines and concurrency limits, preserves temporal masks across skipped or
 failed detector frames until TTL expiry, and releases completed frames in input
 order. Detector failures remain explicit in the output metadata. The compositor
 provides blur, pixelate, solid cover, and full-frame safe-cover primitives; the
-central safety gate still owns whether a frame may be published.
+`PrivacyGate` owns whether a frame may be published or must use a safe fallback.
 
 The plate production adapter in `privacy/vision/plate_detector.py` wraps the
 standalone plate inference boundary for this scheduler. It supplies a
@@ -239,6 +244,13 @@ detector work:
 - `AudioRedactionInterval` represents a time-based spoken-PII redaction with
   millisecond start and end offsets, confidence, detector identity, and an
   optional reason.
+- `CapabilityObservation` reports sanitized capability state, source-time
+  watermark, processing lag, and a safe reason code; `CapabilityPolicy` marks
+  each enabled capability as required or optional and may set a lag limit.
+- `PrivacyGate` evaluates those observations with a `MediaWindow` and returns
+  one `PublicationDecision`: `publish_protected`, `full_redact`, or `block`.
+  It also owns process liveness, immediate panic, explicit exit, and consecutive
+  healthy recovery without inspecting media buffers.
 - `AudioReleaseDecision` reports whether the processed source batch is safe to
   release, its source-timeline watermark, processing lag, and a safe reason
   when blocked.
@@ -292,9 +304,9 @@ to a successful empty detection.
 
 The target processing pipeline fails closed: if a detector required by the
 active privacy policy cannot make a safe decision, the protected output is held
-or redacted rather than released as if it were safe. The standalone adapters
-surface detector failures, but the shared fail-closed output policy is Planned
-and is not implemented by the current HTTP scaffold.
+or redacted rather than released as if it were safe. The in-process
+`PrivacyGate` evaluates sanitized detector observations, but HTTP and transport
+consumers have not yet been integrated with its decisions.
 
 ## Dependencies and verification
 
@@ -306,7 +318,8 @@ readiness, detector accuracy, redaction correctness, or transport readiness.
 The foundation, normalized contracts, shared video engine, standalone
 visual-privacy adapters and production plate adapter, timestamped audio
 pipeline, standalone face and shared text-PII modules, spoken-PII detector
-baseline, local renderer, browser-local loopback, and creator-console mock shell
-are Implemented in source. Runtime verification is Unverified; the console,
+baseline, local renderer, privacy gate, browser-local loopback, and
+creator-console mock shell are Implemented in source. Runtime verification is
+Unverified; the console,
 orchestration and audio-pipeline tests, browser path, audio and visual demos,
 real-model inference, and application verification have not been exercised.
