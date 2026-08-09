@@ -176,6 +176,15 @@ Speech/VAD/transcription failures remain audio-path failures. A recognizer
 failure must not be treated as a successful transcript with no sensitive
 intervals.
 
+### Cross-modal visual augmentation
+
+`pipeline/cross_modal.py` consumes only the resulting source-timestamped
+`AudioRedactionInterval` values. It applies its own bounded source-time
+lookahead and configured pre/post synchronization padding, then returns a
+visual `spoken_pii` region for an associated face or an explicit unsafe result
+when no conservative association is possible. It does not recognize text,
+mutate audio, expose matched values, or decide publication safety.
+
 ## Data handling and limits
 
 - Raw OCR text, transcript text, and matched values remain in memory only for

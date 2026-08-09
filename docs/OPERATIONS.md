@@ -32,10 +32,11 @@ audio demo.
 Compose mounts source code for development and keeps dependency/database data
 in named volumes. The browser demo uses same-page WebRTC and does not require a
 signaling port or extra environment variable. No server-side media transport,
-migrations, external/background worker processes, scheduled jobs, cross-modal
-policy, or provider processes exist in this foundation. The shared video engine,
-production plate, OCR/PII, and face adapters, and bounded transcription workers
-are in-process API libraries; the visual-privacy and spoken-PII demos remain local
+migrations, external/background worker processes, scheduled jobs, final
+cross-modal publication policy, or provider processes exist in this foundation.
+The shared video engine, production plate, OCR/PII, and face adapters, and
+bounded transcription workers are in-process API libraries; the visual-privacy
+and spoken-PII demos remain local
 standalone commands rather than Compose services.
 
 ## Commands
@@ -123,12 +124,13 @@ an active transport integration; `/health` continues to report liveness only.
 
 The PrivaStream web/API/Compose foundation, creator-console mock shell,
 normalized detector contracts, browser-local mock media path, shared video
-engine, production plate, OCR/PII, and face adapters, process-local face
-enrollment repository/readiness routes, standalone face and plate/OCR modules,
-standalone spoken-PII module, and in-process privacy gate are Implemented in
-source. Cross-modal policy, authorization-provider wiring, backend
-publication/safety integration, durable persistence, server-side live media
-processing and transport, and production deployment are Planned. Runtime
+engine, cross-modal synchronizer, production plate, OCR/PII, and face adapters,
+process-local face enrollment repository/readiness routes, standalone face and
+plate/OCR modules, standalone spoken-PII module, and in-process privacy gate are
+Implemented in source. Final cross-modal publication policy,
+authorization-provider wiring, backend publication/safety integration, durable
+persistence, server-side live media processing and transport, and production
+deployment are Planned. Runtime
 verification is Unverified: no browser session,
 audio or visual demo, model inference, orchestration tests, builds, migrations,
 services, providers, linting, formatting checks, or type checks were run.

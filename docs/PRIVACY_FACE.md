@@ -61,6 +61,12 @@ clamped to normalized `[0, 1]` bounds. The detector does not apply production
 padding or temporal retention; those belong to the shared video engine and its
 future production registration.
 
+The cross-modal synchronizer consumes normalized face geometry after this
+adapter boundary. It does not invoke the face model, perform identity matching,
+or retain embeddings; a supplied lower-face/landmark region or active-speaker
+hint remains optional, and the synchronizer uses the face box conservatively
+when those hints are unavailable.
+
 Model errors remain detector errors. They are not converted into an empty
 successful result. A downstream safety boundary must decide how to hold or
 fail closed when the face detector is required.

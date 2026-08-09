@@ -85,6 +85,15 @@ bounded multipart enrollment, safe response fields, and default-deny route
 authorization. It must not duplicate face matching or require model weights,
 real media, raw images, or an external database.
 
+The cross-modal synchronization unit boundary should use deterministic
+source-timestamped frames, audio intervals, and normalized face geometry to
+cover interval indexing and de-duplication, pre/post padding, bounded lookahead,
+single-face mouth/lower-face derivation, unique active-speaker selection,
+ambiguous multi-face full-face fallback, missing-face unsafe results, buffer
+overflow, timestamp discontinuity, late audio decisions, flush behavior, and
+sanitized buffer-delay/decision-lag metrics. It must not load detectors,
+transcribers, models, transport, compositor payloads, or real media.
+
 ## Isolation
 
 Use dedicated data, resources, credentials, and controlled dependencies for tests that can mutate state or contact external systems. Reset safely and prevent accidental actions outside the test boundary.

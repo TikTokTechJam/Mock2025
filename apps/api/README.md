@@ -15,6 +15,10 @@ path, which consumes the shared text-PII recognizer and maps sensitive spans to
 source OCR blocks without applying standalone padding or cadence. Spoken PII is
 under
 `src/privastream_api/pipeline/spoken_pii.py`, with bounded PCM16 WAV processing.
+Cross-modal spoken-PII visual augmentation is under
+`src/privastream_api/pipeline/cross_modal.py`; it correlates source-time audio
+intervals with existing normalized face geometry without owning detectors,
+composition, transport, or publication safety.
 The face-specific path under `src/privastream_api/privacy/face` provides
 standalone InsightFace/ArcFace detection, consented creator enrollment, and
 conservative creator-vs-bystander matching through `scripts/face_demo.py`.
@@ -93,6 +97,9 @@ current API surface.
 transcription, PII interval, and PCM16 renderer path. The current HTTP surface
 includes `GET /health` and the authorization-protected face routes documented in
 `docs/API.md`.
+`src/privastream_api/pipeline/cross_modal.py` contains the bounded source-time
+lookahead, spoken-PII interval index, face association/fallback, visual-region
+derivation, and explicit unsafe/late-decision results for cross-modal consumers.
 
 Run the spoken-PII local demo from the repository root:
 

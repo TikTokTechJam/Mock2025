@@ -35,7 +35,9 @@ Audio-only muting can still leave visual cues. Coordinated A/V protection streng
 - Active speaker association is difficult in multi-person scenes.
 
 ## Status Boundary
-Planned advanced privacy story. It is not required to claim basic spoken-PII muting, but it is part of the full PrivaStream reproduction target.
+The cross-modal synchronization primitive is Implemented but Unverified. The
+full story remains Planned at the product boundary until detector, transport,
+and publication-safety integration is implemented and explicitly verified.
 
 ## Touched By
 Issues #4, #9, #10, #13, #15, #17.

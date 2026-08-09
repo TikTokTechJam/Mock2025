@@ -70,6 +70,14 @@ payloads, coordinates, OCR text, plate values, or raw detector errors. The
 production plate and OCR/PII adapters use the same sanitized success and failure
 statuses; they do not add model-specific payload or matched-text logging.
 
+The cross-modal synchronizer exposes only aggregate frame counts, protected and
+no-sensitive-speech outcomes, unsafe outcomes, late audio-decision count,
+buffer-overflow count, source-time buffer delay, and source-time decision lag
+through `CrossModalMetrics.snapshot()`. It does not expose interval values,
+transcript text, face geometry, track payloads, or model output. Late decisions,
+timestamp discontinuities, unresolved face association, incomplete audio, and
+buffer overflow remain explicit unsafe update/decision statuses.
+
 ## Verification
 
 The API health, browser session, and creator-console signals are Unverified; no

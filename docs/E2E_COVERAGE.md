@@ -30,6 +30,15 @@ disconnect, panic entry, explicit recovery, and conservative recovery
 hysteresis. No transport or real protected-output path consumes these decisions
 yet.
 
+The cross-modal synchronization boundary is Implemented but Unverified:
+source-timestamped video frames and existing face geometry → bounded audio
+watermark lookahead → deterministic spoken-PII interval overlap → mouth or
+conservative full-face regions → explicit unsafe/late-decision result. Coverage
+targets pre/post padding, one-face association, unique active-speaker hints,
+ambiguous multi-face fallback, no-face failure, buffer overflow, timestamp
+discontinuity, and sanitized synchronization metrics. No transport, detector,
+compositor, or final publication consumer uses this boundary yet.
+
 The browser media loopback journey is Implemented but Unverified: local camera /
 microphone permission → WebRTC offer/answer and ICE exchange → returned remote
 tracks → canvas video redaction and Web Audio mute transform → processed

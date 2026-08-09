@@ -67,6 +67,14 @@ offsets, and non-sensitive source identifiers; it does not return matched text
 or log/persist classifier payloads. Its detailed contract and modality handoff
 are documented in [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md).
 
+The cross-modal synchronizer consumes only source-timestamped interval
+categories/confidence and normalized face geometry. It keeps these values in a
+bounded in-memory buffer, emits sanitized reason codes and aggregate timing
+metrics, and never logs or persists transcript text, matched values, embeddings,
+face landmarks, or raw media. It is an augmentation boundary, not the final
+publication-safety decision; a future transport must still apply the
+centralized `PrivacyGate` result before release.
+
 ## Detailed security and privacy specification
 
 ## 1. Purpose
