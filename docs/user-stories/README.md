@@ -26,11 +26,11 @@ Each story states the actor, desired outcome, value, acceptance criteria, scope,
 | [US-0010](US-0010-reproducible-runtime.md) | Run PrivaStream reproducibly on supported hardware | Developer / operator | #2, #11, #14-#17, #21 |
 | [US-0011](US-0011-benchmark-privacy-performance.md) | Evaluate privacy quality and performance | Developer / evaluator | #5-#7, #9, #10, #14-#17, #32, #48, #49 |
 | [US-0012](US-0012-complete-privastream-demo.md) | Run the complete PrivaStream demonstration | Creator / operator | #1, #2, #5-#7, #9-#13, #15-#17, #21, #22 |
-| [US-0013](US-0013-improve-license-plate-detector.md) | Benchmark, train, and improve the license-plate detector | ML developer / evaluator | #14, #15, #48, #49 |
+| [US-0013](US-0013-improve-license-plate-detector.md) | Benchmark, train, and improve the license-plate detector | ML teammate / evaluator | #14, #15, #48, #49 |
 
 ## Issue-to-Story Map
 
-Use this when reviewing the implementation backlog. It shows which stable outcomes each issue advances. The current backlog follows a one-owner rule: source implementation issues own algorithms/components; `[Integration]` issues only wire those implementations into production.
+Use this when reviewing the implementation backlog. It shows which stable outcomes each issue advances. The backlog keeps ML work separate from backend/infrastructure work.
 
 | Issue | User stories touched |
 | --- | --- |
@@ -46,8 +46,8 @@ Use this when reviewing the implementation backlog. It shows which stable outcom
 | #11 Production privacy-to-WebRTC integration | US-0001, US-0006, US-0008, US-0009, US-0010, US-0012 |
 | #12 Production creator-console client integration | US-0001, US-0002, US-0008, US-0009, US-0012 |
 | #13 Privacy readiness/panic/fail-closed gate | US-0001, US-0003-0009, US-0012 |
-| #14 Model/data manifests, bootstrap, and training | US-0004, US-0005, US-0006, US-0010, US-0011, US-0013 |
-| #15 Cross-feature benchmark framework | US-0003-0007, US-0010, US-0011, US-0012, US-0013 |
+| #14 Model-file handoff, download/cache, and runtime path resolution | US-0004, US-0005, US-0006, US-0010, US-0011, US-0013 |
+| #15 Evaluation tooling and standard metrics | US-0003-0007, US-0010, US-0011, US-0012, US-0013 |
 | #16 CPU/GPU deployment packaging | US-0009, US-0010, US-0011, US-0012 |
 | #17 Complete E2E verification | US-0001 through US-0012 |
 | #18 Face source implementation | US-0002, US-0003 |
@@ -56,14 +56,35 @@ Use this when reviewing the implementation backlog. It shows which stable outcom
 | #21 Reusable WebRTC transport with mocks | US-0001, US-0008, US-0009, US-0010, US-0012 |
 | #22 Creator-console UI shell with mock clients | US-0001, US-0002, US-0008, US-0009, US-0012 |
 | #32 Shared text-PII recognizer | US-0005, US-0006, US-0011 |
-| #48 Plate benchmark dataset + baseline numbers | US-0004, US-0011, US-0013 |
-| #49 Plate fine-tuning + best-model selection | US-0004, US-0011, US-0013 |
+| #48 ML plate baseline evaluation | US-0004, US-0011, US-0013 |
+| #49 ML plate fine-tuning and best-model handoff | US-0004, US-0011, US-0013 |
+
+## US-0013 role boundary
+
+For the plate-model story, ownership is intentionally simple:
+
+```text
+BACKEND / INFRA
+#15 provides evaluation tooling
+        ↓
+ML
+#48 measures the current model
+        ↓
+#49 trains/fine-tunes and selects the best model
+        ↓
+BACKEND / INFRA
+#14 makes the finished model file reproducibly loadable by the app
+        ↓
+#16 packages the runtime
+```
+
+ML teammates are expected to work with data, labels, training, evaluation, failure analysis, and model artifacts. They are not expected to implement application/backend infrastructure for US-0013.
 
 ## Planning Boundary
 
 Approval of a story does not make a capability Implemented or Verified. Use the authoritative domain documents for current behavior and use the issue or approved solution for implementation scope.
 
-The current touched-story range is **US-0001 through US-0013**. US-0013 is the first plate-model-quality story and deliberately reuses #14/#15 rather than creating duplicate training or benchmark infrastructure. The next genuinely new user outcome should start at **US-0014** unless it is better represented as additional scope or acceptance criteria for an existing story.
+The current touched-story range is **US-0001 through US-0013**. The next genuinely new user outcome should start at **US-0014** unless it is better represented as additional scope or acceptance criteria for an existing story.
 
 Before creating US-0014+, check this index first. If a proposed issue only implements part of an existing outcome, link it to that story instead of creating a duplicate user story.
 
@@ -73,7 +94,8 @@ Keep stories focused and independently reviewable. Do not rewrite historical req
 
 When a new issue is added:
 1. decide whether it advances an existing user story;
-2. identify the issue that exclusively owns the implementation concern, or make the new issue explicitly integration-only;
-3. add the issue to the relevant story's `Touched By` section and this map;
-4. create a new US file only when the actor/outcome/value is genuinely new;
-5. use the next sequential US identifier for new stories.
+2. identify the issue that exclusively owns the implementation concern;
+3. keep `[ML]` work separate from backend/infrastructure implementation where team ownership differs;
+4. add the issue to the relevant story's `Touched By` section and this map;
+5. create a new US file only when the actor/outcome/value is genuinely new;
+6. use the next sequential US identifier for new stories.
