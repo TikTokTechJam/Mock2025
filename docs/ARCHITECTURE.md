@@ -35,17 +35,18 @@ process boundaries, dependencies, and data flows.
 - `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
   images with mounted source trees and persistent dependency volumes.
 
-The standalone face and plate/OCR modules, their production adapters, process-local
-face enrollment repository and readiness tracker, shared text-PII recognizer,
-shared video orchestrator/compositor, timestamped audio pipeline, spoken-PII
-detector, local PCM16 renderer, cross-modal synchronizer, and centralized privacy gate are implemented
-inside the API package. Face control routes are protected by an injected
-server-side creator authorizer and are not a media transport surface. The
-browser-local loopback is implemented without an API dependency. Server-side
-cross-modal media integration and final redaction/publication policy,
-real-time media transport, durable persistence, external worker process,
-provider integration, and E2E runtime boundary do not exist yet. `apps/` contains
-only runnable application boundaries; there is no separate model/inference service.
+The standalone face and plate/OCR modules, their production plate and OCR/PII
+adapters, process-local face enrollment repository and readiness tracker, shared
+text-PII recognizer, shared video orchestrator/compositor, timestamped audio
+pipeline, spoken-PII detector, local PCM16 renderer, cross-modal synchronizer,
+and centralized privacy gate are implemented inside the API package. Face control
+routes are protected by an injected server-side creator authorizer and are not a
+media transport surface. The browser-local loopback is implemented without an
+API dependency. Server-side cross-modal media integration and final
+redaction/publication policy, real-time media transport, durable persistence,
+external worker process, provider integration, and E2E runtime boundary do not
+exist yet. `apps/` contains only runnable application boundaries; there is no
+separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
 client boundary. The browser loopback implements it with real browser streams,
@@ -171,6 +172,12 @@ The face production adapter in `privacy/face/production.py` wraps
 scheduler, and records sanitized readiness input for #13. The same module owns
 the process-local enrollment repository and protected control-plane route
 boundary; it does not copy face inference or matching logic.
+
+The OCR production adapter in `privacy/vision/ocr_detector.py` wraps the
+standalone OCR engine and shared `TextPiiRecognizer` for this scheduler. It
+preserves OCR-specific normalization and maps sensitive spans to source OCR
+blocks, while leaving cadence, TTL, padding, deadlines, and failure status to
+the shared engine.
 
 ### Current browser loopback path
 
@@ -310,8 +317,8 @@ detector work:
 
 The standalone plate/OCR adapters use a `FrameContext` containing source image
 data and `VideoFrame` metadata, then emit the same normalized result type. The
-production plate adapter uses an injectable source-image provider because the
-canonical frame payload remains opaque to the model runtime.
+production plate and OCR adapters use injectable source-image providers because
+the canonical frame payload remains opaque to the model runtime.
 
 The production face adapter uses the canonical frame payload as its source-image
 provider and delegates all observation, embedding, and identity behavior to the
@@ -343,8 +350,7 @@ Compose healthchecks cover process liveness only; they do not prove product
 readiness, detector accuracy, redaction correctness, or transport readiness.
 
 The foundation, normalized contracts, shared video engine, cross-modal synchronizer,
-standalone
-visual-privacy adapters and production plate adapter, timestamped audio
+standalone visual-privacy adapters and production plate/OCR adapters, timestamped audio
 pipeline, standalone face and production face integration, shared text-PII
 modules, spoken-PII detector baseline, local renderer, privacy gate,
 browser-local loopback, and creator-console mock shell are Implemented in source.

@@ -8,9 +8,9 @@ speech redacted as configured.
 The current repository contains the web and API foundation, a creator privacy
 console shell backed by typed local mocks, a reusable browser-local WebRTC media
 loopback with deterministic mock processing, normalized detector contracts,
-shared model-agnostic video orchestrator/compositor, the production plate-detector
-adapter, timestamped audio ingestion/transcription pipeline, standalone face
-enrollment/matching, the production face adapter and protected
+shared model-agnostic video orchestrator/compositor, production plate and
+OCR/visual-PII adapters, timestamped audio ingestion/transcription pipeline,
+standalone face enrollment/matching, the production face adapter and protected
 enrollment/readiness control surface, standalone license-plate/OCR
 visual-privacy and spoken-PII detector/renderer modules, centralized privacy
 readiness/publication decisions, cross-modal spoken-PII visual augmentation,

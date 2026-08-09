@@ -151,7 +151,9 @@ the normalized OCR block to the shared recognizer. A match causes the OCR block
 to become a normalized video privacy region; the current visual path uses the
 whole block when character-to-sub-box mapping is unavailable. Multiple
 categories in one block are emitted as `custom_sensitive_text` so the caller
-does not claim false character-level precision.
+does not claim false character-level precision. The production
+`OcrVideoDetector` reuses this path without standalone cadence, TTL, or padding
+and registers it with the shared video scheduler, which owns those policies.
 
 OCR engine failures remain detector failures. Shared recognizer unavailability
 is mapped to `DetectorUnavailableError`; recognizer execution failures are
@@ -204,10 +206,12 @@ mutate audio, expose matched values, or decide publication safety.
 - Implementation: `apps/api/src/privastream_api/privacy/text_pii.py`
 - Public exports: `apps/api/src/privastream_api/privacy/__init__.py`
 - OCR adapter: `apps/api/src/privastream_api/privacy/vision/ocr_detector.py`
+- Production OCR adapter: `OcrVideoDetector` and `register_ocr_detector` in the same module
 - Spoken adapter: `apps/api/src/privastream_api/pipeline/spoken_pii.py`
 - Shared recognizer fixtures: `apps/api/tests/privacy/test_text_pii.py`
 - OCR integration fixtures: `apps/api/tests/privacy/vision/test_ocr_detector.py`
 
-The deterministic fixtures document intended behavior, but this PR did not run
-tests, builds, linting, formatting, type checks, model inference, services, or
-browser checks. Verification therefore remains Unverified.
+The deterministic fixtures document intended behavior. No runtime verification
+pass has exercised the shared recognizer, OCR model, production OCR adapter,
+protected output, services, or browser path; verification therefore remains
+Unverified.
