@@ -12,6 +12,44 @@ template contains local web, API, and PostgreSQL ports plus local PostgreSQL
 initialization values for the `privastream` database and user. It contains no
 provider credentials.
 
+## Packaged CPU/GPU Compose
+
+The development topology in `compose.yaml` bind-mounts source and installs
+dependencies at startup. The packaged topology builds pinned web/API images
+and keeps source out of the running containers. Copy `.env.example` to the
+ignored `.env` file, replace local database values when needed, and start the
+CPU topology with:
+
+~~~bash
+pnpm prod:up
+~~~
+
+The GPU topology uses the same images and adds one NVIDIA device reservation to
+the API only:
+
+~~~bash
+pnpm prod:up:gpu
+~~~
+
+Use `pnpm prod:status` and `pnpm prod:down` for the CPU topology. The GPU
+override is selected by the `compose.production.gpu.yaml` file and requires a
+working NVIDIA Container Toolkit and a compatible host driver. The web/API
+ports bind to loopback by default; set the `*_BIND_ADDRESS` variables in the
+ignored `.env` file only when a different network boundary is approved.
+
+The API image mounts the named `model_cache` volume at
+`/var/cache/privastream/models`. When `PRIVASTREAM_MODEL_ID` is non-empty, its
+entrypoint invokes the #14 verified model bootstrap before starting FastAPI.
+An empty value skips bootstrap, which is the current default because the
+repository has no production model manifest. The web image receives
+`NEXT_PUBLIC_API_BASE_URL` as a build argument, so change that value before
+`pnpm prod:up` when the browser must call a non-local API origin.
+
+Only `/`, `/health`, and the currently implemented control-plane ports are
+packaged. No server WebRTC/signaling or announced-IP settings are documented
+until #21 supplies that transport contract. `/health` remains process liveness;
+it is not privacy readiness.
+
 ## Offline benchmark reports
 
 The dependency-free Issue #15 runner uses normalized labels and predictions
@@ -170,14 +208,15 @@ injected sink. Neither is an HTTP route or an active server transport;
 
 ## Availability and verification
 
-The PrivaStream web/API/Compose foundation, creator-console adapter path,
+The PrivaStream web/API/Compose foundation, packaged CPU/GPU runtime images and
+topology, creator-console adapter path,
 normalized detector contracts, browser-local mock media path, shared video
 engine, cross-modal synchronizer, production plate, OCR/PII, and face adapters,
 process-local face enrollment repository/readiness routes, standalone face and
 plate/OCR modules, standalone spoken-PII module, in-process privacy gate, and
 production media integration adapter are Implemented in source. Authorization-
 provider wiring, durable persistence, server-side live media processing and
-transport, and production deployment are Planned. Runtime
+transport, and hosted production operations are Planned. Runtime
 verification is Unverified: no browser session,
 audio or visual demo, model inference, orchestration tests, builds, migrations,
 services, providers, linting, formatting checks, or type checks were run.

@@ -103,6 +103,14 @@ deterministic latency percentiles, FPS, cold-start separation, provenance, and
 JSON/Markdown report output. It must not load models, contact providers, or
 persist raw media or unnecessary PII.
 
+The deployment-packaging boundary should use a clean checkout and controlled
+Docker/Compose environments to cover CPU image builds, health-gated startup,
+model-cache persistence across API restarts, API-origin build configuration,
+loopback port binding, and the NVIDIA device reservation override when a
+compatible host is available. It must not treat process health as privacy
+readiness, require a server WebRTC implementation owned by #21, or publish
+credentials and model weights in images or logs.
+
 The production face-integration boundary should use the real #18 public
 interfaces with deterministic model doubles to cover #4 registration, canonical
 `face_bystander` regions, creator suppression, process-local create/replace/

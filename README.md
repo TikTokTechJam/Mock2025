@@ -152,6 +152,26 @@ pnpm dev
 The web app is served at `http://localhost:3000`; the API is served at
 `http://localhost:8000`, with process health at `/health`.
 
+For the packaged CPU topology, copy `.env.example` to `.env` and run:
+
+```bash
+pnpm prod:up
+```
+
+The GPU topology uses the same application images and adds an NVIDIA device
+reservation only to the API:
+
+```bash
+pnpm prod:up:gpu
+```
+
+Set `NEXT_PUBLIC_API_BASE_URL` before building when the browser must use an API
+origin other than `http://localhost:8000`. Set `PRIVASTREAM_MODEL_ID` only after
+an approved #14 manifest is present; the API entrypoint then invokes the #14
+verified bootstrap into the persistent model-cache volume. These packaged
+topologies expose only the implemented web, API, and database ports. Server
+WebRTC/signaling ports remain owned by #21 and are not invented here.
+
 The web app at `http://localhost:3000` includes the creator privacy console.
 Configure a policy, grant browser device permission, and review production
 readiness before starting a session. The console uses the reusable browser

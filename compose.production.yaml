@@ -1,0 +1,66 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      args:
+        NEXT_PUBLIC_API_BASE_URL: ${NEXT_PUBLIC_API_BASE_URL:-http://localhost:8000}
+    depends_on:
+      api:
+        condition: service_healthy
+    environment:
+      NEXT_TELEMETRY_DISABLED: "1"
+    healthcheck:
+      test:
+        ["CMD", "node", "-e", "fetch('http://localhost:3000').then((response) => { if (!response.ok) process.exit(1) }).catch(() => process.exit(1))"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    init: true
+    ports:
+      - "${WEB_BIND_ADDRESS:-127.0.0.1}:${WEB_PORT:-3000}:3000"
+    restart: unless-stopped
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      PRIVASTREAM_MODEL_CACHE_DIR: /var/cache/privastream/models
+      PRIVASTREAM_MODEL_ID: ${PRIVASTREAM_MODEL_ID:-}
+    healthcheck:
+      test:
+        ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 20s
+    init: true
+    ports:
+      - "${API_BIND_ADDRESS:-127.0.0.1}:${API_PORT:-8000}:8000"
+    restart: unless-stopped
+    volumes:
+      - model_cache:/var/cache/privastream/models
+
+  db:
+    image: postgres:18.4-bookworm
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+      start_period: 10s
+    ports:
+      - "${POSTGRES_BIND_ADDRESS:-127.0.0.1}:${POSTGRES_PORT:-5432}:5432"
+    restart: unless-stopped
+    volumes:
+      - postgres_data:/var/lib/postgresql
+
+volumes:
+  model_cache:
+  postgres_data:

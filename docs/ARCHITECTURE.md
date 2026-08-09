@@ -36,8 +36,11 @@ process boundaries, dependencies, and data flows.
   - `web` serves the Next.js development server on port 3000;
   - `api` serves FastAPI on port 8000; and
   - `db` runs PostgreSQL on port 5432.
-- `apps/api/Dockerfile.dev` and `apps/web/Dockerfile.dev` provide development
-  images with mounted source trees and persistent dependency volumes.
+- `compose.production.yaml` defines the packaged CPU topology, while
+  `compose.production.gpu.yaml` adds an NVIDIA device reservation only to the
+  API service. `apps/api/Dockerfile` and `apps/web/Dockerfile` build pinned
+  production images; the `.dev` Dockerfiles remain source-mounted development
+  images.
 
 The standalone face and plate/OCR modules, their production plate and OCR/PII
 adapters, process-local face enrollment repository and readiness tracker, shared
@@ -70,6 +73,7 @@ passes its source stream to the protected-preview component.
 | Privacy safety policy | Evaluate required/optional capability readiness, source-time watermark/lag coverage, liveness, panic, recovery, and publication actions in one in-process gate; the integration adapter applies the result before handing output to a sink. | Implemented gate and protected-output integration boundary; server transport integration Planned |
 | Real-time media transport | Move live media and protected output without coupling transport to a detector implementation. The current browser baseline uses a same-page WebRTC loopback; server-side and production transport remain absent. | Implemented browser baseline; broader transport Planned |
 | Persistence/configuration | Store only the configuration and lifecycle state later approved for persistence. Face enrollment is process-local; PostgreSQL is provisioned locally but unused. | Implemented process-local face lifecycle; durable persistence Planned |
+| Runtime packaging | Build the web/API images and Compose topology for a CPU default, a GPU device override, health-gated startup, and persistent model-cache mounting. | Implemented packaging; Unverified |
 
 The design starts in-process. A separate service or worker requires a concrete
 runtime or GPU dependency; conceptual separation alone is not a reason to add
@@ -361,9 +365,10 @@ and does not authorize publication.
 ## Dependencies and verification
 
 The frontend depends on Node.js and pnpm. The API depends on CPython 3.14 and
-uv. Docker Compose supplies the local process and PostgreSQL boundaries.
-Compose healthchecks cover process liveness only; they do not prove product
-readiness, detector accuracy, redaction correctness, or transport readiness.
+uv. Development and production Docker Compose files supply the local process,
+PostgreSQL, model-cache, and optional NVIDIA device boundaries. Compose
+healthchecks cover process liveness only; they do not prove product readiness,
+detector accuracy, redaction correctness, or transport readiness.
 
 The foundation, normalized contracts, shared video engine, cross-modal synchronizer,
 standalone visual-privacy adapters and production plate/OCR adapters, timestamped audio
