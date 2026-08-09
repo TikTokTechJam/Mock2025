@@ -1,0 +1,4 @@
+# dataset
+sg_plate_dataset/
+rf-detr/checkpoints/
+yolov11/checkpoints/
