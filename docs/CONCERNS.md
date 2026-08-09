@@ -74,7 +74,13 @@ unprotected source preview.
   with the safety gate/model manifest resolver remain environment and
   follow-up concerns. The current mitigation is a thin normalized adapter,
   exactly-once shared padding, explicit scheduler failures, and deterministic
-mocked integration coverage.
+  mocked integration coverage.
+- The production OCR/visual-PII adapter has not received a runtime OCR-model or
+  integration pass. OCR image-provider compatibility, block-level mapping,
+  contextual-recognizer availability, and interaction with the future safety
+  gate remain Unverified. The current mitigation is reuse of the shared
+  recognizer, conservative whole-block mapping, exactly-once shared padding,
+  explicit scheduler failures, and deterministic mocked integration coverage.
 - The standalone face module has not received a real-model verification pass.
   InsightFace model-pack availability, ArcFace threshold calibration, pose and
   lighting robustness, and local blur quality remain Unverified. The current

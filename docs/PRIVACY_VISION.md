@@ -3,18 +3,18 @@
 ## Purpose
 
 This document owns the standalone visual-privacy implementation for license
-plates and structured on-screen PII, plus the thin production adapter for
-registering the plate detector with the shared video engine. The standalone
-path remains independently runnable and does not require WebRTC or other
-detector modules.
+plates and structured on-screen PII, plus thin production adapters for
+registering the plate and OCR/visual-PII detectors with the shared video engine.
+The standalone path remains independently runnable and does not require WebRTC
+or other detector modules.
 
 ## Availability
 
-The standalone adapters, production plate adapter, deterministic tests, and
-local image/video demo are Implemented in source. Running a real model requires
-the optional `vision` dependency group, a local YOLO-family plate weight file,
-and local OCR model assets. Runtime verification and real-model fixture
-verification are Unverified.
+The standalone adapters, production plate and OCR/visual-PII adapters,
+deterministic tests, and local image/video demo are Implemented in source.
+Running a real model requires the optional `vision` dependency group, a local
+YOLO-family plate weight file, and local OCR model assets. Runtime verification
+and real-model fixture verification are Unverified.
 
 ## Components
 
@@ -23,6 +23,7 @@ verification are Unverified.
 | Plate detector | `UltralyticsPlateDetector` using a local YOLO-family weight file | `PlateModel.predict` |
 | Production plate adapter | `PlateVideoDetector` and `register_plate_detector` | `FrameImageProvider` and #4 scheduler settings |
 | OCR engine | `EasyOcrEngine` by default | `OcrEngine.read` |
+| Production OCR/PII adapter | `OcrVideoDetector` and `register_ocr_detector` | `FrameImageProvider` and #4 scheduler settings |
 | Shared text-PII recognizer | Shared normalized text-PII service used by OCR and spoken paths; detailed contract is in [PRIVACY_TEXT_PII.md](PRIVACY_TEXT_PII.md) | `privastream_api.privacy.text_pii` |
 | Composition service | `VisionPrivacyService` concatenates independent results | `VisualPrivacyDetector.detect` |
 
@@ -77,10 +78,19 @@ privacy region. A block containing multiple PII categories is emitted as
 without making a false precision claim. Raw OCR text and matched values are
 never written to application output.
 
-The default OCR threshold is `0.4`, cadence is every 5 frames, and the latest
-regions may be reused for 2 subsequent frames. Plate cadence, OCR cadence,
-region TTL, threshold, padding, languages, and GPU use are independently
-configurable.
+The standalone OCR default threshold is `0.4`, cadence is every 5 frames, and
+the latest regions may be reused for 2 subsequent frames. Plate cadence, OCR
+cadence, region TTL, threshold, padding, languages, and GPU use are
+independently configurable. Production OCR scheduling is configured separately
+through `OcrOrchestrationConfig`.
+
+The production OCR adapter calls `detect_source_frame()` so OCR confidence
+filtering, visual normalization, shared text-PII recognition, and OCR-block
+mapping are reused without standalone padding, cadence, or TTL reuse.
+`register_ocr_detector()` passes cadence, deadline, TTL, and concurrency settings
+to `VideoOrchestrator`; the shared engine applies production padding exactly
+once. When character-to-sub-box geometry is unavailable, the sensitive span is
+mapped conservatively to its complete source OCR block.
 
 ## Standalone demo
 
@@ -107,7 +117,8 @@ reports frame and region counts only; it does not print recognized text.
 - The module does not implement sophisticated tracking, WebRTC, streaming,
   HTTP media ingestion, or the final fail-closed publication decision. Shared
   temporal coordination and composition are owned by the video engine; the
-  production plate adapter only registers the detector and returns regions.
+  production plate and OCR/PII adapters only register detectors and return
+  source-frame regions.
 - OCR/model or contextual-recognizer failures surface as explicit detector or
   text-recognizer errors and are not converted to an empty result. A caller
   integrating this module must apply the platform's fail-closed policy before

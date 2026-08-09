@@ -9,8 +9,11 @@ spoken-audio, and face-detector paths. Visual privacy is under
 `src/privastream_api/privacy/vision`, with image/video processing through
 `scripts/vision_demo.py`. The completed plate detector also has a thin
 `PlateVideoDetector` registration path for the shared scheduler; it returns
-source-frame geometry without applying standalone padding or cadence. Spoken PII
-is under
+source-frame geometry without applying standalone padding or cadence. The OCR
+detector has the corresponding `OcrVideoDetector` and `register_ocr_detector`
+path, which consumes the shared text-PII recognizer and maps sensitive spans to
+source OCR blocks without applying standalone padding or cadence. Spoken PII is
+under
 `src/privastream_api/pipeline/spoken_pii.py`, with bounded PCM16 WAV processing.
 The face-specific path under `src/privastream_api/privacy/face` provides
 standalone InsightFace/ArcFace detection, consented creator enrollment, and
@@ -69,7 +72,9 @@ without importing detector implementations. `src/privastream_api/privacy/vision`
 contains independent plate and OCR/PII adapters that emit normalized regions.
 `PlateVideoDetector` and `register_plate_detector` bridge the plate
 implementation into the shared video scheduler without importing model-specific
-code into the orchestrator. `src/privastream_api/privacy/face` contains the
+code into the orchestrator. `OcrVideoDetector` and `register_ocr_detector` do
+the same for the OCR/visual-PII path while keeping text recognition in
+`privastream_api.privacy.text_pii`. `src/privastream_api/privacy/face` contains the
 independent face model adapter, creator enrollment store, matcher, and
 bystander-region detector. It does not apply production padding or temporal
 composition.
