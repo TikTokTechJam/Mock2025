@@ -132,7 +132,8 @@ fallback/block decision—may leave it.**
   processing runtime.
 - `models/` — runtime model manifests and verified artifact metadata; downloaded
   weights stay in an ignored local cache.
-- `ml/` — offline training and evaluation tooling.
+- `ml/` — offline training and evaluation tooling, including the reproducible
+  benchmark runner under `ml/evaluation/`.
 - `datasets/` — safe dataset manifests and metadata, not raw/private datasets.
 - `docs/` — authoritative product, architecture, security, operations, and
   continuity documentation.
@@ -205,3 +206,8 @@ See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and
 local commands. See [Visual Privacy](docs/PRIVACY_VISION.md) and
 [Face Privacy](docs/PRIVACY_FACE.md) for the standalone detector modules.
+
+The offline benchmark runner consumes normalized labels and predictions and
+writes machine-readable JSON plus a human-readable Markdown report. Its
+mandatory provenance and plate metric workflow are documented in
+[`ml/evaluation/README.md`](ml/evaluation/README.md).

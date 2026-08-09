@@ -36,7 +36,10 @@ The project needs evidence for both privacy quality and real-time usability; agg
 - Performance results are hardware/configuration specific.
 
 ## Status Boundary
-Planned engineering story until the benchmark harness covers every implemented privacy capability with reproducible metadata.
+The dependency-free plate benchmark runner and standard report format are
+Implemented but Unverified. This engineering story remains Planned until a
+controlled held-out workflow invokes the production adapters and captures the
+remaining face, visual-PII, spoken-PII, audio, and resource measurements.
 
 ## Touched By
 Issues #5, #6, #7, #9, #10, #14, #15, #16, #17, #48, #49.

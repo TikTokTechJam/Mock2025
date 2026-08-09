@@ -12,6 +12,31 @@ template contains local web, API, and PostgreSQL ports plus local PostgreSQL
 initialization values for the `privastream` database and user. It contains no
 provider credentials.
 
+## Offline benchmark reports
+
+The dependency-free Issue #15 runner uses normalized labels and predictions
+from an approved detector or pipeline evaluation workflow. From the repository
+root, run the documented synthetic example with explicit model, checksum,
+dataset, profile, hardware, and code-commit provenance:
+
+~~~bash
+python ml/evaluation/benchmark.py run \
+  --input ml/evaluation/fixtures/plate-example.json \
+  --output reports/plate-example.json \
+  --model plate-detector:v1 \
+  --model-checksum 0123456789abcdef0123456789abcdef0123456789abcdef0123456789abcdef \
+  --dataset plate-fixture \
+  --profile plate-default-640 \
+  --hardware "Apple Silicon / CPU" \
+  --commit 0000000000000000000000000000000000000000
+~~~
+
+The runner writes JSON and Markdown reports, including precision, recall,
+privacy-critical miss rate, mAP@0.5, mAP@0.5:0.95, steady-state p50/p95/p99,
+inference FPS, optional video/audio measurements, cold-start time, and supplied
+resource samples. The checked-in fixture is synthetic and is not a production
+quality claim.
+
 ## Runtime model artifacts
 
 Model artifacts are described by JSON manifests under `models/manifests/` and
