@@ -22,8 +22,9 @@ process boundaries, dependencies, and data flows.
   `src/privastream_api/pipeline/audio.py`, the optional cross-modal adapter,
   and the protected media integration under
   `src/privastream_api/pipeline/media_integration.py`.
-- `models/` contains runtime model metadata and the future manifest boundary;
-  it is not a model server and must not contain downloaded weights.
+- `models/` contains runtime model manifests and artifact metadata; the
+  `apps/api` resolver verifies and caches artifacts but is not a model server
+  and must not commit downloaded weights.
 - `ml/` contains offline training, fine-tuning, and evaluation tooling. Runtime
   API code must not import training-only dependencies by default.
 - `datasets/` contains safe dataset manifests, schemas, split metadata, and

@@ -11,7 +11,12 @@ explicitly requested muted audio output. The audio pipeline applies intervals
 to the original source chunks before returning a safe release decision; failed,
 late, or unclassified processing remains blocked. Model caches and output files
 remain local operator-controlled artifacts outside the current product
-retention contract.
+retention contract. Runtime model artifacts are supplied through versioned
+manifests and a local cache resolver. The resolver validates the declared
+SHA-256 before returning a path to detector code, rejects path-unsafe manifest
+values, and never stores weights or provider credentials in Git. A model source
+or checksum mismatch is an unavailable model condition, not permission to
+continue with an unverified artifact.
 
 The browser media demo requests explicit camera and microphone permission,
 keeps capture and processed tracks in browser memory, and does not upload them

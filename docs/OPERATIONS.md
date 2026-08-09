@@ -12,6 +12,20 @@ template contains local web, API, and PostgreSQL ports plus local PostgreSQL
 initialization values for the `privastream` database and user. It contains no
 provider credentials.
 
+## Runtime model artifacts
+
+Model artifacts are described by JSON manifests under `models/manifests/` and
+cached under `.cache/models/`. After the ML team provides a real artifact and
+manifest metadata, fetch it from the repository root with:
+
+~~~bash
+uv run --project apps/api python -m privastream_api.model_artifacts fetch --model plate-detector
+~~~
+
+The resolver validates the SHA-256 checksum before returning a local path.
+Missing manifests, unavailable sources, and mismatches are errors; detector
+code must not silently load an unverified or developer-specific path.
+
 ## Processes
 
 | Process | Entry point | Health signal |
@@ -76,6 +90,9 @@ The command requires a local YOLO-family plate weight file. It does not download
 weights during processing and does not require WebRTC or other services. See
 `docs/PRIVACY_VISION.md` for thresholds, languages, limitations, and failure
 behavior.
+
+Once the ML handoff manifest exists, pass `--plate-model plate-detector` to
+resolve and verify the artifact through the shared model cache.
 
 ## Standalone face demo
 

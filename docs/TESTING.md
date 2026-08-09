@@ -82,6 +82,13 @@ OCR normalization, sensitive-span-to-block mapping, benign text, registration
 with `VideoOrchestrator`, exactly-once production padding, successful zero
 detections, and propagation of OCR or recognizer failures. It must not require
 downloaded OCR models or real media.
+
+The model-artifact boundary should use temporary local handoff files and
+manifests to cover registration, logical-ID resolution, versioned cache paths,
+checksum success, checksum mismatch, missing source, unsupported source scheme,
+and path-safe metadata. It must not download a production weight or contact an
+external model provider during ordinary unit coverage.
+
 The standalone face unit boundary should use deterministic model doubles to
 cover explicit consent, zero-face and multi-face enrollment rejection,
 normalization and aggregate replacement, deletion, creator matches, unknown or

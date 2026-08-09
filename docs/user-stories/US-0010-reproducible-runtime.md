@@ -38,9 +38,10 @@ A hackathon/demo system is difficult to maintain if model artifacts, CUDA depend
 - CPU performance may be insufficient for every real-time configuration.
 
 ## Status Boundary
-The #11 integration adapter is Implemented but Unverified as an in-process
-boundary. This operational story remains Planned until a clean-checkout CPU
-flow and the available GPU flow are validated.
+The #14 model manifest, registration, cache, and checksum resolver is Implemented
+but Unverified. The #11 integration adapter is also Implemented but Unverified
+as an in-process boundary. This operational story remains Planned until a
+clean-checkout CPU flow and the available GPU flow are validated.
 
 ## Touched By
 Issues #2, #11, #14, #15, #16, #17.
