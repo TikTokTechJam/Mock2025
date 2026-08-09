@@ -93,6 +93,10 @@ for required/optional readiness, source-time coverage, liveness, panic,
 conservative recovery, and sanitized publication decisions. It does not inspect
 media or expose an HTTP route; transport integration remains outside the
 current API surface.
+`src/privastream_api/pipeline/media_integration.py` contains the production
+privacy-media adapter. It coordinates the video, audio, optional cross-modal,
+and gate decisions, then exposes only protected output through an injected
+`ProtectedMediaSink`; it does not implement signaling or transport.
 `src/privastream_api/pipeline/spoken_pii.py` contains the bounded VAD,
 transcription, PII interval, and PCM16 renderer path. The current HTTP surface
 includes `GET /health` and the authorization-protected face routes documented in

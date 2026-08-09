@@ -13,9 +13,11 @@ processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
 shared video orchestrator and compositor are implemented as an internal API
 pipeline, the cross-modal synchronization primitive and centralized privacy
 readiness/publication gate are present, and the creator-console mock shell is
-present. Product-surface media ingestion, UI wiring, backend creator operations
-beyond protected face controls, final cross-modal publication policy,
-server-side transport, durable persistence, and E2E infrastructure remain absent.
+present. The production privacy-media integration adapter now coordinates the
+processors and gate through a protected-output sink contract. Product-surface
+media ingestion, UI wiring, backend creator operations beyond protected face
+controls, server-side transport, durable persistence, and E2E infrastructure
+remain absent.
 
 ## Active Work
 
@@ -26,6 +28,8 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
 - Review the centralized privacy gate and timestamped audio, face, shared
   text-PII, and cross-modal paths and prepare explicit focused verification
   passes.
+- Review the production media integration adapter with a dedicated protected-
+  output verification pass before wiring a real transport sink.
 
 ## Current Blockers
 
@@ -45,8 +49,11 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
 - The production face adapter, control routes, authorization injection, and
   readiness handoff to #13 have not received a runtime integration pass.
 - The cross-modal synchronizer has not received a dedicated source-timeline or
-  integration verification pass, and no transport or publication consumer uses
-  its decisions.
+  integration verification pass. The #11 adapter consumes its decisions
+  in-process, but no server transport uses them.
+- The production media integration adapter has not received a runtime or
+  protected-output verification pass. The server-side transport sink remains
+  absent, so no live media path consumes its output.
 
 ## Verification Status
 
@@ -58,6 +65,7 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
 | Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types used by the standalone visual module. |
 | Shared video orchestration and compositor | Implemented | Unverified | Cadence, deadlines, bounded concurrency, temporal TTL, normalized composition, and deterministic unit fixtures; no verification pass run. |
 | Centralized privacy readiness/publication gate | Implemented | Unverified | Required/optional policy, watermark/lag coverage, liveness, panic, conservative recovery, sanitized decisions; no integration pass run. |
+| Production privacy-media integration adapter | Implemented | Unverified | Coordinates video/audio, optional cross-modal augmentation, gate decisions, fail-closed fallback, and protected sink ordering; no runtime or transport pass run. |
 | Shared text-PII recognizer | Implemented | Unverified | Deterministic email/phone matching, configured identity/payment formats, contextual classifier boundary, and modality integrations; no verification pass run. |
 | Standalone face enrollment and matching | Implemented | Unverified | Explicit consent, in-memory aggregate enrollment, conservative matching, normalized bystander regions, and deterministic model doubles; no real-model pass run. |
 | Standalone plate/OCR module | Implemented | Unverified | Optional-model adapters, deterministic recognizers, and local demo; no real-model pass run. |
@@ -88,8 +96,8 @@ server-side transport, durable persistence, and E2E infrastructure remain absent
 6. Request a dedicated face, visual, and audio verification pass with controlled
    local fixtures and models when runtime checks are wanted.
 7. Provide the approved authorization provider, durable repository contract, and
-   #13 publication-safety consumer before wiring the face control surface into
-   the creator UI or server media transport.
+   #21 server transport sink before wiring the face control surface or protected
+   media integration into the creator UI or live media transport.
 8. Add the next approved privacy/media lifecycle contract before exposing the
    remaining standalone detectors through server transport or creator controls.
 

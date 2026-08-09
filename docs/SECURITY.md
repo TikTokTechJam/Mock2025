@@ -44,8 +44,11 @@ The centralized `PrivacyGate` accepts only sanitized capability observations,
 source-timeline watermarks, lag, liveness, and explicit control events. It
 returns a safe publication action and reason code without inspecting media or
 exposing detector payloads. Required failures, missing coverage, unhealthy
-liveness, and panic remain fail-closed; a future transport must apply the
-decision before publication.
+liveness, and panic remain fail-closed. `ProductionMediaIntegration` applies
+that decision before calling its injected sink: protected candidates are sent
+only for `publish_protected`, a full-frame cover and silent source-timestamped
+chunks are used for `full_redact`, and no media is sent for `block`. The sink
+does not receive the raw source frame or audio chunk as a fallback.
 
 The standalone face module requires explicit creator consent before enrollment,
 keeps only one aggregate embedding in the in-memory hackathon store while the
@@ -73,7 +76,9 @@ bounded in-memory buffer, emits sanitized reason codes and aggregate timing
 metrics, and never logs or persists transcript text, matched values, embeddings,
 face landmarks, or raw media. It is an augmentation boundary, not the final
 publication-safety decision; a future transport must still apply the
-centralized `PrivacyGate` result before release.
+centralized `PrivacyGate` result before release. The production integration
+adapter supplies this handoff without creating a second transport or policy
+implementation.
 
 ## Detailed security and privacy specification
 

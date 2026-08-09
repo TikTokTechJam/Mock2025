@@ -32,8 +32,10 @@ audio demo.
 Compose mounts source code for development and keeps dependency/database data
 in named volumes. The browser demo uses same-page WebRTC and does not require a
 signaling port or extra environment variable. No server-side media transport,
-migrations, external/background worker processes, scheduled jobs, final
-cross-modal publication policy, or provider processes exist in this foundation.
+migrations, external/background worker processes, scheduled jobs, or provider
+processes exist in this foundation. The in-process production media integration
+has no separate process, port, command, or environment setting; it hands output
+to a future transport sink.
 The shared video engine, production plate, OCR/PII, and face adapters, and
 bounded transcription workers are in-process API libraries; the visual-privacy
 and spoken-PII demos remain local
@@ -115,10 +117,10 @@ transcription failure, or processing deadline lag. None is represented as an
 empty successful redaction result.
 
 The in-process `PrivacyGate` is the single source of publication decisions for
-future media consumers. It reports separate process liveness and privacy
-readiness, applies required/optional capability policy, and requires explicit
-panic recovery with consecutive healthy evaluations. It is not an HTTP route or
-an active transport integration; `/health` continues to report liveness only.
+media consumers. `ProductionMediaIntegration` applies those decisions to
+protected video/audio output or a fail-closed fallback before calling an
+injected sink. Neither is an HTTP route or an active server transport;
+`/health` continues to report liveness only.
 
 ## Availability and verification
 
@@ -126,11 +128,10 @@ The PrivaStream web/API/Compose foundation, creator-console mock shell,
 normalized detector contracts, browser-local mock media path, shared video
 engine, cross-modal synchronizer, production plate, OCR/PII, and face adapters,
 process-local face enrollment repository/readiness routes, standalone face and
-plate/OCR modules, standalone spoken-PII module, and in-process privacy gate are
-Implemented in source. Final cross-modal publication policy,
-authorization-provider wiring, backend publication/safety integration, durable
-persistence, server-side live media processing and transport, and production
-deployment are Planned. Runtime
+plate/OCR modules, standalone spoken-PII module, in-process privacy gate, and
+production media integration adapter are Implemented in source. Authorization-
+provider wiring, durable persistence, server-side live media processing and
+transport, and production deployment are Planned. Runtime
 verification is Unverified: no browser session,
 audio or visual demo, model inference, orchestration tests, builds, migrations,
 services, providers, linting, formatting checks, or type checks were run.

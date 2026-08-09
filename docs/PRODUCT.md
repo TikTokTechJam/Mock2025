@@ -13,6 +13,7 @@ sensitive content is redacted before delivery.
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
 | Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
 | Privacy readiness and publication gate | `privastream_api.pipeline.safety.PrivacyGate` | Evaluates required/optional capability observations, source-time watermark/lag coverage, liveness, panic, and conservative recovery; returns `publish_protected`, `full_redact`, or `block` decisions. | Implemented | Unverified |
+| Production privacy-media integration | `privastream_api.pipeline.media_integration.ProductionMediaIntegration` | Coordinates protected video/audio candidates, optional #10 augmentation, and the #13 gate, then sends only protected payloads or an explicit block to an injected `ProtectedMediaSink`; it does not implement WebRTC or signaling. | Implemented | Unverified |
 | Production license-plate adapter | `privastream_api.privacy.vision.plate_detector.register_plate_detector` | Registers the completed plate detector with the shared scheduler; production padding, TTL, cadence, and failure status remain shared-pipeline policy. | Implemented | Unverified |
 | Production OCR/visual-PII adapter | `privastream_api.privacy.vision.ocr_detector.register_ocr_detector` | Reuses OCR blocks and the shared text-PII recognizer, then registers source-frame visual regions with the shared scheduler. | Implemented | Unverified |
 | Timestamped audio ingestion and transcription pipeline | `privastream_api.pipeline.audio.AudioPipeline` | Normalizes source-timestamped chunks, emits bounded speech segments, maps shared text-PII spans to canonical intervals, returns protected source chunks with release watermark/lag, and reports explicit unsafe outcomes for discontinuity, overload, failure, or deadline lag. | Implemented | Unverified |
@@ -26,9 +27,10 @@ The HTTP product surface does not accept media. The browser demo does not
 upload media to the API or provide server-side live transport. The protected
 face control surface accepts bounded enrollment samples and returns readiness
 metadata after an injected creator authorization check; it does not transport
-media or decide publication safety. The timestamped audio pipeline and other
-standalone demos process local inputs or act as in-process libraries; they do
-not store or transport media as product state.
+media or decide publication safety. The timestamped audio pipeline, production
+media integration adapter, and other standalone demos process local inputs or
+act as in-process libraries; they do not store or transport media as product
+state.
 
 ## Planned creator journey
 
@@ -44,9 +46,8 @@ protected-preview boundary are Implemented against typed local façades. The
 central safety gate is an in-process API primitive, and the production face
 adapter/control routes are protected internal API boundaries. Real device
 acquisition, creator UI wiring, backend authorization-provider integration,
-end-to-end cross-modal integration, detector processing, temporal coordination,
-and protected
-delivery beyond the local mock/loopback paths are Planned. The shared video
+detector processing, temporal coordination, and protected delivery beyond the
+injected sink and local mock/loopback paths are Planned. The shared video
 engine is Implemented as an internal transport-independent primitive. The
 production face adapter and control routes are not a replacement for the
 centralized #13 publication decision or the future #12 UI client.
@@ -65,8 +66,8 @@ centralized #13 publication decision or the future #12 UI client.
 
 Authentication provider wiring, user-facing creator enrollment, product-surface
 media upload, server-side or production live transport, durable enrollment
-persistence, end-to-end cross-modal media integration, final cross-modal
-publication policy, and production deployment are not implemented here. The shared video compositor is an
+persistence, end-to-end cross-modal media delivery, and production deployment
+are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
 publish. The browser loopback and standalone demos are local or best-effort
 paths, and the creator console uses typed mock façades; none are production

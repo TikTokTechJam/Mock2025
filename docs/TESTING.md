@@ -36,6 +36,16 @@ explicit exit, consecutive healthy recovery, sanitized reason codes, and
 `publish_protected`/`full_redact`/`block` decisions. It must not load media,
 detectors, models, transport, or browser clients.
 
+The production media-integration boundary should use the real normalized
+`VideoOrchestrator`, `AudioPipeline`, optional `CrossModalSynchronizerAdapter`,
+and `PrivacyGate` contracts with deterministic detector/VAD/transcriber doubles.
+It should cover source timestamp preservation, protected video/audio delivery,
+cross-modal augmentation when enabled, required processor failure, full-redact
+silent/full-frame fallback, block behavior, gate ordering, and an injected
+`ProtectedMediaSink` that can never receive raw source media. It must not create
+a second WebRTC/mediasoup stack or require browser capture, provider data, ML
+weights, or a live transport.
+
 The browser media boundary should cover permission denial, successful local
 offer/answer and ICE exchange, camera/microphone track return, visible fixed
 video redaction, deterministic audio muting, source-clock updates, bounded

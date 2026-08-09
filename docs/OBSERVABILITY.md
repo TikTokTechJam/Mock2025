@@ -78,6 +78,12 @@ transcript text, face geometry, track payloads, or model output. Late decisions,
 timestamp discontinuities, unresolved face association, incomplete audio, and
 buffer overflow remain explicit unsafe update/decision statuses.
 
+`ProductionMediaIntegrationMetrics.snapshot()` exposes only aggregate window
+outcomes: processed, protected, full-redact, blocked, video-failure,
+audio-failure, and cross-modal-failure counts. The integration emits sanitized
+publication decisions and statuses to its caller; it does not log source
+payloads, transcript text, PII values, or raw processor exceptions.
+
 ## Verification
 
 The API health, browser session, and creator-console signals are Unverified; no
