@@ -22,10 +22,10 @@ Response:
 
 The response is served by the FastAPI process and does not check PostgreSQL,
 media ingestion, detector execution, redaction, real-time transport, or any
-other dependency. The current
-browser media loopback and creator-console façades are entirely local to the web
-page and do not add an HTTP signaling or media route. The protected production
-face control surface is documented below.
+other dependency. The browser media loopback remains local to the web page, but
+the creator-console production adapters call the protected face control surface
+documented below when `NEXT_PUBLIC_API_BASE_URL` is configured. The web client
+does not treat an unavailable route as readiness or authorization.
 
 The production face control surface is available at:
 
@@ -60,6 +60,13 @@ cross-modal augmentation, and the centralized `PrivacyGate`; it applies the
 returned protected, full-redact, or block action before calling an injected
 `ProtectedMediaSink`. It never adds a media or signaling route, and the sink is
 the future transport adapter's responsibility.
+
+There is currently no `/privacy/media`, `/privacy/safety`, or browser signaling
+route. The web production media adapter therefore uses the reusable local
+browser client, and the safety adapter consumes an injected #13 event transport
+when a host supplies one. Without that bridge it remains blocked. These
+client-side adapters do not create a second transport, enrollment algorithm, or
+publication-safety implementation.
 
 The standalone spoken-PII module is intentionally not an HTTP endpoint. Its
 local command accepts bounded PCM16 WAV input and writes a muted WAV result; the

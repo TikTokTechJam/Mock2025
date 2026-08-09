@@ -8,7 +8,8 @@ sensitive content is redacted before delivery.
 
 | Capability | Entry point | Current result | Availability | Verification |
 | --- | --- | --- | --- | --- |
-| Creator privacy console shell | `GET /` on the web app | Presents mock source selection, permission UX, enrollment consent/status controls, privacy capability toggles, readiness, safety, session states, and a protected-output boundary without exposing raw diagnostics. | Implemented | Unverified |
+| Creator privacy console | `GET /` on the web app | Uses production client adapters for browser permission/media, face enrollment, server readiness, and safety control boundaries; maps failures to blocked/error states and keeps source/protected previews separate. | Implemented | Unverified |
+| Creator-console production client adapters | `apps/web/src/lib/production-clients.ts` | Adapts the reusable browser media client and the current face control routes into the existing console state model; unsupported server media/safety boundaries fail closed without exposing raw response details. | Implemented | Unverified |
 | Browser media loopback client | `apps/web/src/lib/browser-media-session.ts` (not directly exposed by `/`) | Provides the reusable local WebRTC loopback and deterministic mock video/audio processing client for protected stream integration. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
 | Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
@@ -41,16 +42,13 @@ state.
    redaction compositor.
 4. The creator inspects and controls the protected preview or output.
 
-The creator-console shell, mock policy selection, readiness presentation, and
-protected-preview boundary are Implemented against typed local façades. The
-central safety gate is an in-process API primitive, and the production face
-adapter/control routes are protected internal API boundaries. Real device
-acquisition, creator UI wiring, backend authorization-provider integration,
-detector processing, temporal coordination, and protected delivery beyond the
-injected sink and local mock/loopback paths are Planned. The shared video
-engine is Implemented as an internal transport-independent primitive. The
-production face adapter and control routes are not a replacement for the
-centralized #13 publication decision or the future #12 UI client.
+The creator-console client boundary and protected-preview separation are
+Implemented, but Unverified. The browser adapter can acquire local devices and
+the enrollment/readiness adapters call the current face control routes when
+configured. The default API still denies face authorization, and the browser
+has no connected transport bridge for the implemented #13 gate, so the client
+fails closed and the complete protected session remains Planned. The central
+safety gate is an in-process API authority and is not replaced by browser state.
 
 ## Privacy and safety boundaries
 
@@ -64,14 +62,14 @@ centralized #13 publication decision or the future #12 UI client.
 
 ## Current non-goals
 
-Authentication provider wiring, user-facing creator enrollment, product-surface
+Authentication provider wiring, server-side product enrollment, product-surface
 media upload, server-side or production live transport, durable enrollment
 persistence, end-to-end cross-modal media delivery, and production deployment
 are not implemented here. The shared video compositor is an
 internal rendering primitive and does not decide whether output is safe to
 publish. The browser loopback and standalone demos are local or best-effort
-paths, and the creator console uses typed mock façades; none are production
-delivery capabilities.
+paths; the creator console adapters do not claim production delivery until the
+server transport and safety event boundaries exist.
 
 ## Detailed privacy protection specification
 
@@ -391,7 +389,7 @@ The production face control surface accepts bounded multipart enrollment samples
 through `POST` and `PUT /privacy/face/enrollment` after an injected creator
 authorization check. It supports safe status, replacement, and deletion
 responses without exposing images or embeddings. The repository is process-local
-until a durable database contract is approved; the future #12 client and #13
+until a durable database contract is approved; the #12 client adapter and #13
 publication gate consume this boundary separately.
 
 The system must not:

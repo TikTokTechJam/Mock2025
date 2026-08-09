@@ -31,24 +31,53 @@ export interface SafetySnapshot {
 export interface UnprotectedSourceHandle {
   readonly kind: "unprotected-source";
   readonly label: string;
+  readonly stream?: MediaStream;
 }
 
 export interface ProtectedStreamHandle {
   readonly kind: "protected-output";
   readonly label: string;
   readonly redactions: readonly string[];
+  readonly stream?: MediaStream;
 }
 
-export type MockMediaSessionOutput = MediaSessionOutput<UnprotectedSourceHandle, ProtectedStreamHandle>;
-export type MockMediaSessionClient = MediaSessionClient<UnprotectedSourceHandle, ProtectedStreamHandle>;
+export type MediaSessionOutputHandle = MediaSessionOutput<UnprotectedSourceHandle, ProtectedStreamHandle>;
+export type MediaSessionClientHandle = MediaSessionClient<UnprotectedSourceHandle, ProtectedStreamHandle>;
+/** Compatibility aliases for deterministic fixtures owned by the UI shell. */
+export type MockMediaSessionOutput = MediaSessionOutputHandle;
+export type MockMediaSessionClient = MediaSessionClientHandle;
 
 type Listener<T> = (snapshot: T) => void;
 
 export interface CreatorConsoleClients {
-  enrollment: MockEnrollmentClient;
-  media: MockMediaSessionClient;
-  readiness: MockReadinessClient;
-  safety: MockSafetyClient;
+  enrollment: EnrollmentClient;
+  media: MediaSessionClientHandle;
+  readiness: ReadinessClient;
+  safety: SafetyClient;
+}
+
+export interface EnrollmentClient {
+  getSnapshot(): EnrollmentSnapshot;
+  subscribe(listener: Listener<EnrollmentSnapshot>): () => void;
+  refresh(): Promise<void>;
+  capture(sourceStream: MediaStream | null, consent: boolean): Promise<void>;
+  remove(): Promise<void>;
+}
+
+export interface ReadinessClient {
+  getSnapshot(): CapabilityReadiness[];
+  subscribe(listener: Listener<CapabilityReadiness[]>): () => void;
+  refresh(): Promise<void>;
+  setEnabled(id: CapabilityId, enabled: boolean): void;
+  reset(): Promise<void>;
+}
+
+export interface SafetyClient {
+  getSnapshot(): SafetySnapshot;
+  subscribe(listener: Listener<SafetySnapshot>): () => void;
+  refresh(): Promise<void>;
+  triggerPanic(): Promise<void>;
+  clear(): Promise<void>;
 }
 
 const initialCapabilities: CapabilityReadiness[] = [
@@ -86,7 +115,7 @@ const initialCapabilities: CapabilityReadiness[] = [
   },
 ];
 
-export class MockReadinessClient {
+export class MockReadinessClient implements ReadinessClient {
   private snapshotValue = initialCapabilities;
   private readonly listeners = new Set<Listener<CapabilityReadiness[]>>();
 
@@ -113,7 +142,11 @@ export class MockReadinessClient {
     this.notify();
   }
 
-  public reset(): void {
+  public async refresh(): Promise<void> {
+    return Promise.resolve();
+  }
+
+  public async reset(): Promise<void> {
     this.snapshotValue = initialCapabilities.map((capability) => ({ ...capability }));
     this.notify();
   }
@@ -123,7 +156,7 @@ export class MockReadinessClient {
   }
 }
 
-export class MockEnrollmentClient {
+export class MockEnrollmentClient implements EnrollmentClient {
   private snapshotValue: EnrollmentSnapshot = {
     detail: "No creator identity is enrolled. All detected faces remain protected.",
     state: "not_enrolled",
@@ -139,7 +172,7 @@ export class MockEnrollmentClient {
     return () => this.listeners.delete(listener);
   }
 
-  public capture(): void {
+  public async capture(_sourceStream: MediaStream | null = null, _consent = true): Promise<void> {
     this.snapshotValue = this.snapshotValue.state === "capturing"
       ? {
           detail: "Mock creator enrollment is ready; ambiguous matches remain protected.",
@@ -152,7 +185,7 @@ export class MockEnrollmentClient {
     this.notify();
   }
 
-  public remove(): void {
+  public async remove(): Promise<void> {
     this.snapshotValue = {
       detail: "Enrollment removed. All detected faces remain protected.",
       state: "not_enrolled",
@@ -160,12 +193,16 @@ export class MockEnrollmentClient {
     this.notify();
   }
 
+  public async refresh(): Promise<void> {
+    return Promise.resolve();
+  }
+
   private notify(): void {
     this.listeners.forEach((listener) => listener(this.snapshotValue));
   }
 }
 
-export class MockSafetyClient {
+export class MockSafetyClient implements SafetyClient {
   private snapshotValue: SafetySnapshot = {
     detail: "Required mock protections are ready for the protected preview.",
     state: "normal",
@@ -181,7 +218,7 @@ export class MockSafetyClient {
     return () => this.listeners.delete(listener);
   }
 
-  public triggerPanic(): void {
+  public async triggerPanic(): Promise<void> {
     this.snapshotValue = {
       detail: "Panic is active. Protected publication is blocked.",
       state: "panic",
@@ -189,7 +226,7 @@ export class MockSafetyClient {
     this.notify();
   }
 
-  public clear(): void {
+  public async clear(): Promise<void> {
     this.snapshotValue = {
       detail: "Required mock protections are ready for the protected preview.",
       state: "normal",
@@ -197,15 +234,19 @@ export class MockSafetyClient {
     this.notify();
   }
 
+  public async refresh(): Promise<void> {
+    return Promise.resolve();
+  }
+
   private notify(): void {
     this.listeners.forEach((listener) => listener(this.snapshotValue));
   }
 }
 
-export class MockMediaSessionClientImpl implements MockMediaSessionClient {
+export class MockMediaSessionClientImpl implements MediaSessionClientHandle {
   private active = false;
 
-  public async start(_request: MediaSessionStartRequest): Promise<MockMediaSessionOutput> {
+  public async start(_request: MediaSessionStartRequest): Promise<MediaSessionOutputHandle> {
     this.active = true;
     return {
       sourceStream: {
