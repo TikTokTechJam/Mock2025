@@ -39,4 +39,4 @@ The project needs evidence for both privacy quality and real-time usability; agg
 Planned engineering story until the benchmark harness covers every implemented privacy capability with reproducible metadata.
 
 ## Touched By
-Issues #5, #6, #7, #9, #10, #14, #15, #16, #17.
+Issues #5, #6, #7, #9, #10, #14, #15, #16, #17, #48, #49.
