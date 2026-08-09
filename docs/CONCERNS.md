@@ -50,7 +50,8 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   local-only boundary, explicit session error state, bounded video scheduling,
   and no raw-output fallback.
 - The creator console uses deterministic local façades rather than backend
-  enrollment, readiness, safety, or authorization clients. Its state transitions,
+  enrollment, readiness, safety, or authorization clients. The production face
+  control surface is not wired to the UI; its state transitions,
   accessibility behavior, protected-handle separation, and responsive layout
   remain Unverified. The current mitigation is explicit mock labeling, consent
   gating, no raw diagnostics, required-readiness blocking, and a separate
@@ -80,3 +81,9 @@ mocked integration coverage.
   mitigation is explicit local-model configuration, deterministic model doubles,
   conservative unknown/ambiguous protection, bounded enrollment samples, and no
   embedding or raw-image logging.
+- The production face adapter and control routes have not received an integration
+  or runtime verification pass. The process-local repository, injected creator
+  authorization, model-pack availability, readiness handoff to #13, and shared
+  scheduler behavior remain Unverified. The current mitigation is a thin
+  adapter over #18, default-deny route authorization, sanitized status/error
+  codes, and deterministic integration fixtures.

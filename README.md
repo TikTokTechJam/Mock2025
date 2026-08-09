@@ -10,12 +10,14 @@ console shell backed by typed local mocks, a reusable browser-local WebRTC media
 loopback with deterministic mock processing, normalized detector contracts,
 shared model-agnostic video orchestrator/compositor, the production plate-detector
 adapter, timestamped audio ingestion/transcription pipeline, standalone face
-enrollment/matching, standalone license-plate/OCR visual-privacy and spoken-PII
-detector/renderer modules, centralized privacy readiness/publication decisions,
-and a local PostgreSQL-backed Docker Compose topology. HTTP media ingestion,
-backend creator operations, server-side or production transport, integrated
-cross-modal redaction policy, persistence, and creator controls are planned and
-are not implemented yet.
+enrollment/matching, the production face adapter and protected
+enrollment/readiness control surface, standalone license-plate/OCR
+visual-privacy and spoken-PII detector/renderer modules, centralized privacy
+readiness/publication decisions, and a local PostgreSQL-backed Docker Compose
+topology. HTTP media ingestion, backend creator operations beyond protected face
+enrollment, server-side or production transport, cross-modal redaction policy,
+durable persistence, and creator UI controls are planned and are not implemented
+yet.
 
 ## Repository layout
 
@@ -62,12 +64,15 @@ uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wa
 
 The demo accepts a bounded PCM16 WAV, detects speech, transcribes locally, and
 writes a copy with detected phone-number and email intervals muted. It does not
-persist raw audio or transcript text. Server-side transport, persistence,
-backend creator operations, external/background worker processes, and E2E
+persist raw audio or transcript text. Server-side transport, durable persistence,
+unwired creator UI operations, external/background worker processes, and E2E
 infrastructure remain unimplemented.
 
-The API also contains a standalone local face demo. It requires the optional
-face dependencies and a local InsightFace model pack:
+The API also contains a standalone local face demo and a protected face
+enrollment/readiness control surface. The control routes require an injected
+server-side creator authorizer; the default app denies them until that boundary
+is configured. The standalone demo requires the optional face dependencies and a
+local InsightFace model pack:
 
 ```bash
 uv sync --project apps/api --extra face

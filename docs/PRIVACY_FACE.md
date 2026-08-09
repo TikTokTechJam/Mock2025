@@ -3,15 +3,19 @@
 ## Purpose
 
 This document owns the standalone face detector, creator enrollment, embedding
-matching, and local image/clip runner. It does not own production scheduling,
-temporal retention, padding, compositor policy, transport, persistence, or UI.
+matching, and local image/clip runner. The production adapter, process-local
+enrollment repository, readiness handoff, and protected HTTP control surface are
+implemented in `privastream_api.privacy.face.production` and documented here as
+integration boundaries. The standalone module still does not own temporal
+retention, padding, compositor policy, transport, durable persistence, or UI.
 
 ## Availability
 
 The model-neutral face module, deterministic tests, local InsightFace/ArcFace
 adapter boundary, in-memory creator store, and standalone runner are
 Implemented in source. Runtime verification, real-model accuracy, threshold
-calibration, and representative face fixtures are Unverified.
+calibration, representative face fixtures, and the production integration are
+Unverified.
 
 ## Components
 
@@ -20,6 +24,7 @@ calibration, and representative face fixtures are Unverified.
 | Face model adapter | `InsightFaceFaceModel` with a local `buffalo_l`-style InsightFace model pack | `FaceModel.detect` |
 | Embedding lifecycle | `CreatorFaceEnrollmentService` and `InMemoryCreatorEmbeddingStore` | consented samples in, safe enrollment metadata out |
 | Creator matching | `CreatorFaceDetector` | `FrameContext` in, normalized `VideoRegionDetection` out |
+| Production integration | `ProductionFaceIntegration`, `FaceEnrollmentRepository`, and `FaceReadinessTracker` | #4 adapter, #3 lifecycle, and sanitized #13 readiness input |
 | Local runner | `apps/api/scripts/face_demo.py` | image or short clip in, locally blurred copy out |
 
 The adapter loads InsightFace lazily and requires a local model pack under the
@@ -97,6 +102,7 @@ Its summary reports frame and protected-region counts only.
   their embeddings.
 - Thresholds require calibration across lighting, pose, masks, occlusion, and
   camera quality. Real-model behavior is Unverified.
-- The user-facing enrollment journey, durable repository, HTTP API, shared
-  pipeline registration, temporal composition, transport, and fail-closed
-  publication gate are outside this module.
+- The user-facing enrollment journey, durable database repository, authorization
+  provider, temporal composition, transport, and fail-closed publication gate
+  remain outside the standalone implementation. The production adapter and
+  process-local control surface are separate #5 integration code paths.

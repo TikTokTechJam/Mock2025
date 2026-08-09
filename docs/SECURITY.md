@@ -51,6 +51,13 @@ not stored by the service, and face embeddings are not present in status,
 runner summaries, or ordinary representations. The local runner is not an
 authenticated product boundary.
 
+The production face integration delegates detection and matching to that module
+and exposes only sanitized enrollment lifecycle/readiness metadata. Its control
+routes require an injected server-side creator authorizer and are deny-by-default
+in the default app. The process-local repository retains no source images and
+does not expose embedding values; detector/model failures are reported as
+not-ready inputs for the future safety gate rather than as empty success.
+
 The shared text-PII recognizer keeps normalized text and transcript/OCR spans in
 memory only for the active call. It returns categories, confidence, character
 offsets, and non-sensitive source identifiers; it does not return matched text

@@ -38,6 +38,12 @@ counts. It does not report embeddings, enrollment images, face geometry, or
 model response payloads. Face-model and threshold behavior remain a local
 operator concern until a product diagnostics contract is approved.
 
+The production face integration exposes only sanitized enrollment lifecycle and
+readiness codes through its protected control routes. The readiness tracker
+records model-unavailable, detector-unavailable, detector-error, enrollment,
+and safe-ready states for the future safety gate; it does not log images,
+embeddings, geometry, or model payloads.
+
 The reusable browser media client exposes session state, the latest source-clock
 timestamp, the bounded pending-frame value, and processor or disconnect errors
 in the page. It does not log camera frames, audio samples, or raw media
