@@ -9,22 +9,22 @@ plate and OCR/visual-PII adapters, a timestamped audio ingestion/transcription
 pipeline, standalone face enrollment/matching, production face integration and
 protected enrollment/readiness routes, and a FastAPI process-health route, a
 browser-local WebRTC loopback with mock video/audio
-processors, and a local PostgreSQL-backed Compose topology. The model-agnostic
+processors, production creator-console client adapters, and a local PostgreSQL-backed Compose topology. The model-agnostic
 shared video orchestrator and compositor are implemented as an internal API
 pipeline, the cross-modal synchronization primitive and centralized privacy
-readiness/publication gate are present, and the creator-console mock shell is
+readiness/publication gate are present, and the creator-console adapter path is
 present. The production privacy-media integration adapter now coordinates the
 processors and gate through a protected-output sink contract. Product-surface
-media ingestion, UI wiring, backend creator operations beyond protected face
-controls, server-side transport, durable persistence, and E2E infrastructure
-remain absent.
+media ingestion, backend creator operations beyond protected face controls,
+server-side transport, durable persistence, server safety event wiring, and E2E
+infrastructure remain absent.
 
 ## Active Work
 
-- Review the creator-console mock contract and prepare an explicit UI/browser
-  verification pass.
-- Wire the authorized #12 client to the protected face enrollment/readiness
-  routes after the authentication and safety boundaries are available.
+- Run the explicit UI/browser verification pass for the #12 production client
+  adapters, including injected API errors and protected-stream separation.
+- Provide the authorized face API, #13 safety status/events, and #21/#11 server
+  transport boundaries before enabling a complete protected session.
 - Review the centralized privacy gate and timestamped audio, face, shared
   text-PII, and cross-modal paths and prepare explicit focused verification
   passes.
@@ -33,7 +33,7 @@ remain absent.
 
 ## Current Blockers
 
-- The creator console, browser media path, and local audio path have not received
+- The creator-console adapters, browser media path, and local audio path have not received
   dedicated runtime verification passes; UI/device support is therefore
   Unverified.
 - The shared video engine has not received a dedicated orchestration or raster
@@ -46,8 +46,11 @@ remain absent.
   source-chunk muting, and release watermark behavior are also Unverified.
 - The standalone face module has not received a real-model or local-runner
   verification pass.
-- The production face adapter, control routes, authorization injection, and
-  readiness handoff to #13 have not received a runtime integration pass.
+- The production face adapter, web client calls, control routes, authorization
+  injection, and readiness handoff to #13 have not received a runtime
+  integration pass. The default API still denies face control authorization.
+- The web safety adapter targets the #13 status/event boundary, but those
+  server routes are not present and therefore keep publication blocked.
 - The cross-modal synchronizer has not received a dedicated source-timeline or
   integration verification pass. The #11 adapter consumes its decisions
   in-process, but no server transport uses them.
@@ -59,7 +62,7 @@ remain absent.
 
 | Area | Availability | Verification | Note |
 | --- | --- | --- | --- |
-| Creator privacy console shell and mock façades | Implemented | Unverified | Responsive UI with mock media, enrollment, readiness, and safety clients; no UI/browser pass run. |
+| Creator privacy console and production client adapters | Implemented | Unverified | Browser permission/media plus face enrollment/readiness/safety adapter boundaries; no UI/browser pass run. |
 | Browser media loopback and mock processors | Implemented | Unverified | Local WebRTC path with canvas/gain processing; no browser pass run. |
 | Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |
 | Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types used by the standalone visual module. |
@@ -81,7 +84,7 @@ remain absent.
 ## Next Actions
 
 1. Request a dedicated creator-console UI/browser verification pass with
-   keyboard, responsive, mock-state, and protected-handle scenarios.
+   keyboard, responsive, adapter-error, and protected-stream scenarios.
 2. Request a dedicated privacy-gate verification pass with deterministic
    capability observations, liveness, panic, watermark, lag, and recovery
    scenarios.
@@ -95,17 +98,17 @@ remain absent.
    and microphone permissions, including disconnect and failure scenarios.
 6. Request a dedicated face, visual, and audio verification pass with controlled
    local fixtures and models when runtime checks are wanted.
-7. Provide the approved authorization provider, durable repository contract, and
-   #21 server transport sink before wiring the face control surface or protected
-   media integration into the creator UI or live media transport.
+7. Provide the approved authorization provider, #13 safety event contract,
+   durable repository contract, and #21/#11 server transport sink before
+   enabling the complete protected session in the creator UI.
 8. Add the next approved privacy/media lifecycle contract before exposing the
    remaining standalone detectors through server transport or creator controls.
 
 ## Handoff Constraints
 
 - Keep backend creator operations, server-side transport, persistence, provider
-  integrations, workers, and E2E boundaries outside the console mock, browser-
-  local demo, and standalone detector modules.
+  integrations, workers, and E2E boundaries outside the browser client
+  adapters, browser-local demo, and standalone detector modules.
 - Preserve the documented verification boundary and do not claim runtime
   verification without an explicit pass.
 - Keep detector modules behind normalized contracts and keep media transport

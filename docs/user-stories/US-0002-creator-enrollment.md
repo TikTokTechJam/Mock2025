@@ -39,7 +39,11 @@ Creator enrollment enables privacy-preserving face whitelisting without requirin
 - Embeddings are biometric-derived data and require careful storage/deletion behavior.
 
 ## Status Boundary
-Planned product story. Standalone face work may be developed in parallel, but the user-facing enrollment journey is not complete until integrated and verified.
+The #12 enrollment adapter is Implemented but Unverified: it maps the existing
+face control routes, sends one consented bounded frame from the active source,
+and exposes only lifecycle state. This product story remains Planned until
+authorization, durable lifecycle semantics, and the user-facing journey are
+integrated and verified.
 
 ## Touched By
 Issues #3, #5, #12, #17, #18, #22.

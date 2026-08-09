@@ -49,13 +49,16 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   processor failure handling remain Unverified. The current mitigation is a
   local-only boundary, explicit session error state, bounded video scheduling,
   and no raw-output fallback.
-- The creator console uses deterministic local façades rather than backend
-  enrollment, readiness, safety, or authorization clients. The production face
-  control surface is not wired to the UI; its state transitions,
-  accessibility behavior, protected-handle separation, and responsive layout
-  remain Unverified. The current mitigation is explicit mock labeling, consent
-  gating, no raw diagnostics, required-readiness blocking, and a separate
-unprotected source preview.
+- The creator console production adapters are not runtime verified. The default
+  API denies face control authorization, and server-side media transport plus
+  #13 safety status/events are absent, so the console remains blocked on those
+  boundaries. The current mitigation is fail-closed state mapping, explicit
+  consent gating, no raw diagnostics, protected-stream-only preview attachment,
+  and a separate unprotected source preview.
+- The web-to-API deployment origin and credential/CORS boundary is not defined.
+  `NEXT_PUBLIC_API_BASE_URL` is configurable for local routing, but it does not
+  supply authorization or make cross-origin requests trusted. The current
+  mitigation is deny-by-default API authorization and blocked client state.
 
 - The shared video engine has not received a runtime verification pass. Detector
   deadline behavior, queue backpressure, temporal association/expiry, and

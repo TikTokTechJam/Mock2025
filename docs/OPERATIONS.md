@@ -20,18 +20,22 @@ provider credentials.
 | api | `uv run fastapi dev src/privastream_api/main.py` | `GET /health`; protected face readiness is a capability signal |
 | db | `postgres:18.4-bookworm` | `pg_isready` |
 
-The web process serves the creator privacy console at `/`. Its current source,
-permission, enrollment, readiness, safety, and media-session controls use local
-typed mocks and do not require device permission or an API call. The reusable
-browser media loopback remains a separate client module. The API process serves
-liveness and the protected face control boundary, while the standalone spoken-PII demo runs as a separate local CLI
+The web process serves the creator privacy console at `/`. Its source,
+permission, enrollment, readiness, safety, and media-session controls use the
+production client adapters. Browser permission is requested locally, face
+control calls use `NEXT_PUBLIC_API_BASE_URL` (defaulting to
+`http://localhost:8000`), and unavailable API boundaries remain blocked. The
+reusable browser media loopback remains a separate client module. The API
+process serves liveness and the protected face control boundary, while the
+standalone spoken-PII demo runs as a separate local CLI
 invocation. The database is provisioned for future approved configuration and
 lifecycle state but is not accessed by the API, console, browser loopback, or
 audio demo.
 
 Compose mounts source code for development and keeps dependency/database data
-in named volumes. The browser demo uses same-page WebRTC and does not require a
-signaling port or extra environment variable. No server-side media transport,
+in named volumes. The browser media baseline uses same-page WebRTC and does not
+require a signaling port; set `NEXT_PUBLIC_API_BASE_URL` for the web-to-API
+origin when the default is not suitable. No server-side media transport,
 migrations, external/background worker processes, scheduled jobs, or provider
 processes exist in this foundation. The in-process production media integration
 has no separate process, port, command, or environment setting; it hands output
@@ -124,7 +128,7 @@ injected sink. Neither is an HTTP route or an active server transport;
 
 ## Availability and verification
 
-The PrivaStream web/API/Compose foundation, creator-console mock shell,
+The PrivaStream web/API/Compose foundation, creator-console adapter path,
 normalized detector contracts, browser-local mock media path, shared video
 engine, cross-modal synchronizer, production plate, OCR/PII, and face adapters,
 process-local face enrollment repository/readiness routes, standalone face and

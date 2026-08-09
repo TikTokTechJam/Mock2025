@@ -54,12 +54,14 @@ fallback. Browser checks require a permission-controlled local browser session;
 they are not represented by the API health check.
 
 The creator-console boundary should cover responsive layout, keyboard and label
-accessibility, mock source selection and permission states, consent-gated
-enrollment capture/replace/delete, capability enablement versus readiness,
+accessibility, browser permission states, consent-gated enrollment
+capture/replace/delete, capability enablement versus server readiness,
 connecting/processing/protected/degraded/blocked/panic/stopped/error states,
-protected-output type separation, and sanitized diagnostics. These checks must
-use deterministic mock clients and must not require real camera, microphone,
-backend, ML, or biometric fixtures.
+protected-output stream separation, fail-closed API errors, and sanitized
+diagnostics. Adapter tests should inject deterministic fetch and media clients;
+browser E2E checks should separately cover controlled camera/microphone
+permission and the protected stream. No test should use the unprotected source
+as a protected-output fallback or expose raw enrollment/API diagnostics.
 
 The shared video-engine unit boundary should use deterministic mock detectors and
 raster fixtures to cover cadence skips, per-detector deadlines, bounded

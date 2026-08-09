@@ -57,12 +57,15 @@ session startup, source timestamp updates, visible fixed-region redaction,
 deterministic audio transformation, device disconnect, and processor failure
 without raw-preview fallback.
 
-The creator-console journey is Implemented but Unverified: local `/` route →
-mock source and permission presentation → consent-gated enrollment shell →
-capability toggles and mock readiness → session state and safety controls →
-separate unprotected source and protected-output handles. The coverage target
-includes required-readiness blocking, degraded optional protection, panic stop,
-stopped/reset recovery, and absence of raw PII or embedding diagnostics.
+The creator-console adapter journey is Implemented but Unverified: local `/`
+route → browser permission and local media adapter → protected face
+enrollment/readiness calls → sanitized capability and safety state → separate
+unprotected source and protected-output streams. The coverage target includes
+authorization/readiness failure, enrollment error and deletion, required-
+readiness blocking, degraded optional protection, panic stop, reconnect,
+stopped/reset recovery, protected-stream-only rendering, and absence of raw PII,
+embedding, or response diagnostics. The current API lacks server media and
+safety event routes, so a complete production E2E scenario remains Planned.
 
 ## Environment
 

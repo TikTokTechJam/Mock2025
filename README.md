@@ -6,8 +6,8 @@ produces a protected output with faces, plates, on-screen text, and sensitive
 speech redacted as configured.
 
 The current repository contains the web and API foundation, a creator privacy
-console shell backed by typed local mocks, a reusable browser-local WebRTC media
-loopback with deterministic mock processing, normalized detector contracts,
+console with production client adapters at the browser boundary, a reusable
+browser-local WebRTC media loopback with deterministic mock processing, normalized detector contracts,
 shared model-agnostic video orchestrator/compositor, production plate and
 OCR/visual-PII adapters, timestamped audio ingestion/transcription pipeline,
 standalone face enrollment/matching, the production face adapter and protected
@@ -17,8 +17,8 @@ readiness/publication decisions, cross-modal spoken-PII visual augmentation,
 the production privacy-media integration adapter and protected-output sink
 boundary, and a local PostgreSQL-backed Docker Compose topology. HTTP media
 ingestion, backend creator operations beyond protected face enrollment,
-server-side or production transport, durable persistence, and creator UI
-controls are planned and are not implemented yet.
+server-side or production transport, durable persistence, and server safety
+event wiring are planned and are not implemented yet.
 
 ## Repository layout
 
@@ -47,10 +47,13 @@ The web app is served at `http://localhost:3000`; the API is served at
 `http://localhost:8000`, with process health at `/health`.
 
 The web app at `http://localhost:3000` includes the creator privacy console.
-Configure the mock source and policy, grant the mock permission, review
-readiness, and start the protected preview shell. The console does not acquire
-real devices or call the API; the reusable browser media loopback is documented
-separately in `apps/web/README.md`.
+Configure a policy, grant browser device permission, and review production
+readiness before starting a session. The console uses the reusable browser
+media client and calls the configured face control routes; missing or failed
+readiness, enrollment, safety, or transport boundaries remain fail-closed. The
+default API denies face control authorization and does not yet expose the
+server-side safety or media transport routes, so a complete protected session
+is not currently available. See `apps/web/README.md` for configuration.
 
 The API also contains a standalone local spoken-PII demo backed by the
 timestamped chunk normalizer, bounded speech segmenter, and transcription
@@ -66,8 +69,8 @@ uv run --project apps/api python -m privastream_api.pipeline.spoken_pii input.wa
 The demo accepts a bounded PCM16 WAV, detects speech, transcribes locally, and
 writes a copy with detected phone-number and email intervals muted. It does not
 persist raw audio or transcript text. Server-side transport, durable persistence,
-unwired creator UI operations, external/background worker processes, and E2E
-infrastructure remain unimplemented.
+external/background worker processes, and E2E infrastructure remain
+unimplemented.
 
 The API also contains a standalone local face demo and a protected face
 enrollment/readiness control surface. The control routes require an injected

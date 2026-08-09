@@ -50,11 +50,13 @@ in the page. It does not log camera frames, audio samples, or raw media
 metadata. These are local UI signals only; no browser session status is sent to
 the API or persisted.
 
-The creator console exposes mock session state, capability readiness, enrollment
-status, safety state, permission presentation, and source/protected handle
-availability. These values are local UI signals and are not backend readiness,
-authorization, audit events, or persisted media state. The console does not show
-raw enrollment samples, transcripts, PII values, or embeddings.
+The creator console exposes adapter-mapped session state, capability readiness,
+enrollment status, safety state, permission presentation, and source/protected
+handle availability. Browser adapter failures are reduced to sanitized UI
+messages and do not become authorization, audit events, or persisted media
+state. The console does not show raw enrollment samples, transcripts, PII
+values, embeddings, or arbitrary API response bodies. Server-side media and
+safety events are not yet observable because their routes remain absent.
 
 The in-process `PrivacyGate` exposes sanitized readiness (`ready`, `degraded`, or
 `unsafe`), process liveness, panic/recovery state, publication action, reason

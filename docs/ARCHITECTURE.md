@@ -8,7 +8,7 @@ process boundaries, dependencies, and data flows.
 ## Current repository topology
 
 - `apps/web` is the Next.js App Router browser and creator UI. Its current page
-  renders the creator console shell against typed mock façades; the reusable
+  renders the creator console through production client adapters; the reusable
   browser media loopback remains in `src/lib/browser-media-session.ts`.
 - `apps/api` is the FastAPI control-plane foundation. It exposes `GET /health`
   plus protected face enrollment/readiness control routes and contains normalized media contracts, standalone visual-privacy adapters
@@ -52,16 +52,17 @@ runtime boundaries do not exist yet. `apps/` contains only runnable
 application boundaries; there is no separate model/inference service.
 
 `apps/web/src/lib/media-session-client.ts` owns the reusable typed media-session
-client boundary. The browser loopback implements it with real browser streams,
-while `creator-console-clients.ts` implements the same boundary with typed mock
-source/protected handles alongside the enrollment, readiness, and safety
-façades.
+client boundary. `production-clients.ts` adapts the browser loopback and current
+face control routes into the console's source/protected handles, enrollment,
+readiness, and safety interfaces. The older typed mocks remain available as
+fixtures, but the page does not instantiate them. The browser adapter never
+passes its source stream to the protected-preview component.
 
 ## Runtime boundaries
 
 | Boundary | Responsibility | Availability |
 | --- | --- | --- |
-| Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries against typed façades. | Implemented mock console; production controls Planned |
+| Browser/creator UI | Render the creator console, source/device controls, enrollment consent/status, capability readiness, safety state, and separate source/protected-preview boundaries through client adapters. | Implemented adapter path; Unverified |
 | API/control plane | Own future sessions, privacy policies, pipeline lifecycle, and authorization. The current surface reports process liveness and exposes an injected-authorization face enrollment/readiness boundary. | Implemented foundation and face control boundary; broader product operations Planned |
 | Media processing/inference | Run normalized detector adapters, timestamped audio segmentation/transcription, cross-modal source-time coordination, temporal region coordination, and generic video composition in-process with the API until GPU/runtime isolation requires a separate process. | Implemented video/audio source paths, face, visual, production face adapters, cross-modal synchronizer, and integration adapter; runtime transport pipeline Planned |
 | Privacy safety policy | Evaluate required/optional capability readiness, source-time watermark/lag coverage, liveness, panic, recovery, and publication actions in one in-process gate; the integration adapter applies the result before handing output to a sink. | Implemented gate and protected-output integration boundary; server transport integration Planned |
@@ -215,36 +216,40 @@ most one pending frame, so a slow draw cannot build an unbounded queue. A device
 disconnect, transport failure, or processor failure stops the session and leaves
 the output detached instead of falling back to raw media.
 
-The browser foundation, browser-local loopback, creator-console mock shell, API
+The browser foundation, browser-local loopback, creator-console adapter path, API
 process-health route, local Compose topology, shared video engine, timestamped
 spoken-PII audio path, production face integration, standalone face, plate/OCR,
-text-PII paths, cross-modal synchronization primitive, and production media
-integration adapter are present. Unwired creator UI operations, server-side
-live transport, and protected delivery beyond the injected sink remain Planned.
+text-PII paths, cross-modal synchronization primitive, production media
+integration adapter, and creator-console client adapters are present. Server-side
+live transport, #13 safety event delivery, and protected delivery beyond the
+injected sink remain Planned.
 
 ### Current creator-console path
 
-The current `/` route is a UI-only shell and does not acquire real devices or
-call the API:
+The current `/` route uses the production client boundary. The browser media
+baseline is local, while face control requests use the configured API origin:
 
 ```mermaid
 flowchart LR
-    A[Mock source and permission controls] --> B[Typed mock media client]
+    A[Browser source and permission controls] --> B[Production media adapter]
     B --> C[Unprotected source handle]
     B --> D[Protected stream handle]
     C --> E[Unprotected source preview]
     D --> F[Protected output preview]
-    G[Mock enrollment client] --> H[Enrollment panel]
-    I[Mock readiness client] --> J[Capability panel]
-    K[Mock safety client] --> L[Safety and session state]
+    G[Production enrollment adapter] --> H[Enrollment panel]
+    I[Production readiness adapter] --> J[Capability panel]
+    K[Production safety adapter] --> L[Safety and session state]
 ```
 
 The `Protected output` component accepts only a protected handle returned by
 the media-client façade. The source handle is rendered separately and is never
 substituted into that component. Required capability unavailability holds the
-protected handle, panic stops clear it, and mock state controls expose
+protected handle, panic stops clear it, and unavailable client/API boundaries
+hold publication. The adapter maps sanitized responses and status failures into
 connecting, processing, degraded, blocked, panic, and stopped presentation
-without claiming that those states came from backend readiness.
+without exposing raw response details. The current API has no server media or
+safety event routes, so those paths remain fail-closed until their owning
+boundaries are available.
 
 ## Detector and redaction contracts
 
@@ -363,7 +368,7 @@ standalone visual-privacy adapters and production plate/OCR adapters, timestampe
 pipeline, standalone face and production face integration, shared text-PII
 modules, spoken-PII detector baseline, local renderer, privacy gate,
 browser-local loopback, production media integration adapter, and creator-console
-mock shell are Implemented in source.
+client adapters are Implemented in source.
 Runtime verification is Unverified; the console, orchestration and audio-pipeline
 tests, browser path, audio and visual demos, real-model inference, API control
 routes, and application verification have not been exercised.

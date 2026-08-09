@@ -20,13 +20,15 @@ processor failure stops the output without attaching raw capture as a fallback.
 This is a local demo boundary, not an authentication, authorization, or
 production delivery guarantee.
 
-The creator console adds mock-only façades for enrollment, readiness, safety,
-and media sessions. Enrollment is consent-gated in the UI, displays no raw
-sample, transcript, PII value, or embedding, and presents deletion as a mock
-state transition. The protected-output component accepts only a typed protected
-stream handle; an unprotected source handle is rendered separately. These mock
-states do not authorize a user, create biometric data, or establish backend
-readiness.
+The creator console uses production adapters for enrollment, readiness, safety,
+and media sessions. Enrollment is consent-gated, captures at most one bounded
+frame from the active source per request, sends it only to the protected face
+control route, and displays no raw sample, transcript, PII value, or embedding.
+The protected-output component accepts only the protected handle and attaches
+only its protected `MediaStream`; the unprotected source handle is rendered
+separately. API failures and unavailable #13 safety/media boundaries remain
+blocked, and sanitized status mappings never authorize a user or replace the
+server publication decision.
 
 The shared video engine accepts normalized detector regions, validates and
 clamps them, and exposes only sanitized detector status and aggregate timing

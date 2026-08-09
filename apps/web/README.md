@@ -1,8 +1,8 @@
 # PrivaStream Web
 
 The web application is the creator-console foundation for PrivaStream. It uses
-Next.js, TypeScript, the App Router, Tailwind CSS, typed local mock façades, and
-a reusable browser media client.
+Next.js, TypeScript, the App Router, Tailwind CSS, production client adapters,
+and a reusable browser media client.
 
 ## Prerequisites
 
@@ -41,23 +41,31 @@ pnpm typecheck:web
 - Add variables only when they are consumed by implemented code.
 - Shared variables belong in the repository root `.env.example`; web-only variables belong in `.env.example` here.
 
+Set `NEXT_PUBLIC_API_BASE_URL` when the browser cannot reach the API at its
+default `http://localhost:8000` origin. The value is an origin only; do not put
+credentials or tokens in browser-exposed configuration.
+
 ## Creator privacy console
 
 Open [http://localhost:3000](http://localhost:3000) to use the creator console.
-The current page uses typed local mock clients for source selection, permission
-presentation, enrollment consent/status, capability readiness, safety state,
-and the protected-output boundary. It does not acquire real devices or call the
-API, and no extra port or environment variable is required.
+The page uses `src/lib/production-clients.ts` for browser media, face
+enrollment, capability readiness, and safety control boundaries. It requests
+real browser device permission, attaches the source and protected `MediaStream`
+to separate previews, and maps only sanitized API state into the UI. A
+production adapter failure leaves publication blocked; it does not fall back to
+the unprotected source.
 
 The reusable issue-21 browser media client remains in
 `src/lib/browser-media-session.ts`. Its unprotected source and protected output
-are separate handles; a future production client can replace the mock façade
-without redesigning the console.
+are separate handles. The adapter is intentionally at the client boundary so a
+future server-side #21/#11 transport can replace the browser baseline without
+redesigning the console.
 
 ## Current Limitations
 
-Backend enrollment/readiness/safety operations, server-side media upload and
-live transport, detector integrations, production redaction, deployment
-configuration, and a reusable design system are planned and are not implemented
-yet. The console and browser loopback are Unverified until explicit UI/browser
-verification passes are run.
+The current API exposes only authorization-protected face enrollment/readiness
+routes; server-side media transport and #13 safety status/event routes are not
+available yet. Detector integrations, production redaction, deployment
+configuration, and a reusable design system remain planned. The console and
+browser loopback are Unverified until explicit UI/browser verification passes
+are run.

@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 
 import {
-  createMockCreatorConsoleClients,
   type CapabilityReadiness,
   type CreatorConsoleClients,
   type EnrollmentSnapshot,
@@ -11,6 +10,7 @@ import {
   type SafetySnapshot,
   type UnprotectedSourceHandle,
 } from "../lib/creator-console-clients";
+import { createProductionCreatorConsoleClients } from "../lib/production-clients";
 
 type ConsoleState = "idle" | "connecting" | "processing" | "protected" | "degraded" | "blocked" | "panic" | "stopped" | "error";
 type PermissionState = "unknown" | "granted" | "blocked";
@@ -49,6 +49,24 @@ function StatusPill({ children, className = "" }: { children: ReactNode; classNa
   return <span className={`inline-flex items-center rounded-full border px-2.5 py-1 text-xs font-medium ${className}`}>{children}</span>;
 }
 
+function StreamVideo({ stream, label }: { stream: MediaStream; label: string }) {
+  const videoRef = useRef<HTMLVideoElement>(null);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video) {
+      return;
+    }
+    video.srcObject = stream;
+    return () => {
+      video.pause();
+      video.srcObject = null;
+    };
+  }, [stream]);
+
+  return <video ref={videoRef} aria-label={label} autoPlay className="size-full object-cover" muted playsInline />;
+}
+
 function SourcePreview({ source }: { source: UnprotectedSourceHandle | null }) {
   return (
     <div className="rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4">
@@ -60,7 +78,7 @@ function SourcePreview({ source }: { source: UnprotectedSourceHandle | null }) {
         <StatusPill className="border-amber-400/40 bg-amber-400/10 text-amber-200">Source</StatusPill>
       </div>
       <div className="mt-4 flex aspect-video items-center justify-center rounded-xl bg-zinc-950 text-center text-sm text-zinc-500">
-        {source ? source.label : "No source selected"}
+        {source?.stream ? <StreamVideo label="Unprotected local source preview" stream={source.stream} /> : source ? source.label : "No source selected"}
       </div>
     </div>
   );
@@ -77,14 +95,16 @@ function ProtectedPreview({ stream }: { stream: ProtectedStreamHandle | null }) 
         <StatusPill className="border-emerald-400/40 bg-emerald-400/10 text-emerald-200">Protected</StatusPill>
       </div>
       <div className="relative mt-4 flex aspect-video items-center justify-center overflow-hidden rounded-xl bg-zinc-950 text-center text-sm text-zinc-400">
-        {stream ? (
+        {stream?.stream ? (
           <>
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_35%_35%,rgba(16,185,129,0.16),transparent_34%),radial-gradient(circle_at_70%_65%,rgba(6,182,212,0.12),transparent_36%)]" />
-            <div className="relative space-y-2">
+            <StreamVideo label="Protected privacy output preview" stream={stream.stream} />
+            <div className="absolute inset-x-0 bottom-0 bg-zinc-950/80 p-3">
               <p className="font-semibold text-emerald-200">{stream.label}</p>
               <p className="text-xs text-zinc-500">{stream.redactions.join(" · ")}</p>
             </div>
           </>
+        ) : stream ? (
+          <p>Protected output is held until a real protected stream is available.</p>
         ) : (
           "Protected output is held until readiness allows publication"
         )}
@@ -138,20 +158,20 @@ function EnrollmentPanel({
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-zinc-100">Creator enrollment</p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500">Consent, status, replacement, and deletion are represented by a typed mock façade.</p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">Consent and lifecycle state come from the protected face enrollment API.</p>
         </div>
-        <StatusPill className={enrollment.state === "ready" ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : enrollment.state === "capturing" ? "border-violet-400/30 bg-violet-400/10 text-violet-200" : "border-zinc-700 bg-zinc-800 text-zinc-400"}>
-          {enrollment.state === "ready" ? "Ready" : enrollment.state === "capturing" ? "Capturing" : "Not enrolled"}
+        <StatusPill className={enrollment.state === "ready" ? "border-emerald-400/30 bg-emerald-400/10 text-emerald-200" : enrollment.state === "capturing" ? "border-violet-400/30 bg-violet-400/10 text-violet-200" : enrollment.state === "error" ? "border-red-400/30 bg-red-400/10 text-red-200" : "border-zinc-700 bg-zinc-800 text-zinc-400"}>
+          {enrollment.state === "ready" ? "Ready" : enrollment.state === "capturing" ? "Capturing" : enrollment.state === "error" ? "Unavailable" : "Not enrolled"}
         </StatusPill>
       </div>
       <p className="text-sm leading-6 text-zinc-400">{enrollment.detail}</p>
       <label className="flex items-start gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-3 text-xs leading-5 text-zinc-400">
         <input checked={consent} className="mt-1 size-4 accent-cyan-300" onChange={(event) => onConsentChange(event.target.checked)} type="checkbox" />
-        <span>I consent to the mock creator-enrollment flow. No raw image or embedding is displayed by this console.</span>
+        <span>I consent to one bounded creator-enrollment image from the active local source. No raw image or embedding is displayed by this console.</span>
       </label>
       <div className="flex flex-wrap gap-3">
-        <button className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40" disabled={!consent} onClick={onCapture} type="button">
-          {enrollment.state === "ready" ? "Replace enrollment" : enrollment.state === "capturing" ? "Confirm mock capture" : "Capture enrollment"}
+        <button className="rounded-full bg-zinc-100 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-white disabled:cursor-not-allowed disabled:opacity-40" disabled={!consent || enrollment.state === "capturing"} onClick={onCapture} type="button">
+          {enrollment.state === "ready" ? "Replace enrollment" : enrollment.state === "capturing" ? "Capturing enrollment" : "Capture enrollment"}
         </button>
         <button className="rounded-full border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500 disabled:cursor-not-allowed disabled:opacity-40" disabled={enrollment.state !== "ready"} onClick={onRemove} type="button">
           Delete enrollment
@@ -167,9 +187,9 @@ function ReadinessPanel({ capabilities, onToggle }: { capabilities: CapabilityRe
       <div className="flex items-start justify-between gap-4">
         <div>
           <p className="text-sm font-semibold text-zinc-100">Privacy capabilities</p>
-          <p className="mt-1 text-xs leading-5 text-zinc-500">Readiness is supplied by the mock client, not inferred from toggle state.</p>
+          <p className="mt-1 text-xs leading-5 text-zinc-500">Readiness is supplied by the server; toggles select policy requirements only.</p>
         </div>
-        <StatusPill className="border-sky-400/30 bg-sky-400/10 text-sky-200">Mock readiness</StatusPill>
+        <StatusPill className="border-sky-400/30 bg-sky-400/10 text-sky-200">Server readiness</StatusPill>
       </div>
       <div className="space-y-2">
         {capabilities.map((capability) => (
@@ -181,12 +201,12 @@ function ReadinessPanel({ capabilities, onToggle }: { capabilities: CapabilityRe
 }
 
 export default function CreatorConsole() {
-  const [clients] = useState<CreatorConsoleClients>(() => createMockCreatorConsoleClients());
+  const [clients] = useState<CreatorConsoleClients>(() => createProductionCreatorConsoleClients());
   const [consoleState, setConsoleState] = useState<ConsoleState>("idle");
   const [permission, setPermission] = useState<PermissionState>("unknown");
-  const [cameraId, setCameraId] = useState("mock-camera");
-  const [microphoneId, setMicrophoneId] = useState("mock-microphone");
-  const [policyId, setPolicyId] = useState("balanced-mock-policy");
+  const [cameraId, setCameraId] = useState("default-camera");
+  const [microphoneId, setMicrophoneId] = useState("default-microphone");
+  const [policyId, setPolicyId] = useState("balanced-policy");
   const [consent, setConsent] = useState(false);
   const [capabilities, setCapabilities] = useState<CapabilityReadiness[]>(clients.readiness.getSnapshot());
   const [enrollment, setEnrollment] = useState<EnrollmentSnapshot>(clients.enrollment.getSnapshot());
@@ -198,6 +218,9 @@ export default function CreatorConsole() {
     const unsubscribeReadiness = clients.readiness.subscribe(setCapabilities);
     const unsubscribeEnrollment = clients.enrollment.subscribe(setEnrollment);
     const unsubscribeSafety = clients.safety.subscribe(setSafety);
+    void clients.readiness.refresh();
+    void clients.enrollment.refresh();
+    void clients.safety.refresh();
     return () => {
       unsubscribeReadiness();
       unsubscribeEnrollment();
@@ -208,9 +231,18 @@ export default function CreatorConsole() {
 
   const requiredUnavailable = capabilities.some((capability) => capability.enabled && capability.required && capability.state !== "ready");
   const optionalUnavailable = capabilities.some((capability) => capability.enabled && !capability.required && capability.state !== "ready");
-  const canStart = permission === "granted" && !requiredUnavailable && safety.state !== "panic";
+  const canStart = permission === "granted" && !requiredUnavailable && (safety.state === "normal" || safety.state === "degraded");
 
-  const requestPermission = () => setPermission("granted");
+  const requestPermission = () => {
+    if (!navigator.mediaDevices?.getUserMedia) {
+      setPermission("blocked");
+      return;
+    }
+    void navigator.mediaDevices.getUserMedia({ audio: true, video: true }).then((stream) => {
+      stream.getTracks().forEach((track) => track.stop());
+      setPermission("granted");
+    }).catch(() => setPermission("blocked"));
+  };
 
   const startSession = async () => {
     if (permission !== "granted") {
@@ -253,16 +285,16 @@ export default function CreatorConsole() {
   };
 
   const triggerPanic = () => {
-    clients.safety.triggerPanic();
+    void clients.safety.triggerPanic();
     clients.media.stop();
     setProtectedStream(null);
     setConsoleState("panic");
   };
 
   const resetConsole = () => {
-    clients.safety.clear();
-    clients.readiness.reset();
-    clients.enrollment.remove();
+    void clients.safety.clear();
+    void clients.readiness.reset();
+    void clients.enrollment.remove();
     clients.media.stop();
     setSource(null);
     setProtectedStream(null);
@@ -273,12 +305,10 @@ export default function CreatorConsole() {
 
   const showDemoState = (nextState: ConsoleState) => {
     if (nextState === "degraded") {
-      clients.readiness.setState("visual_pii", "unavailable", "Mock visual text protection is unavailable; output is degraded.");
       setConsoleState("degraded");
       return;
     }
     if (nextState === "blocked") {
-      clients.readiness.setState("spoken_pii", "unavailable", "Required spoken-PII protection is unavailable; output is held.");
       clients.media.stop();
       setProtectedStream(null);
       setConsoleState("blocked");
@@ -298,11 +328,11 @@ export default function CreatorConsole() {
           <div className="max-w-3xl space-y-3">
             <p className="text-xs font-semibold tracking-[0.22em] text-cyan-300 uppercase">Creator privacy console</p>
             <h1 className="text-4xl font-semibold tracking-tight sm:text-5xl">Prepare protected output</h1>
-            <p className="text-base leading-7 text-zinc-400">Configure a mock privacy policy, review capability readiness, and distinguish unprotected source feedback from the protected output path.</p>
+            <p className="text-base leading-7 text-zinc-400">Configure a privacy policy, review server readiness, and keep unprotected source feedback separate from the protected output path.</p>
           </div>
           <div className="flex flex-wrap items-center gap-2">
             <StatusPill className={SESSION_TONES[consoleState]}>{SESSION_LABELS[consoleState]}</StatusPill>
-            <StatusPill className="border-zinc-700 bg-zinc-900 text-zinc-400">Typed mock clients</StatusPill>
+            <StatusPill className="border-zinc-700 bg-zinc-900 text-zinc-400">Production adapters</StatusPill>
           </div>
         </header>
 
@@ -311,7 +341,7 @@ export default function CreatorConsole() {
             <div className="flex flex-col gap-5 border-b border-zinc-800 pb-5 lg:flex-row lg:items-end lg:justify-between">
               <div>
                 <p className="text-sm font-semibold text-zinc-100">Media session</p>
-                <p className="mt-1 text-xs leading-5 text-zinc-500">The console uses a mock media-session client. Real device acquisition and transport remain owned by issue #21.</p>
+                <p className="mt-1 text-xs leading-5 text-zinc-500">The console uses the reusable browser media client and holds publication until production readiness and safety boundaries allow it.</p>
               </div>
               <div className="flex flex-wrap gap-3">
                 <button className="rounded-full bg-cyan-300 px-4 py-2 text-sm font-semibold text-zinc-950 transition hover:bg-cyan-200 disabled:cursor-not-allowed disabled:opacity-40" disabled={!canStart} onClick={() => void startSession()} type="button">Start protected session</button>
@@ -323,22 +353,22 @@ export default function CreatorConsole() {
               <label className="space-y-2 text-sm text-zinc-300">
                 <span className="block font-medium">Camera</span>
                 <select className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-cyan-300" onChange={(event) => setCameraId(event.target.value)} value={cameraId}>
-                  <option value="mock-camera">Mock camera</option>
-                  <option value="mock-camera-2">Mock camera 2</option>
+                  <option value="default-camera">Default camera</option>
+                  <option value="alternate-camera">Alternate camera</option>
                 </select>
               </label>
               <label className="space-y-2 text-sm text-zinc-300">
                 <span className="block font-medium">Microphone</span>
                 <select className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-cyan-300" onChange={(event) => setMicrophoneId(event.target.value)} value={microphoneId}>
-                  <option value="mock-microphone">Mock microphone</option>
-                  <option value="mock-microphone-2">Mock microphone 2</option>
+                  <option value="default-microphone">Default microphone</option>
+                  <option value="alternate-microphone">Alternate microphone</option>
                 </select>
               </label>
               <label className="space-y-2 text-sm text-zinc-300">
                 <span className="block font-medium">Privacy policy</span>
                 <select className="w-full rounded-xl border border-zinc-700 bg-zinc-950 px-3 py-2.5 text-sm text-zinc-100 outline-none focus:border-cyan-300" onChange={(event) => setPolicyId(event.target.value)} value={policyId}>
-                  <option value="balanced-mock-policy">Balanced mock policy</option>
-                  <option value="strict-mock-policy">Strict mock policy</option>
+                  <option value="balanced-policy">Balanced policy</option>
+                  <option value="strict-policy">Strict policy</option>
                 </select>
               </label>
             </div>
@@ -346,7 +376,7 @@ export default function CreatorConsole() {
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-zinc-800 bg-zinc-950/50 p-3">
               <div>
                 <p className="text-sm font-medium text-zinc-200">Permission state</p>
-                <p className="mt-1 text-xs text-zinc-500">{permission === "granted" ? "Mock camera and microphone permission granted." : permission === "blocked" ? "Permission is required before starting." : "Permission has not been requested."}</p>
+                <p className="mt-1 text-xs text-zinc-500">{permission === "granted" ? "Camera and microphone permission granted." : permission === "blocked" ? "Permission is required before starting." : "Permission has not been requested."}</p>
               </div>
               <button className="rounded-full border border-zinc-700 px-4 py-2 text-sm font-semibold text-zinc-200 transition hover:border-zinc-500" onClick={requestPermission} type="button">{permission === "granted" ? "Permission granted" : "Request permission"}</button>
             </div>
@@ -374,9 +404,9 @@ export default function CreatorConsole() {
                 <div className="flex items-start justify-between gap-3"><dt className="text-zinc-500">Required readiness</dt><dd className="text-right text-zinc-300">{requiredUnavailable ? "Blocking" : "Ready"}</dd></div>
               </dl>
             </div>
-            <p className="text-xs leading-5 text-zinc-500">Readiness, enrollment, safety, and media values are deterministic local mock façades. They are not backend authorization or production privacy guarantees.</p>
+            <p className="text-xs leading-5 text-zinc-500">The adapters map sanitized server responses into the console state model. Missing or failed production boundaries remain blocked; the UI never treats local state as authorization.</p>
             <div className="border-t border-zinc-800 pt-5">
-              <p className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">Render mock states</p>
+              <p className="text-xs font-semibold tracking-[0.14em] text-zinc-500 uppercase">Render UI states</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {(["connecting", "processing", "degraded", "blocked", "stopped", "error"] as const).map((demoState) => (
                   <button className="rounded-full border border-zinc-700 px-3 py-1.5 text-xs font-semibold text-zinc-300 transition hover:border-zinc-500" key={demoState} onClick={() => showDemoState(demoState)} type="button">
@@ -390,7 +420,7 @@ export default function CreatorConsole() {
         </section>
 
         <section className="grid gap-6 lg:grid-cols-2">
-          <EnrollmentPanel consent={consent} enrollment={enrollment} onCapture={() => clients.enrollment.capture()} onConsentChange={setConsent} onRemove={() => clients.enrollment.remove()} />
+          <EnrollmentPanel consent={consent} enrollment={enrollment} onCapture={() => void clients.enrollment.capture(source?.stream ?? null, consent)} onConsentChange={setConsent} onRemove={() => void clients.enrollment.remove()} />
           <ReadinessPanel capabilities={capabilities} onToggle={(id, enabled) => clients.readiness.setEnabled(id, enabled)} />
         </section>
       </div>
