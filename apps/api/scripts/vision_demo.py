@@ -8,6 +8,11 @@ from argparse import Namespace
 from pathlib import Path
 from typing import Any
 
+from privastream_api.model_artifacts import (
+    DEFAULT_CACHE_DIR,
+    DEFAULT_MANIFEST_DIR,
+    ModelArtifactResolver,
+)
 from privastream_api.pipeline.contracts import VideoFrame, VideoRegionDetection
 from privastream_api.privacy.vision import (
     FrameContext,
@@ -29,9 +34,15 @@ def _parser() -> argparse.ArgumentParser:
     parser.add_argument(
         "--plate-weights",
         type=Path,
-        default=Path("weights/license_plate.pt"),
-        help="Local YOLO-family plate weights; no model is downloaded by the demo",
+        default=None,
+        help="Explicit local YOLO-family plate weights; no model is downloaded",
     )
+    parser.add_argument(
+        "--plate-model",
+        help="Logical manifest ID to fetch, for example plate-detector",
+    )
+    parser.add_argument("--model-manifest-dir", type=Path, default=DEFAULT_MANIFEST_DIR)
+    parser.add_argument("--model-cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
     parser.add_argument("--plate-confidence", type=float, default=0.45)
     parser.add_argument("--ocr-confidence", type=float, default=0.4)
     parser.add_argument("--padding", type=float, default=0.02)
@@ -46,10 +57,20 @@ def _parser() -> argparse.ArgumentParser:
 def _service(args: Namespace) -> VisionPrivacyService:
     detectors: list[VisualPrivacyDetector] = []
     if args.plate:
+        if args.plate_model and args.plate_weights:
+            raise ValueError("choose either --plate-model or --plate-weights")
+        weights_path = args.plate_weights
+        if args.plate_model:
+            weights_path = ModelArtifactResolver(
+                manifest_dir=args.model_manifest_dir,
+                cache_dir=args.model_cache_dir,
+            ).resolve(args.plate_model)
+        if weights_path is None:
+            weights_path = Path("weights/license_plate.pt")
         detectors.append(
             UltralyticsPlateDetector(
                 PlateDetectorConfig(
-                    weights_path=args.plate_weights,
+                    weights_path=weights_path,
                     confidence_threshold=args.plate_confidence,
                     region_padding_ratio=args.padding,
                     cadence_frames=args.plate_cadence,

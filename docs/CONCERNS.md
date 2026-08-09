@@ -75,7 +75,7 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   the gate because that sink is not wired yet.
 - The production plate adapter has not received a runtime model or integration
   pass. Its source-image provider, local weight configuration, and interaction
-  with the safety gate/model manifest resolver remain environment and
+  with the safety gate/model artifact resolver remain environment and
   follow-up concerns. The current mitigation is a thin normalized adapter,
   exactly-once shared padding, explicit scheduler failures, and deterministic
   mocked integration coverage.

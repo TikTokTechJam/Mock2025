@@ -29,6 +29,12 @@ integration boundaries. Product-surface media ingestion, durable enrollment
 persistence, creator UI wiring, and real-time transport are planned and are not
 implemented.
 
+Runtime model artifacts are resolved through
+`src/privastream_api/model_artifacts.py`. Model manifests live under
+`models/manifests`, weights are cached outside Git under `.cache/models`, and
+the resolver verifies SHA-256 before returning a path to detector code. See
+`models/README.md` for the ML handoff and fetch commands.
+
 ## Prerequisites
 
 - CPython 3.14
@@ -168,6 +174,10 @@ file:
 uv sync --extra vision
 uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
 ```
+
+After a `plate-detector` manifest is supplied, use `--plate-model
+plate-detector` instead of the explicit weight path so the resolver verifies
+and caches the artifact first.
 
 ## Standalone face demo
 

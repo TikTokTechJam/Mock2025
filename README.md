@@ -130,8 +130,8 @@ fallback/block decision—may leave it.**
 - `apps/web` — runnable Next.js browser and creator application.
 - `apps/api` — runnable FastAPI backend and current in-process privacy/media
   processing runtime.
-- `models/` — runtime model metadata and future manifests; downloaded weights
-  stay in an ignored local cache.
+- `models/` — runtime model manifests and verified artifact metadata; downloaded
+  weights stay in an ignored local cache.
 - `ml/` — offline training and evaluation tooling.
 - `datasets/` — safe dataset manifests and metadata, not raw/private datasets.
 - `docs/` — authoritative product, architecture, security, operations, and
@@ -193,6 +193,13 @@ coordinates the production video, audio, optional cross-modal, and centralized
 privacy-gate contracts before handing protected output to an injected sink. It
 does not add an HTTP route or implement WebRTC/mediasoup; a server-side
 transport adapter remains a separate planned boundary.
+
+Runtime model artifacts are never committed. After an ML handoff manifest is
+available, fetch and verify it with:
+
+```bash
+uv run --project apps/api python -m privastream_api.model_artifacts fetch --model plate-detector
+```
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and
