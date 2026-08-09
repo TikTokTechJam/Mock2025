@@ -33,3 +33,6 @@ Thumbs.db
 *.sqlite3
 coverage/
 htmlcov/
+
+# draft documents
+apps/models/draft/
