@@ -38,7 +38,9 @@ This is the entry point for the PrivaStream experience. It connects source media
 - Required capability selection must remain consistent with fail-closed behavior.
 
 ## Status Boundary
-Planned product story. Foundation scaffolding exists, but the full protected session is not yet verified end-to-end.
+The in-process #11 production media integration boundary is Implemented but
+Unverified. The full protected session remains Planned until a real transport
+sink and end-to-end protected session are verified.
 
 ## Touched By
 Issues #2, #3, #4, #11, #12, #13, #17, #21, #22.

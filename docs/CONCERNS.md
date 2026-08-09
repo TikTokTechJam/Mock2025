@@ -68,7 +68,8 @@ unprotected source preview.
   lag coverage, liveness transitions, panic recovery hysteresis, and consumer
   behavior remain Unverified. The current mitigation is deterministic unit
   coverage, sanitized reason codes, fail-closed fallback/block decisions, and
-  no transport integration that could bypass the gate.
+  the #11 adapter's gate-before-sink ordering; no server transport can bypass
+  the gate because that sink is not wired yet.
 - The production plate adapter has not received a runtime model or integration
   pass. Its source-image provider, local weight configuration, and interaction
   with the safety gate/model manifest resolver remain environment and
@@ -101,3 +102,9 @@ unprotected source preview.
   all-face fallback for ambiguous scenes, explicit unsafe late/overflow/
   discontinuity outcomes, sanitized aggregate metrics, and no transport path
   that can bypass final safety policy.
+- The production media integration adapter has no runtime or protected-output
+  verification pass. Its processor failure handling, source timestamp
+  continuity, optional cross-modal handoff, fallback silence/full-cover output,
+  and sink ordering remain Unverified. The current mitigation is a narrow
+  injected-sink contract, deterministic integration fixtures, no raw-media
+  fallback, and an explicit boundary that leaves server transport Planned.

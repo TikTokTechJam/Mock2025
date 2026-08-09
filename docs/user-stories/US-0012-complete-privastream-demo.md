@@ -40,7 +40,9 @@ The individual detectors are not sufficient evidence that the product works. The
 - Deterministic fixtures must remain licensed/safe and small enough to manage.
 
 ## Status Boundary
-Planned final integration story. It is complete only when the documented end-to-end scenario passes through the real protected media path.
+The #11 in-process integration boundary is Implemented but Unverified. This
+final integration story remains Planned until the documented end-to-end
+scenario passes through the real protected media path.
 
 ## Touched By
 Issues #1, #2, #5, #6, #7, #9, #10, #11, #12, #13, #15, #16, #17.

@@ -14,10 +14,11 @@ standalone face enrollment/matching, the production face adapter and protected
 enrollment/readiness control surface, standalone license-plate/OCR
 visual-privacy and spoken-PII detector/renderer modules, centralized privacy
 readiness/publication decisions, cross-modal spoken-PII visual augmentation,
-and a local PostgreSQL-backed Docker Compose topology. HTTP media ingestion,
-backend creator operations beyond protected face enrollment, server-side or
-production transport, final cross-modal publication policy, durable persistence,
-and creator UI controls are planned and are not implemented yet.
+the production privacy-media integration adapter and protected-output sink
+boundary, and a local PostgreSQL-backed Docker Compose topology. HTTP media
+ingestion, backend creator operations beyond protected face enrollment,
+server-side or production transport, durable persistence, and creator UI
+controls are planned and are not implemented yet.
 
 ## Repository layout
 
@@ -78,6 +79,12 @@ local InsightFace model pack:
 uv sync --project apps/api --extra face
 uv run --project apps/api python apps/api/scripts/face_demo.py --input demo.mp4 --output protected.mp4 --model-root models/insightface
 ```
+
+The API also contains `ProductionMediaIntegration`, an in-process adapter that
+coordinates the production video, audio, optional cross-modal, and centralized
+privacy-gate contracts before handing protected output to an injected sink. It
+does not add an HTTP route or implement WebRTC/mediasoup; a server-side
+transport adapter remains a separate planned boundary.
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and

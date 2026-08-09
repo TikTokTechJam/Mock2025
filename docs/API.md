@@ -54,6 +54,13 @@ production authorization provider remain separate follow-up boundaries. Detector
 or model failures return a sanitized error and are recorded as not-ready rather
 than being represented as zero faces.
 
+The in-process `ProductionMediaIntegration` is a library boundary rather than
+an HTTP operation. It accepts canonical video/audio processor results, optional
+cross-modal augmentation, and the centralized `PrivacyGate`; it applies the
+returned protected, full-redact, or block action before calling an injected
+`ProtectedMediaSink`. It never adds a media or signaling route, and the sink is
+the future transport adapter's responsibility.
+
 The standalone spoken-PII module is intentionally not an HTTP endpoint. Its
 local command accepts bounded PCM16 WAV input and writes a muted WAV result; the
 module's detailed input, interval, and renderer contract belongs to

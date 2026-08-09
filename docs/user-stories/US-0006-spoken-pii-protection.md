@@ -36,7 +36,10 @@ Spoken phone numbers, email addresses, identifiers, and other supported sensitiv
 - Accents, noise, hesitations, and spoken separators can reduce accuracy.
 
 ## Status Boundary
-A standalone local spoken-PII slice exists, but the complete user story remains Planned until integrated with the real protected-media session and verified end-to-end.
+A standalone local spoken-PII slice and the in-process #11 production media
+integration boundary exist, both Unverified. The complete user story remains
+Planned until integrated with the real protected-media session and verified
+end-to-end.
 
 ## Touched By
 Issues #3, #8, #9, #10, #11, #13, #14, #15, #17, #20, #32.

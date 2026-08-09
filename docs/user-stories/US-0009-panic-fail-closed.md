@@ -36,7 +36,10 @@ Fail-closed behavior is the main safety invariant of a privacy-first media syste
 - A hidden raw-media bypass would violate this story even if ordinary UI paths are safe.
 
 ## Status Boundary
-Planned safety story until panic and induced-failure scenarios are demonstrated through the real protected-output path.
+The #11 integration applies the #13 decision to protected output and is
+Implemented but Unverified. This safety story remains Planned until panic and
+induced-failure scenarios are demonstrated through the real protected-output
+path.
 
 ## Touched By
 Issues #3, #4, #8, #9, #10, #11, #12, #13, #16, #17, #21, #22.

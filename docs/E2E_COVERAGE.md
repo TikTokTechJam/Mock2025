@@ -27,8 +27,17 @@ sanitized capability observations and source windows → readiness/liveness
 evaluation → `publish_protected`, `full_redact`, or `block` decision. Coverage
 targets required and optional capability failure, watermark/lag gaps, processor
 disconnect, panic entry, explicit recovery, and conservative recovery
-hysteresis. No transport or real protected-output path consumes these decisions
-yet.
+hysteresis. The production integration adapter consumes these decisions through
+an injected protected-output sink, but no server transport or real protected
+delivery path consumes the sink yet.
+
+The production privacy-media integration boundary is Implemented but Unverified:
+normalized video/audio processing → optional cross-modal augmentation →
+centralized gate decision → protected video/audio, full-redact fallback, or
+block through an injected sink. Coverage targets source timestamp continuity,
+processor failure without raw fallback, sink ordering, silent/full-frame
+fallback, and blocked publication. No browser, server transport, or model-backed
+end-to-end pass has exercised this boundary.
 
 The cross-modal synchronization boundary is Implemented but Unverified:
 source-timestamped video frames and existing face geometry → bounded audio
@@ -37,7 +46,8 @@ conservative full-face regions → explicit unsafe/late-decision result. Coverag
 targets pre/post padding, one-face association, unique active-speaker hints,
 ambiguous multi-face fallback, no-face failure, buffer overflow, timestamp
 discontinuity, and sanitized synchronization metrics. No transport, detector,
-compositor, or final publication consumer uses this boundary yet.
+compositor, or server transport uses this boundary yet; the #11 adapter is the
+only current in-process publication consumer.
 
 The browser media loopback journey is Implemented but Unverified: local camera /
 microphone permission → WebRTC offer/answer and ICE exchange → returned remote

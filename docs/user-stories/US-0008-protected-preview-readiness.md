@@ -36,7 +36,9 @@ Privacy controls are only trustworthy when the creator can distinguish source me
 - Raw local preview must be visually distinct to avoid accidental interpretation as protected output.
 
 ## Status Boundary
-Planned product story until the real-time protected stream and readiness APIs are integrated and verified.
+The #11 in-process gate-to-protected-output integration boundary is Implemented
+but Unverified. This product story remains Planned until the real-time
+protected stream and readiness APIs are integrated and verified.
 
 ## Touched By
 Issues #2, #3, #5, #11, #12, #13, #17, #21, #22.
