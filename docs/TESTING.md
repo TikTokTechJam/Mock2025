@@ -89,6 +89,13 @@ ambiguous matches, low-quality and failed embeddings, coordinate clamping, and
 explicit model errors. It must not require InsightFace weights or retain raw
 face images.
 
+The offline benchmark boundary should use normalized synthetic or authorized
+labels and predictions to cover IoU matching, confidence-threshold precision
+and recall, privacy-critical misses, 101-point AP at the standard IoU profile,
+deterministic latency percentiles, FPS, cold-start separation, provenance, and
+JSON/Markdown report output. It must not load models, contact providers, or
+persist raw media or unnecessary PII.
+
 The production face-integration boundary should use the real #18 public
 interfaces with deterministic model doubles to cover #4 registration, canonical
 `face_bystander` regions, creator suppression, process-local create/replace/

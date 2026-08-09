@@ -24,8 +24,9 @@ process boundaries, dependencies, and data flows.
   `src/privastream_api/pipeline/media_integration.py`.
 - `models/` contains runtime model metadata and the future manifest boundary;
   it is not a model server and must not contain downloaded weights.
-- `ml/` contains offline training, fine-tuning, and evaluation tooling. Runtime
-  API code must not import training-only dependencies by default.
+- `ml/` contains offline training, fine-tuning, and the dependency-free
+  evaluation runner under `ml/evaluation/`. Runtime API code must not import
+  training-only dependencies by default.
 - `datasets/` contains safe dataset manifests, schemas, split metadata, and
   provenance; raw or private datasets are not part of the repository.
 - `docs/` contains the authoritative product, architecture, security,

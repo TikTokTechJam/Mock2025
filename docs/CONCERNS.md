@@ -111,3 +111,8 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   and sink ordering remain Unverified. The current mitigation is a narrow
   injected-sink contract, deterministic integration fixtures, no raw-media
   fallback, and an explicit boundary that leaves server transport Planned.
+- The benchmark runner has only a small synthetic fixture and consumes
+  normalized inputs rather than invoking a real model or production media
+  adapter. Metric and timing reports therefore remain Unverified and must not
+  be treated as evidence for model quality, privacy coverage, or real-time
+  performance until a controlled held-out evaluation pass is supplied.

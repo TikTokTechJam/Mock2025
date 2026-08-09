@@ -57,12 +57,16 @@ persistence, and E2E infrastructure remain absent.
 - The production media integration adapter has not received a runtime or
   protected-output verification pass. The server-side transport sink remains
   absent, so no live media path consumes its output.
+- The offline benchmark runner has only a small synthetic fixture and no
+  production model/dataset adapter pass; its metrics and timing output remain
+  Unverified.
 
 ## Verification Status
 
 | Area | Availability | Verification | Note |
 | --- | --- | --- | --- |
 | Creator privacy console and production client adapters | Implemented | Unverified | Browser permission/media plus face enrollment/readiness/safety adapter boundaries; no UI/browser pass run. |
+| Offline benchmark report runner | Implemented | Unverified | Standard plate metrics, latency/FPS summaries, mandatory provenance, and JSON/Markdown reports; no controlled model or held-out dataset pass. |
 | Browser media loopback and mock processors | Implemented | Unverified | Local WebRTC path with canvas/gain processing; no browser pass run. |
 | Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |
 | Normalized media contracts | Implemented | Not applicable | Dependency-free detector protocols and result types used by the standalone visual module. |
@@ -83,25 +87,28 @@ persistence, and E2E infrastructure remain absent.
 
 ## Next Actions
 
-1. Request a dedicated creator-console UI/browser verification pass with
+1. Request a dedicated benchmark verification pass with a controlled held-out
+   plate fixture, production adapter predictions, model checksum, and
+   hardware/resource capture.
+2. Request a dedicated creator-console UI/browser verification pass with
    keyboard, responsive, adapter-error, and protected-stream scenarios.
-2. Request a dedicated privacy-gate verification pass with deterministic
+3. Request a dedicated privacy-gate verification pass with deterministic
    capability observations, liveness, panic, watermark, lag, and recovery
    scenarios.
-3. Request a dedicated video-engine verification pass with deterministic mock
+4. Request a dedicated video-engine verification pass with deterministic mock
    detectors, timeout/failure injection, and raster fixtures.
-4. Request a dedicated timestamped-audio verification pass with deterministic
+5. Request a dedicated timestamped-audio verification pass with deterministic
    chunks, mock VAD/transcription, shared-recognizer integration,
    chunk-boundary muting, release watermark, queue overflow, deadline, and
    failure cases.
-5. Request a dedicated browser media verification pass with controlled camera
+6. Request a dedicated browser media verification pass with controlled camera
    and microphone permissions, including disconnect and failure scenarios.
-6. Request a dedicated face, visual, and audio verification pass with controlled
+7. Request a dedicated face, visual, and audio verification pass with controlled
    local fixtures and models when runtime checks are wanted.
-7. Provide the approved authorization provider, #13/#11 safety event bridge,
+8. Provide the approved authorization provider, #13/#11 safety event bridge,
    durable repository contract, and #21/#11 server transport sink before
    enabling the complete protected session in the creator UI.
-8. Add the next approved privacy/media lifecycle contract before exposing the
+9. Add the next approved privacy/media lifecycle contract before exposing the
    remaining standalone detectors through server transport or creator controls.
 
 ## Handoff Constraints
