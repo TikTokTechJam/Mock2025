@@ -106,6 +106,11 @@ uv run python scripts/vision_demo.py \
   --ocr-pii
 ~~~
 
+When the ML handoff manifest is available, replace `--plate-weights` with
+`--plate-model plate-detector`. The model resolver fetches the versioned local
+artifact and verifies its checksum before the detector loads it. The repository
+does not currently contain a production plate manifest or weight.
+
 The demo accepts an image or short video, runs the selected adapters, applies
 local OpenCV blur masks, and writes a protected image or video. Its summary
 reports frame and region counts only; it does not print recognized text.
