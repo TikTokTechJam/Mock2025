@@ -38,4 +38,4 @@ License plates are common privacy-sensitive visual identifiers in outdoor and st
 Planned product story until integrated and benchmarked on representative fixtures.
 
 ## Touched By
-Issues #3, #4, #6, #13, #14, #15, #17, #19.
+Issues #3, #4, #6, #13, #14, #15, #17, #19, #48, #49.
