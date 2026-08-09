@@ -39,8 +39,8 @@ Fail-closed behavior is the main safety invariant of a privacy-first media syste
 The #12 safety adapter applies local emergency stop behavior and maps the
 planned #13 server boundary fail-closed; the #11 integration applies the #13
 decision in-process. These boundaries are Implemented but Unverified. This
-safety story remains Planned until server panic events and induced-failure
-scenarios are demonstrated through the real protected-output path.
+safety story remains Planned until #13 panic events are bridged through the
+real protected-output path and induced-failure scenarios are demonstrated.
 
 ## Touched By
 Issues #3, #4, #8, #9, #10, #11, #12, #13, #16, #17, #21, #22.

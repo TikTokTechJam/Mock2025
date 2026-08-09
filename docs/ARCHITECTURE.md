@@ -247,9 +247,9 @@ substituted into that component. Required capability unavailability holds the
 protected handle, panic stops clear it, and unavailable client/API boundaries
 hold publication. The adapter maps sanitized responses and status failures into
 connecting, processing, degraded, blocked, panic, and stopped presentation
-without exposing raw response details. The current API has no server media or
-safety event routes, so those paths remain fail-closed until their owning
-boundaries are available.
+without exposing raw response details. The #13 gate is implemented in the API;
+the browser remains fail-closed until its host supplies the #13/#11 event and
+transport bridge.
 
 ## Detector and redaction contracts
 

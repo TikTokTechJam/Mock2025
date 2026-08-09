@@ -18,10 +18,6 @@ import type { MediaSessionClient, MediaSessionStartRequest } from "./media-sessi
 const DEFAULT_API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8000";
 const FACE_ENROLLMENT_PATH = "/privacy/face/enrollment";
 const FACE_READINESS_PATH = "/privacy/face/readiness";
-// These paths are the #13 control-plane boundary. The current API does not expose them yet.
-const SAFETY_STATUS_PATH = "/privacy/safety";
-const SAFETY_PANIC_PATH = "/privacy/safety/panic";
-const SAFETY_CLEAR_PATH = "/privacy/safety/panic/clear";
 
 type FetchImplementation = typeof fetch;
 
@@ -34,11 +30,6 @@ interface FaceReadinessResponse {
   enabled?: boolean;
   required?: boolean;
   ready?: boolean;
-  reason_code?: string | null;
-}
-
-interface SafetyResponse {
-  state?: string;
   reason_code?: string | null;
 }
 
@@ -402,35 +393,27 @@ export class ProductionMediaSessionClient implements MediaSessionClientHandle {
   }
 }
 
-function safetySnapshotFromResponse(body: SafetyResponse): SafetySnapshot {
-  switch (body.state) {
-    case "normal":
-      return { detail: "Server safety status permits protected publication.", state: "normal" };
-    case "degraded":
-      return { detail: "Server safety status is degraded; protected publication may be restricted.", state: "degraded" };
-    case "panic":
-      return { detail: "Panic is active. Protected publication is blocked.", state: "panic" };
-    case "blocked":
-      return { detail: "Server safety status blocks protected publication.", state: "blocked" };
-    default:
-      return { detail: reasonDetail(body.reason_code, "Server safety status is unavailable."), state: "blocked" };
-  }
+export interface SafetyEventTransport {
+  getSnapshot(): SafetySnapshot;
+  subscribe(listener: (snapshot: SafetySnapshot) => void): () => void;
+  refresh(): Promise<void>;
+  triggerPanic(): Promise<void>;
+  clear(): Promise<void>;
 }
 
 export class ProductionSafetyClient implements SafetyClient {
   private snapshotValue: SafetySnapshot = {
-    detail: "Server safety status is unavailable; protected publication is blocked.",
+    detail: "The #13 safety event transport is not connected; protected publication is blocked.",
     state: "blocked",
   };
   private readonly listeners = createListeners<SafetySnapshot>();
-  private readonly apiBaseUrl: string;
-  private readonly fetchImpl: FetchImplementation;
   private readonly onPanic: () => void;
+  private readonly transport: SafetyEventTransport | null;
 
-  public constructor(options: ProductionClientOptions & { onPanic?: () => void } = {}) {
-    this.apiBaseUrl = options.apiBaseUrl ?? DEFAULT_API_BASE_URL;
-    this.fetchImpl = options.fetchImpl ?? fetch;
+  public constructor(options: ProductionClientOptions & { onPanic?: () => void; safetyTransport?: SafetyEventTransport } = {}) {
     this.onPanic = options.onPanic ?? (() => undefined);
+    this.transport = options.safetyTransport ?? null;
+    this.transport?.subscribe((snapshot) => this.update(snapshot));
   }
 
   public getSnapshot(): SafetySnapshot {
@@ -443,48 +426,42 @@ export class ProductionSafetyClient implements SafetyClient {
   }
 
   public async refresh(): Promise<void> {
+    if (!this.transport) {
+      this.update({ detail: "The #13 safety event transport is not connected; protected publication is blocked.", state: "blocked" });
+      return;
+    }
     try {
-      const response = await this.fetchImpl(apiUrl(this.apiBaseUrl, SAFETY_STATUS_PATH), {
-        method: "GET",
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error(responseDetail(response.status, "safety"));
-      }
-      this.update(safetySnapshotFromResponse((await response.json()) as SafetyResponse));
-    } catch (error) {
-      this.update({ detail: safeErrorDetail(error, networkDetail("safety")), state: "blocked" });
+      await this.transport.refresh();
+      this.update(this.transport.getSnapshot());
+    } catch {
+      this.update({ detail: "The #13 safety event transport failed; protected publication is blocked.", state: "blocked" });
     }
   }
 
   public async triggerPanic(): Promise<void> {
     this.onPanic();
+    if (!this.transport) {
+      this.update({ detail: "Panic stop was applied locally; the #13 event transport is not connected.", state: "panic" });
+      return;
+    }
     try {
-      const response = await this.fetchImpl(apiUrl(this.apiBaseUrl, SAFETY_PANIC_PATH), {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error(responseDetail(response.status, "panic"));
-      }
-      this.update(safetySnapshotFromResponse((await response.json()) as SafetyResponse));
-    } catch (error) {
-      this.update({ detail: safeErrorDetail(error, "Panic stop was applied locally; server acknowledgment is unavailable."), state: "panic" });
+      await this.transport.triggerPanic();
+      this.update(this.transport.getSnapshot());
+    } catch {
+      this.update({ detail: "Panic stop was applied locally; the #13 event transport did not acknowledge it.", state: "panic" });
     }
   }
 
   public async clear(): Promise<void> {
+    if (!this.transport) {
+      this.update({ detail: "The #13 safety event transport is not connected; protected publication remains blocked.", state: "blocked" });
+      return;
+    }
     try {
-      const response = await this.fetchImpl(apiUrl(this.apiBaseUrl, SAFETY_CLEAR_PATH), {
-        method: "POST",
-        credentials: "include",
-      });
-      if (!response.ok) {
-        throw new Error(responseDetail(response.status, "safety recovery"));
-      }
-      this.update(safetySnapshotFromResponse((await response.json()) as SafetyResponse));
-    } catch (error) {
-      this.update({ detail: safeErrorDetail(error, "Server safety recovery is unavailable; publication remains blocked."), state: "blocked" });
+      await this.transport.clear();
+      this.update(this.transport.getSnapshot());
+    } catch {
+      this.update({ detail: "The #13 safety recovery event was not acknowledged; protected publication remains blocked.", state: "blocked" });
     }
   }
 
@@ -496,6 +473,7 @@ export class ProductionSafetyClient implements SafetyClient {
 
 export interface ProductionCreatorConsoleOptions extends ProductionClientOptions {
   mediaClient?: MediaSessionClient<MediaStream, MediaStream>;
+  safetyTransport?: SafetyEventTransport;
 }
 
 export function createProductionCreatorConsoleClients(options: ProductionCreatorConsoleOptions = {}): CreatorConsoleClients {

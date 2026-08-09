@@ -49,11 +49,12 @@ credentials or tokens in browser-exposed configuration.
 
 Open [http://localhost:3000](http://localhost:3000) to use the creator console.
 The page uses `src/lib/production-clients.ts` for browser media, face
-enrollment, capability readiness, and safety control boundaries. It requests
-real browser device permission, attaches the source and protected `MediaStream`
-to separate previews, and maps only sanitized API state into the UI. A
-production adapter failure leaves publication blocked; it does not fall back to
-the unprotected source.
+enrollment, capability readiness, and the #13 safety event boundary. It
+requests real browser device permission, attaches the source and protected
+`MediaStream` to separate previews, and maps only sanitized API state into the
+UI. The safety adapter consumes an injected #13/#11 event transport; until that
+host transport is connected, publication remains blocked. A production adapter
+failure never falls back to the unprotected source.
 
 The reusable issue-21 browser media client remains in
 `src/lib/browser-media-session.ts`. Its unprotected source and protected output
@@ -64,8 +65,9 @@ redesigning the console.
 ## Current Limitations
 
 The current API exposes only authorization-protected face enrollment/readiness
-routes; server-side media transport and #13 safety status/event routes are not
-available yet. Detector integrations, production redaction, deployment
-configuration, and a reusable design system remain planned. The console and
-browser loopback are Unverified until explicit UI/browser verification passes
-are run.
+routes to the browser. The #13 gate is implemented in the API, but its
+decision/event bridge into the browser transport is not connected here; server-
+side media transport remains a separate boundary. Detector integrations,
+production redaction, deployment configuration, and a reusable design system
+remain planned. The console and browser loopback are Unverified until explicit
+UI/browser verification passes are run.

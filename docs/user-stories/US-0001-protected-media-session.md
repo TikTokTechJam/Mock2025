@@ -40,8 +40,8 @@ This is the entry point for the PrivaStream experience. It connects source media
 ## Status Boundary
 The #12 browser client adapter and the in-process #11 production media
 integration boundary are Implemented but Unverified. The full protected
-session remains Planned until the #13 safety event boundary, a real #21/#11
-transport sink, and an end-to-end protected session are verified.
+session remains Planned until the #13 safety events are bridged through a real
+#21/#11 transport sink and an end-to-end protected session is verified.
 
 ## Touched By
 Issues #2, #3, #4, #11, #12, #13, #17, #21, #22.

@@ -64,8 +64,8 @@ unprotected source and protected-output streams. The coverage target includes
 authorization/readiness failure, enrollment error and deletion, required-
 readiness blocking, degraded optional protection, panic stop, reconnect,
 stopped/reset recovery, protected-stream-only rendering, and absence of raw PII,
-embedding, or response diagnostics. The current API lacks server media and
-safety event routes, so a complete production E2E scenario remains Planned.
+embedding, or response diagnostics. The browser lacks the server media and
+safety event bridge, so a complete production E2E scenario remains Planned.
 
 ## Environment
 

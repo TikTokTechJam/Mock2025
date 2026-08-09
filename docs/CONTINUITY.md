@@ -16,15 +16,15 @@ readiness/publication gate are present, and the creator-console adapter path is
 present. The production privacy-media integration adapter now coordinates the
 processors and gate through a protected-output sink contract. Product-surface
 media ingestion, backend creator operations beyond protected face controls,
-server-side transport, durable persistence, server safety event wiring, and E2E
-infrastructure remain absent.
+server-side transport, the browser bridge to #13 safety events, durable
+persistence, and E2E infrastructure remain absent.
 
 ## Active Work
 
 - Run the explicit UI/browser verification pass for the #12 production client
   adapters, including injected API errors and protected-stream separation.
-- Provide the authorized face API, #13 safety status/events, and #21/#11 server
-  transport boundaries before enabling a complete protected session.
+- Provide the authorized face API and the #13/#11 safety/media event bridge
+  before enabling a complete protected session.
 - Review the centralized privacy gate and timestamped audio, face, shared
   text-PII, and cross-modal paths and prepare explicit focused verification
   passes.
@@ -49,8 +49,8 @@ infrastructure remain absent.
 - The production face adapter, web client calls, control routes, authorization
   injection, and readiness handoff to #13 have not received a runtime
   integration pass. The default API still denies face control authorization.
-- The web safety adapter targets the #13 status/event boundary, but those
-  server routes are not present and therefore keep publication blocked.
+- The web safety adapter targets the implemented #13 gate, but its host event
+  transport is not connected and therefore keeps publication blocked.
 - The cross-modal synchronizer has not received a dedicated source-timeline or
   integration verification pass. The #11 adapter consumes its decisions
   in-process, but no server transport uses them.
@@ -98,7 +98,7 @@ infrastructure remain absent.
    and microphone permissions, including disconnect and failure scenarios.
 6. Request a dedicated face, visual, and audio verification pass with controlled
    local fixtures and models when runtime checks are wanted.
-7. Provide the approved authorization provider, #13 safety event contract,
+7. Provide the approved authorization provider, #13/#11 safety event bridge,
    durable repository contract, and #21/#11 server transport sink before
    enabling the complete protected session in the creator UI.
 8. Add the next approved privacy/media lifecycle contract before exposing the

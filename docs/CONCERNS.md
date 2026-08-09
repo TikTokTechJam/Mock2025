@@ -50,9 +50,9 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   local-only boundary, explicit session error state, bounded video scheduling,
   and no raw-output fallback.
 - The creator console production adapters are not runtime verified. The default
-  API denies face control authorization, and server-side media transport plus
-  #13 safety status/events are absent, so the console remains blocked on those
-  boundaries. The current mitigation is fail-closed state mapping, explicit
+  API denies face control authorization, and the browser-to-transport bridge for
+  #13 safety events is not connected, so the console remains blocked on that
+  boundary. The current mitigation is fail-closed state mapping, explicit
   consent gating, no raw diagnostics, protected-stream-only preview attachment,
   and a separate unprotected source preview.
 - The web-to-API deployment origin and credential/CORS boundary is not defined.

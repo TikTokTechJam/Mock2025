@@ -56,7 +56,8 @@ handle availability. Browser adapter failures are reduced to sanitized UI
 messages and do not become authorization, audit events, or persisted media
 state. The console does not show raw enrollment samples, transcripts, PII
 values, embeddings, or arbitrary API response bodies. Server-side media and
-safety events are not yet observable because their routes remain absent.
+safety events are not yet observable in the browser because their transport
+bridge is not connected.
 
 The in-process `PrivacyGate` exposes sanitized readiness (`ready`, `degraded`, or
 `unsafe`), process liveness, panic/recovery state, publication action, reason

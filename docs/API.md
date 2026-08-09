@@ -63,9 +63,10 @@ the future transport adapter's responsibility.
 
 There is currently no `/privacy/media`, `/privacy/safety`, or browser signaling
 route. The web production media adapter therefore uses the reusable local
-browser client, and the safety adapter remains blocked until the #13 server
-status/event boundary is exposed. These client-side adapters do not create a
-second transport, enrollment algorithm, or publication-safety implementation.
+browser client, and the safety adapter consumes an injected #13 event transport
+when a host supplies one. Without that bridge it remains blocked. These
+client-side adapters do not create a second transport, enrollment algorithm, or
+publication-safety implementation.
 
 The standalone spoken-PII module is intentionally not an HTTP endpoint. Its
 local command accepts bounded PCM16 WAV input and writes a muted WAV result; the

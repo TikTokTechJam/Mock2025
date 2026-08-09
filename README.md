@@ -17,8 +17,8 @@ readiness/publication decisions, cross-modal spoken-PII visual augmentation,
 the production privacy-media integration adapter and protected-output sink
 boundary, and a local PostgreSQL-backed Docker Compose topology. HTTP media
 ingestion, backend creator operations beyond protected face enrollment,
-server-side or production transport, durable persistence, and server safety
-event wiring are planned and are not implemented yet.
+server-side or production transport, durable persistence, and the browser
+bridge to server safety events are planned and are not implemented yet.
 
 ## Repository layout
 
@@ -51,8 +51,8 @@ Configure a policy, grant browser device permission, and review production
 readiness before starting a session. The console uses the reusable browser
 media client and calls the configured face control routes; missing or failed
 readiness, enrollment, safety, or transport boundaries remain fail-closed. The
-default API denies face control authorization and does not yet expose the
-server-side safety or media transport routes, so a complete protected session
+default API denies face control authorization, and the browser-to-transport
+bridge for #13 decisions is not connected yet, so a complete protected session
 is not currently available. See `apps/web/README.md` for configuration.
 
 The API also contains a standalone local spoken-PII demo backed by the

@@ -45,11 +45,10 @@ state.
 The creator-console client boundary and protected-preview separation are
 Implemented, but Unverified. The browser adapter can acquire local devices and
 the enrollment/readiness adapters call the current face control routes when
-configured. The default API still denies face authorization, and the current
-repository has no server media transport or #13 safety status/event routes, so
-those adapters fail closed and the complete protected session remains Planned.
-The central safety gate is an in-process API primitive and is not replaced by
-browser state.
+configured. The default API still denies face authorization, and the browser
+has no connected transport bridge for the implemented #13 gate, so the client
+fails closed and the complete protected session remains Planned. The central
+safety gate is an in-process API authority and is not replaced by browser state.
 
 ## Privacy and safety boundaries
 
