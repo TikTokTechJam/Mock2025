@@ -20,6 +20,111 @@ ingestion, backend creator operations beyond protected face enrollment,
 server-side or production transport, durable persistence, and creator UI
 controls are planned and are not implemented yet.
 
+## Architecture
+
+PrivaStream acts as an AI privacy layer between a creator's raw camera/microphone
+stream and the viewer. Video and audio are processed independently, correlated
+when needed, and passed through a fail-closed safety gate before protected media
+can leave the backend.
+
+```mermaid
+flowchart LR
+
+    subgraph CLIENT["🌐 Web Client"]
+        Creator["👤 Creator"]
+        Capture["📷 Camera + 🎙️ Microphone"]
+        Console["Creator Console<br/>Protected Preview<br/>Privacy Controls"]
+
+        Creator --> Capture
+        Creator --> Console
+    end
+
+    subgraph RTC["🔄 Real-Time Media Transport"]
+        WebRTCIn["WebRTC<br/>Media Ingress"]
+        WebRTCOut["WebRTC<br/>Protected Output"]
+    end
+
+    Capture --> WebRTCIn
+
+    subgraph BACKEND["⚙️ PrivaStream Privacy Backend"]
+        Integration["Production Media Integration<br/><b>Privacy Pipeline Orchestrator</b>"]
+
+        WebRTCIn --> Integration
+
+        subgraph VIDEO["🎥 Video Privacy"]
+            Face["Face Detection<br/>Creator vs Bystander"]
+            Plate["License Plate<br/>Detection"]
+            OCR["Scene Text OCR"]
+            VisualPII["Visual PII<br/>Classification"]
+            VideoEngine["Video Privacy Engine<br/>Tracking • Temporal Stability<br/>Region Merge • Redaction"]
+
+            Face --> VideoEngine
+            Plate --> VideoEngine
+            OCR --> VisualPII
+            VisualPII --> VideoEngine
+        end
+
+        subgraph AUDIO["🎙️ Audio Privacy"]
+            VAD["Voice Activity<br/>Detection"]
+            Whisper["Speech-to-Text<br/>Whisper"]
+            SpokenPII["Spoken PII<br/>Detection"]
+            AudioRedact["Audio Redaction<br/>Mute Sensitive Speech"]
+
+            VAD --> Whisper
+            Whisper --> SpokenPII
+            SpokenPII --> AudioRedact
+        end
+
+        PII["🧠 Shared PII Recognizer<br/>Phone • Email • IDs • Sensitive Text"]
+
+        VisualPII <--> PII
+        SpokenPII <--> PII
+
+        Integration --> Face
+        Integration --> Plate
+        Integration --> OCR
+        Integration --> VAD
+
+        AVSync["🔗 A/V Synchronization<br/>Sensitive Speech ↔ Speaker Face"]
+
+        SpokenPII --> AVSync
+        Face --> AVSync
+        AVSync --> VideoEngine
+
+        Safety["🛡️ Privacy Safety Gate<br/><b>Fail Closed</b>"]
+
+        VideoEngine --> Safety
+        AudioRedact --> Safety
+
+        Safety -->|"Safe"| Protected["Protected<br/>Video + Audio"]
+        Safety -->|"Processing Failure"| Fallback["Full Redact / Mute<br/>or Block"]
+
+        Protected --> WebRTCOut
+        Fallback --> WebRTCOut
+    end
+
+    WebRTCOut --> Console
+
+    Viewer["👥 Viewer"]
+    Console --> Viewer
+
+    subgraph MODELS["🤖 Replaceable AI Models"]
+        FaceModel["Face Model"]
+        PlateModel["Plate Model"]
+        OCRModel["OCR Model"]
+        SpeechModel["VAD + Whisper"]
+    end
+
+    FaceModel -.-> Face
+    PlateModel -.-> Plate
+    OCRModel -.-> OCR
+    SpeechModel -.-> VAD
+```
+
+The core privacy invariant is simple: **raw camera/microphone media may enter the
+privacy pipeline, but only protected media—or an explicit fail-closed
+fallback/block decision—may leave it.**
+
 ## Repository layout
 
 - `apps/web` — runnable Next.js browser and creator application.
