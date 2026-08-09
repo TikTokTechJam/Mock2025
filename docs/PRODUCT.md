@@ -12,6 +12,7 @@ sensitive content is redacted before delivery.
 | Creator-console production client adapters | `apps/web/src/lib/production-clients.ts` | Adapts the reusable browser media client and the current face control routes into the existing console state model; unsupported server media/safety boundaries fail closed without exposing raw response details. | Implemented | Unverified |
 | Offline benchmark report runner | `ml/evaluation/benchmark.py` | Consumes normalized detector labels/predictions and supplied performance samples, calculates standard plate metrics and latency/FPS summaries, and writes provenance-bearing JSON and Markdown reports. It does not load models or media. | Implemented | Unverified |
 | Runtime model artifact resolver | `apps/api/src/privastream_api/model_artifacts.py` and `models/manifests/` | Registers ML handoff metadata, resolves logical model IDs into a versioned local cache, and verifies SHA-256 before detector loading. No production artifact is committed. | Implemented | Unverified |
+| CPU/GPU runtime packaging | `compose.production.yaml`, `compose.production.gpu.yaml`, and production Dockerfiles | Builds pinned web/API images, health-gates web startup on API liveness, mounts the persistent #14 model cache, and reserves one NVIDIA GPU for the API only in the GPU override. It does not add transport or privacy readiness. | Implemented | Unverified |
 | Browser media loopback client | `apps/web/src/lib/browser-media-session.ts` (not directly exposed by `/`) | Provides the reusable local WebRTC loopback and deterministic mock video/audio processing client for protected stream integration. | Implemented | Unverified |
 | API process health | `GET /health` | Returns `{ "status": "ok", "service": "privastream-api" }`. | Implemented | Unverified |
 | Shared video orchestration and compositor | `privastream_api.pipeline.video.VideoOrchestrator` | Schedules normalized visual detectors, retains temporal regions, and renders generic video masks without selecting the final publication-safety decision. | Implemented | Unverified |
@@ -65,9 +66,10 @@ safety gate is an in-process API authority and is not replaced by browser state.
 ## Current non-goals
 
 Authentication provider wiring, server-side product enrollment, product-surface
-media upload, server-side or production live transport, durable enrollment
-persistence, end-to-end cross-modal media delivery, and production deployment
-are not implemented here. The shared video compositor is an
+media upload, production live transport, durable enrollment persistence,
+end-to-end cross-modal media delivery, hosted production operations, and
+server-side transport are not implemented here. The shared
+video compositor is an
 internal rendering primitive and does not decide whether output is safe to
 publish. The browser loopback and standalone demos are local or best-effort
 paths; the creator console adapters do not claim production delivery until the

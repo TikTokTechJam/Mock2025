@@ -25,6 +25,13 @@ processor failure stops the output without attaching raw capture as a fallback.
 This is a local demo boundary, not an authentication, authorization, or
 production delivery guarantee.
 
+The packaged Compose topology passes only documented non-secret runtime
+settings and keeps the model cache in a named volume outside the image. The
+database password and any provider credentials remain operator-supplied through
+the ignored `.env` file; they must not be copied into Dockerfiles, build args,
+images, or model manifests. GPU device exposure is limited to the API override
+and does not change authorization or privacy-readiness semantics.
+
 The creator console uses production adapters for enrollment, readiness, safety,
 and media sessions. Enrollment is consent-gated, captures at most one bounded
 frame from the active source per request, sends it only to the protected face

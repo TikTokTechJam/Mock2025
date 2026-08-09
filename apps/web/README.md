@@ -28,6 +28,9 @@ pnpm typecheck:web
 
 `pnpm dev:web` starts the local development server on [http://localhost:3000](http://localhost:3000).
 `pnpm build:web` produces a production build, and `pnpm --filter @privastream/web start` serves that build.
+The production image is built by `apps/web/Dockerfile` and started through the
+repository-root `compose.production.yaml`; its browser API origin is supplied
+at image build time with `NEXT_PUBLIC_API_BASE_URL`.
 
 ## Directory Purpose
 
@@ -68,6 +71,7 @@ The current API exposes only authorization-protected face enrollment/readiness
 routes to the browser. The #13 gate is implemented in the API, but its
 decision/event bridge into the browser transport is not connected here; server-
 side media transport remains a separate boundary. Detector integrations,
-production redaction, deployment configuration, and a reusable design system
-remain planned. The console and browser loopback are Unverified until explicit
+production redaction, hosted deployment, and a reusable design system remain
+planned. CPU/GPU Compose packaging is implemented separately at the repository
+root, but the console and browser loopback are Unverified until explicit
 UI/browser verification passes are run.

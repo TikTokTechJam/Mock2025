@@ -116,3 +116,10 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   adapter. Metric and timing reports therefore remain Unverified and must not
   be treated as evidence for model quality, privacy coverage, or real-time
   performance until a controlled held-out evaluation pass is supplied.
+- The production CPU/GPU images and Compose topology have not received a
+  dedicated build/start or host-driver verification pass. CUDA, NVIDIA
+  Container Toolkit, optional model dependency, browser-origin, and announced
+  transport compatibility remain environment-specific. The current mitigation
+  is a CPU default, a GPU-only Compose override, pinned image/dependency inputs,
+  health-gated startup, and explicit boundaries that leave hosted deployment
+  and #21 transport configuration outside this package.

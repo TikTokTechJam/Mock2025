@@ -61,6 +61,12 @@ uv sync --extra audio
 The API listens on `http://localhost:8000`. FastAPI's standard documentation remains
 available at `/docs`, `/redoc`, and `/openapi.json`.
 
+The production image is built by `apps/api/Dockerfile` and started through the
+repository-root `compose.production.yaml` CPU topology or its NVIDIA GPU
+override. It mounts the #14 model cache and only bootstraps a model when
+`PRIVASTREAM_MODEL_ID` is explicitly configured; it does not add a transport or
+privacy-readiness route.
+
 ## Component commands
 
 ```bash
