@@ -1,0 +1,12 @@
+# dataset
+sg_plate_dataset/
+
+# pretrained checkpoints
+rf-detr/checkpoints/
+yolov11/checkpoints/
+
+# training checkpoints
+yolov11/runs/detect/train
+
+# training logs
+yolov11/outputfiles
