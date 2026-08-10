@@ -39,10 +39,9 @@ from rfdetr import RFDETRSmall
 DATASET_DIR = Path("sg_plate_dataset")
 TEST_IMAGE_DIR = DATASET_DIR / "test" / "images"
 
-YOLO_MODEL_PATH = "yolov11/checkpoints/yolo11n.pt"
-RFDETR_MODEL_PATH = "rf-dert/checkpoints/rf-detr-small.pth"
+YOLO_MODEL_PATH = "yolov11/checkpoints/best.pt"
+RFDETR_MODEL_PATH = "rf-detr/checkpoints/rf-detr-small.pth"
 
-OUTPUT_CSV = "./benchmark_results.csv"
 IMAGE_SIZE = 512
 
 CONFIDENCE_THRESHOLD = 0.001

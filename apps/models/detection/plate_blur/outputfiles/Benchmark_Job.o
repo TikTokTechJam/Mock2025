@@ -1,0 +1,222 @@
+=== GPU environment ===
+CUDA_VISIBLE_DEVICES=GPU-3a9e4829-ad9c-ab0e-ad97-819428e7fad7
+PATH=/home/users/ntu/thuymaia/.local/bin:/home/users/ntu/thuymaia/bin:/opt/cray/pe/pals/1.1.6/bin:/opt/cray/pe/craype/2.7.15/bin:/opt/cray/pe/cce/13.0.2/binutils/x86_64/x86_64-pc-linux-gnu/bin:/opt/cray/pe/cce/13.0.2/binutils/cross/x86_64-aarch64/aarch64-linux-gnu/../bin:/opt/cray/pe/cce/13.0.2/utils/x86_64/bin:/opt/cray/pe/cce/13.0.2/bin:/opt/cray/pe/perftools/22.04.0/bin:/opt/cray/pe/papi/6.0.0.14/bin:/opt/cray/libfabric/1.11.0.4.125/bin:/opt/clmgr/sbin:/opt/clmgr/bin:/opt/sgi/sbin:/opt/sgi/bin:/bin:/usr/bin:/usr/local/sbin:/usr/sbin:/opt/c3/bin:/usr/lpp/mmfs/bin:/opt/pbs/bin:/opt/cray/pe/bin
+=== NVIDIA devices ===
+crw-rw-rw- 1 root root 195,   0 Aug  5 13:31 /dev/nvidia0
+crw-rw-rw- 1 root root 195,   1 Aug  5 13:31 /dev/nvidia1
+crw-rw-rw- 1 root root 195,   2 Aug  5 13:31 /dev/nvidia2
+crw-rw-rw- 1 root root 195,   3 Aug  5 13:31 /dev/nvidia3
+crw-rw-rw- 1 root root 195, 255 Aug  5 13:31 /dev/nvidiactl
+crw-rw-rw- 1 root root 195, 254 Aug  5 13:32 /dev/nvidia-modeset
+crw-rw-rw- 1 root root 238,   0 Aug  5 13:32 /dev/nvidia-uvm
+crw-rw-rw- 1 root root 238,   1 Aug  5 13:32 /dev/nvidia-uvm-tools
+
+/dev/nvidia-caps:
+total 0
+cr-------- 1 root root 241, 1 Aug  5 13:31 nvidia-cap1
+cr--r--r-- 1 root root 241, 2 Aug  5 13:31 nvidia-cap2
+=== nvidia-smi ===
+/bin/nvidia-smi
+Mon Aug 10 17:00:12 2026       
++-----------------------------------------------------------------------------------------+
+| NVIDIA-SMI 570.124.06             Driver Version: 570.124.06     CUDA Version: 12.8     |
+|-----------------------------------------+------------------------+----------------------+
+| GPU  Name                 Persistence-M | Bus-Id          Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp   Perf          Pwr:Usage/Cap |           Memory-Usage | GPU-Util  Compute M. |
+|                                         |                        |               MIG M. |
+|=========================================+========================+======================|
+|   0  NVIDIA A100-SXM4-40GB          On  |   00000000:C1:00.0 Off |                    0 |
+| N/A   41C    P0             57W /  400W |       1MiB /  40960MiB |      0%      Default |
+|                                         |                        |             Disabled |
++-----------------------------------------+------------------------+----------------------+
+                                                                                         
++-----------------------------------------------------------------------------------------+
+| Processes:                                                                              |
+|  GPU   GI   CI              PID   Type   Process name                        GPU Memory |
+|        ID   ID                                                               Usage      |
+|=========================================================================================|
+|  No running processes found                                                             |
++-----------------------------------------------------------------------------------------+
+Python:
+/app/apps/python/3.11.5-gcc12/bin/python
+Python 3.11.5
+=== Existing PyTorch ===
+PyTorch: 2.10.0+cu128
+CUDA version: 12.8
+CUDA available: True
+GPU count: 1
+pip:
+/app/apps/python/3.11.5-gcc12/bin/pip
+pip 23.2.1 from /app/apps/python/3.11.5-gcc12/lib/python3.11/site-packages/pip (python 3.11)
+Collecting numpy<2.4
+  Obtaining dependency information for numpy<2.4 from https://files.pythonhosted.org/packages/65/fb/2b23769462b34398d9326081fad5655198fcf18966fcb1f1e49db44fbf31/numpy-2.3.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading numpy-2.3.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl.metadata (62 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 62.1/62.1 kB 275.6 kB/s eta 0:00:00
+Collecting pandas<3
+  Obtaining dependency information for pandas<3 from https://files.pythonhosted.org/packages/bf/c9/63f8d545568d9ab91476b1818b4741f521646cbdd151c6efebf40d6de6f7/pandas-2.3.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata
+  Downloading pandas-2.3.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl.metadata (91 kB)
+     ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 91.2/91.2 kB 1.4 MB/s eta 0:00:00
+Collecting python-dateutil>=2.8.2 (from pandas<3)
+  Obtaining dependency information for python-dateutil>=2.8.2 from https://files.pythonhosted.org/packages/ec/57/56b9bcc3c9c6a792fcbaf139543cee77261f3651ca9da0c93f5c1221264b/python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata
+  Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl.metadata (8.4 kB)
+Collecting pytz>=2020.1 (from pandas<3)
+  Obtaining dependency information for pytz>=2020.1 from https://files.pythonhosted.org/packages/0f/7b/39c34ca613b0b198cb866466651b26b045e2009864c5183c979a3b83f383/pytz-2026.3.post1-py2.py3-none-any.whl.metadata
+  Downloading pytz-2026.3.post1-py2.py3-none-any.whl.metadata (22 kB)
+Collecting tzdata>=2022.7 (from pandas<3)
+  Obtaining dependency information for tzdata>=2022.7 from https://files.pythonhosted.org/packages/e5/6d/b53b99a9f2766d095985947a5782f1702cabb129a34f7a802d7197af832f/tzdata-2026.3-py2.py3-none-any.whl.metadata
+  Downloading tzdata-2026.3-py2.py3-none-any.whl.metadata (1.4 kB)
+Collecting six>=1.5 (from python-dateutil>=2.8.2->pandas<3)
+  Obtaining dependency information for six>=1.5 from https://files.pythonhosted.org/packages/b7/ce/149a00dd41f10bc29e5921b496af8b574d8413afcd5e30dfa0ed46c2cc5e/six-1.17.0-py2.py3-none-any.whl.metadata
+  Downloading six-1.17.0-py2.py3-none-any.whl.metadata (1.7 kB)
+Downloading numpy-2.3.5-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl (16.9 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.9/16.9 MB 19.4 MB/s eta 0:00:00
+Downloading pandas-2.3.3-cp311-cp311-manylinux_2_24_x86_64.manylinux_2_28_x86_64.whl (12.8 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 12.8/12.8 MB 16.2 MB/s eta 0:00:00
+Downloading python_dateutil-2.9.0.post0-py2.py3-none-any.whl (229 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 229.9/229.9 kB 328.3 MB/s eta 0:00:00
+Downloading pytz-2026.3.post1-py2.py3-none-any.whl (508 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 508.3/508.3 kB 97.6 MB/s eta 0:00:00
+Downloading tzdata-2026.3-py2.py3-none-any.whl (348 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 348.2/348.2 kB 311.5 MB/s eta 0:00:00
+Downloading six-1.17.0-py2.py3-none-any.whl (11 kB)
+Installing collected packages: pytz, tzdata, six, numpy, python-dateutil, pandas
+  Attempting uninstall: pytz
+    Found existing installation: pytz 2026.3.post1
+    Uninstalling pytz-2026.3.post1:
+      Successfully uninstalled pytz-2026.3.post1
+  Attempting uninstall: tzdata
+    Found existing installation: tzdata 2026.3
+    Uninstalling tzdata-2026.3:
+      Successfully uninstalled tzdata-2026.3
+  Attempting uninstall: six
+    Found existing installation: six 1.17.0
+    Uninstalling six-1.17.0:
+      Successfully uninstalled six-1.17.0
+  Attempting uninstall: numpy
+    Found existing installation: numpy 2.3.5
+    Uninstalling numpy-2.3.5:
+      Successfully uninstalled numpy-2.3.5
+  Attempting uninstall: python-dateutil
+    Found existing installation: python-dateutil 2.9.0.post0
+    Uninstalling python-dateutil-2.9.0.post0:
+      Successfully uninstalled python-dateutil-2.9.0.post0
+  Attempting uninstall: pandas
+    Found existing installation: pandas 2.3.3
+    Uninstalling pandas-2.3.3:
+      Successfully uninstalled pandas-2.3.3
+Successfully installed numpy-2.3.5 pandas-2.3.3 python-dateutil-2.9.0.post0 pytz-2026.3.post1 six-1.17.0 tzdata-2026.3
+Found existing installation: torch 2.10.0+cu128
+Uninstalling torch-2.10.0+cu128:
+  Successfully uninstalled torch-2.10.0+cu128
+Found existing installation: torchvision 0.25.0+cu128
+Uninstalling torchvision-0.25.0+cu128:
+  Successfully uninstalled torchvision-0.25.0+cu128
+Found existing installation: torchaudio 2.10.0+cu128
+Uninstalling torchaudio-2.10.0+cu128:
+  Successfully uninstalled torchaudio-2.10.0+cu128
+
+Running python file:
+PyTorch: 2.10.0+cu128
+PyTorch CUDA: 12.8
+CUDA available: True
+GPU: NVIDIA A100-SXM4-40GB
+Device: cuda
+======================================================================
+License Plate Detector Benchmark
+======================================================================
+Device:     cuda
+Resolution: 512 x 512
+Test set:   sg_plate_dataset/test/images
+
+Found 31 test images
+Loaded 31 images
+Loading RF-DETR Small: rf-detr/checkpoints/checkpoint_best_ema.pth
+Loading YOLO11: yolov11/runs/detect/train-5/weights/best.pt
+
+======================================================================
+Benchmarking RF-DETR Small
+======================================================================
+
+Evaluating AP...
+[2026-08-10 17:02:21] [INFO] rf-detr - Using multi-scale training with square resize and scales: [672]
+creating index...
+index created!
+              Test [1m([0mEpoch [1;36m1[0m/[1;36m100[0m[1m)[0m — Overall Metrics              
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃           mAP            ┃  mAR   ┃         F1 sweep         ┃
+┡━━━━━━━━┯━━━━━━━━┯━━━━━━━━╇━━━━━━━━╇━━━━━━━━┯━━━━━━━━┯━━━━━━━━┩
+│ [1;92m50:95[0m  │   [1;36m50[0m   │   [1;36m75[0m   │  @[1;36m500[0m  │   F1   │  Prec  │ Recall │
+├────────┼────────┼────────┼────────┼────────┼────────┼────────┤
+│ [1;36m0.8535[0m │ [1;36m1.0000[0m │ [1;36m1.0000[0m │ [1;36m0.8848[0m │ [1;36m1.0000[0m │ [1;36m1.0000[0m │ [1;36m1.0000[0m │
+└────────┴────────┴────────┴────────┴────────┴────────┴────────┘
+[1;36m              Test (Epoch 1/100) — Per-class Metrics               [0m
+┏━━━━━━━━━━━━━━━┳━━━━━━━━━━┳━━━━━━━━┳━━━━━━━━┳━━━━━━━━━━━┳━━━━━━━━┓
+┃[1;36m [0m[1;36mClass        [0m[1;36m [0m┃[1;36m [0m[1;36mAP 50:95[0m[1;36m [0m┃[1;36m [0m[1;36m    AR[0m[1;36m [0m┃[1;36m [0m[1;36m    F1[0m[1;36m [0m┃[1;36m [0m[1;36mPrecision[0m[1;36m [0m┃[1;36m [0m[1;36mRecall[0m[1;36m [0m┃
+┡━━━━━━━━━━━━━━━╇━━━━━━━━━━╇━━━━━━━━╇━━━━━━━━╇━━━━━━━━━━━╇━━━━━━━━┩
+│[2m [0m[2mlicense-plate[0m[2m [0m│   0.8535 │ 0.8848 │ 1.0000 │    1.0000 │ 1.0000 │
+└───────────────┴──────────┴────────┴────────┴───────────┴────────┘
+┏━━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+┃        Test metric        ┃       DataLoader 0        ┃
+┡━━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━━━━━━━━━━━━━━━━━━━━┩
+│   test/AP/license-plate   │    0.8535405993461609     │
+│          test/F1          │            1.0            │
+│         test/loss         │     2.097336530685425     │
+│        test/mAP_50        │            1.0            │
+│      test/mAP_50_95       │    0.8535405993461609     │
+│        test/mAP_75        │            1.0            │
+│         test/mAR          │    0.8848484754562378     │
+│      test/precision       │            1.0            │
+│        test/recall        │            1.0            │
+└───────────────────────────┴───────────────────────────┘
+AP50:     1.0000
+AP50:95:  0.8535
+
+Warm-up: 20 runs
+Benchmarking: 200 runs
+
+Latency:
+Mean:     32.90 ms
+Median:   32.86 ms
+P90:      33.58 ms
+P95:      34.10 ms
+P99:      34.69 ms
+FPS:      30.40
+
+======================================================================
+Benchmarking YOLO11
+======================================================================
+
+Evaluating AP...
+Ultralytics 8.4.117 🚀 Python-3.11.5 torch-2.10.0+cu128 CUDA:0 (NVIDIA A100-SXM4-40GB, 40442MiB)
+YOLO11n summary (fused): 101 layers, 2,582,347 parameters, 0 gradients, 6.4 GFLOPs
+[34m[1mval: [0mFast image access ✅ (ping: 0.0±0.0 ms, read: 104.0±37.8 MB/s, size: 56.3 KB)
+[K[34m[1mval: [0mScanning /home/users/ntu/thuymaia/techjam/plate_blur/sg_plate_dataset/test/labels... 31 images, 0 backgrounds, 0 corrupt: 100% ━━━━━━━━━━━━ 31/31 2.0Kit/s 0.0s
+[34m[1mval: [0mNew cache created: /home/users/ntu/thuymaia/techjam/plate_blur/sg_plate_dataset/test/labels.cache
+WARNING ⚠️ Box and segment counts should be equal, but got len(segments) = 2, len(boxes) = 33. To resolve this only boxes will be used and all segments will be removed. To avoid this please supply either a detect or segment dataset, not a detect-segment mixed dataset.
+[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 3% ──────────── 1/31 2.7it/s 0.1s<11.1s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 19% ━━────────── 6/31 15.7it/s 0.2s<1.6s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 51% ━━━━━━────── 16/31 38.5it/s 0.3s<0.4s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 80% ━━━━━━━━━╸── 25/31 53.7it/s 0.4s<0.1s[K                 Class     Images  Instances      Box(P          R      mAP50  mAP50-95): 100% ━━━━━━━━━━━━ 31/31 63.1it/s 0.5s
+                   all         31         33      0.997          1      0.995       0.83
+Speed: 0.6ms preprocess, 10.8ms inference, 0.0ms loss, 0.7ms postprocess per image
+Results saved to [1m/home/users/ntu/thuymaia/techjam/plate_blur/runs/detect/val-3[0m
+AP50:     0.9950
+AP50:95:  0.8299
+
+Warm-up: 20 runs
+Benchmarking: 200 runs
+
+Latency:
+Mean:     9.59 ms
+Median:   9.58 ms
+P90:      9.63 ms
+P95:      9.65 ms
+P99:      9.82 ms
+FPS:      104.26
+
+==========================================================================================
+FINAL RESULTS
+==========================================================================================
+Model                     AP50     AP50:95     Mean ms      P95 ms       FPS
+------------------------------------------------------------------------------------------
+RF-DETR Small           1.0000      0.8535       32.90       34.10     30.40
+YOLO11                  0.9950      0.8299        9.59        9.65    104.26
+==========================================================================================
+
