@@ -87,10 +87,11 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   explicit scheduler failures, and deterministic mocked integration coverage.
 - The standalone face module has not received a real-model verification pass.
   InsightFace model-pack availability, ArcFace threshold calibration, pose and
-  lighting robustness, and local blur quality remain Unverified. The current
-  mitigation is explicit local-model configuration, deterministic model doubles,
-  conservative unknown/ambiguous protection, bounded enrollment samples, and no
-  embedding or raw-image logging.
+  lighting robustness, archive-pack handoff, and local blur quality remain
+  Unverified. The current mitigation is the verified #14 archive resolver,
+  explicit local-model fallback, deterministic model doubles, conservative
+  unknown/ambiguous protection, bounded enrollment samples, and no embedding or
+  raw-image logging.
 - The production face adapter and control routes have not received an integration
   or runtime verification pass. The process-local repository, injected creator
   authorization, model-pack availability, readiness handoff to #13, and shared

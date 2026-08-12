@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import asyncio
+import zipfile
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
 
 from privastream_api.main import create_app
+from privastream_api.model_artifacts import write_manifest
 from privastream_api.pipeline.contracts import VideoFrame
 from privastream_api.pipeline.video import VideoOrchestrator, VideoOrchestrationConfig
 from privastream_api.privacy.face import (
@@ -74,6 +76,39 @@ def _integration(model: FakeFaceModel) -> ProductionFaceIntegration:
             enrollment=FaceEnrollmentConfig(),
         ),
         image_decoder=lambda payload: payload.decode("ascii"),
+    )
+
+
+def test_from_environment_resolves_verified_face_model_pack(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.chdir(tmp_path)
+    archive = tmp_path / "buffalo_l.zip"
+    with zipfile.ZipFile(archive, "w") as output:
+        output.writestr("models/buffalo_l/det_10g.onnx", b"detector")
+    write_manifest(
+        model_id="face-buffalo-l",
+        version="v1",
+        filename=archive.name,
+        source=str(archive),
+        license_name="Example license",
+        artifact=archive,
+        output=tmp_path / "models" / "manifests" / "face-buffalo-l.json",
+        artifact_type="archive",
+        runtime_format="insightface-pack",
+        runtime_model_name="buffalo_l",
+        runtime_provider="CPUExecutionProvider",
+    )
+    monkeypatch.setenv("PRIVASTREAM_FACE_MODEL_ID", "face-buffalo-l")
+    monkeypatch.setenv("PRIVASTREAM_MODEL_CACHE_DIR", str(tmp_path / "cache"))
+    monkeypatch.delenv("PRIVASTREAM_MODEL_ID", raising=False)
+
+    integration = ProductionFaceIntegration.from_environment()
+
+    assert integration.config.model.model_name == "buffalo_l"
+    assert integration.config.model.providers == ("CPUExecutionProvider",)
+    assert integration.config.model.model_root == (
+        tmp_path / "cache" / "face-buffalo-l" / "v1" / "extracted"
     )
 
 

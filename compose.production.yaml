@@ -29,6 +29,7 @@ services:
     environment:
       PRIVASTREAM_MODEL_CACHE_DIR: /var/cache/privastream/models
       PRIVASTREAM_MODEL_ID: ${PRIVASTREAM_MODEL_ID:-}
+      PRIVASTREAM_FACE_MODEL_ID: ${PRIVASTREAM_FACE_MODEL_ID:-}
     healthcheck:
       test:
         ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]

@@ -9,11 +9,15 @@ from __future__ import annotations
 
 import os
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, replace
 from pathlib import Path
 from threading import RLock
 from typing import Literal
 
+from privastream_api.model_artifacts import (
+    ModelArtifactError,
+    ModelArtifactResolver,
+)
 from privastream_api.pipeline.contracts import VideoFrame, VideoRegionDetection
 from privastream_api.pipeline.video import VideoOrchestrator
 from privastream_api.privacy.face.detector import (
@@ -116,7 +120,7 @@ class FaceProductionConfig:
 
     @classmethod
     def from_environment(cls) -> "FaceProductionConfig":
-        """Read deployment choices without loading a model or changing #18 policy."""
+        """Read deployment choices without changing #18 policy."""
 
         providers = tuple(
             provider.strip()
@@ -151,6 +155,50 @@ class FaceProductionConfig:
             max_concurrency=int(os.getenv("PRIVASTREAM_FACE_MAX_CONCURRENCY", "1")),
         )
         return cls(model=model, detector=detector, orchestration=orchestration)
+
+
+def _resolve_manifest_face_config(config: FaceProductionConfig) -> FaceProductionConfig:
+    """Resolve an optional verified InsightFace pack from the #14 cache."""
+
+    resolver = ModelArtifactResolver()
+    explicit_model_id = os.getenv("PRIVASTREAM_FACE_MODEL_ID") or None
+    model_id = explicit_model_id
+    if model_id is None:
+        candidate_id = os.getenv("PRIVASTREAM_MODEL_ID")
+        if candidate_id:
+            candidate = resolver.manifest(candidate_id)
+            if candidate.runtime is not None and candidate.runtime.format == "insightface-pack":
+                model_id = candidate_id
+    if not model_id:
+        return config
+
+    manifest = resolver.manifest(model_id)
+    if manifest.artifact_type != "archive":
+        raise ModelArtifactError(
+            f"face model {model_id!r} must use an archive artifact"
+        )
+    if manifest.runtime is None or manifest.runtime.format != "insightface-pack":
+        raise ModelArtifactError(
+            f"face model {model_id!r} must declare runtime format insightface-pack"
+        )
+    model_root = resolver.resolve(model_id)
+    model_name = (
+        os.getenv("PRIVASTREAM_FACE_MODEL_NAME")
+        or manifest.runtime.model_name
+        or config.model.model_name
+    )
+    providers = config.model.providers
+    if "PRIVASTREAM_FACE_PROVIDERS" not in os.environ and manifest.runtime.provider:
+        providers = (manifest.runtime.provider,)
+    return replace(
+        config,
+        model=replace(
+            config.model,
+            model_root=model_root,
+            model_name=model_name,
+            providers=providers,
+        ),
+    )
 
 
 class FaceEnrollmentRepository:
@@ -413,7 +461,7 @@ class ProductionFaceIntegration:
 
     @classmethod
     def from_environment(cls) -> "ProductionFaceIntegration":
-        config = FaceProductionConfig.from_environment()
+        config = _resolve_manifest_face_config(FaceProductionConfig.from_environment())
         model = InsightFaceFaceModel(config.model)
         return cls(
             model,
