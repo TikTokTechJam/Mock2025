@@ -40,8 +40,10 @@ ignored `.env` file only when a different network boundary is approved.
 The API image mounts the named `model_cache` volume at
 `/var/cache/privastream/models`. When `PRIVASTREAM_MODEL_ID` is non-empty, its
 entrypoint invokes the #14 verified model bootstrap before starting FastAPI.
-An empty value skips bootstrap, which is the current default because the
-repository has no production model manifest. The web image receives
+`PRIVASTREAM_FACE_MODEL_ID` can be set separately for an InsightFace pack; both
+IDs are bootstrapped when configured, with duplicate IDs fetched once. Empty
+values skip bootstrap, which is the current default because the repository has
+no production model manifest. The web image receives
 `NEXT_PUBLIC_API_BASE_URL` as a build argument, so change that value before
 `pnpm prod:up` when the browser must call a non-local API origin.
 
@@ -85,9 +87,10 @@ manifest metadata, fetch it from the repository root with:
 uv run --project apps/api python -m privastream_api.model_artifacts fetch --model plate-detector
 ~~~
 
-The resolver validates the SHA-256 checksum before returning a local path.
-Missing manifests, unavailable sources, and mismatches are errors; detector
-code must not silently load an unverified or developer-specific path.
+The resolver validates the SHA-256 checksum before returning a local file path or
+an extracted archive directory. Missing manifests, unavailable sources,
+mismatches, unsafe archive entries, and extraction-limit violations are errors;
+detector code must not silently load an unverified or developer-specific path.
 
 ## Processes
 
@@ -155,7 +158,11 @@ weights during processing and does not require WebRTC or other services. See
 behavior.
 
 Once the ML handoff manifest exists, pass `--plate-model plate-detector` to
-resolve and verify the artifact through the shared model cache.
+resolve and verify the artifact through the shared model cache. For the
+production face adapter, set `PRIVASTREAM_FACE_MODEL_ID` to an archive manifest
+with runtime format `insightface-pack`; `pnpm prod:up` downloads, verifies, and
+extracts it before FastAPI starts. The archive must contain
+`models/<model_name>/...`, for example `models/buffalo_l/...`.
 
 ## Standalone face demo
 

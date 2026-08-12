@@ -168,9 +168,12 @@ pnpm prod:up:gpu
 Set `NEXT_PUBLIC_API_BASE_URL` before building when the browser must use an API
 origin other than `http://localhost:8000`. Set `PRIVASTREAM_MODEL_ID` only after
 an approved #14 manifest is present; the API entrypoint then invokes the #14
-verified bootstrap into the persistent model-cache volume. These packaged
-topologies expose only the implemented web, API, and database ports. Server
-WebRTC/signaling ports remain owned by #21 and are not invented here.
+verified bootstrap into the persistent model-cache volume. Set
+`PRIVASTREAM_FACE_MODEL_ID` for an explicit face-pack manifest; the entrypoint
+bootstraps both IDs when both are configured. Archive packs are extracted only
+after checksum verification. These packaged topologies expose only the
+implemented web, API, and database ports. Server WebRTC/signaling ports remain
+owned by #21 and are not invented here.
 
 The web app at `http://localhost:3000` includes the creator privacy console.
 Configure a policy, grant browser device permission, and review production
@@ -221,6 +224,11 @@ available, fetch and verify it with:
 ```bash
 uv run --project apps/api python -m privastream_api.model_artifacts fetch --model plate-detector
 ```
+
+The same command returns an extracted directory for an archive model pack. For
+the production face adapter, configure `PRIVASTREAM_FACE_MODEL_ID` with an
+`insightface-pack` archive manifest and start the packaged runtime with
+`pnpm prod:up`; no manual `.onnx` or `.pt` copying is required.
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and

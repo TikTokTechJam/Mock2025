@@ -32,8 +32,9 @@ implemented.
 Runtime model artifacts are resolved through
 `src/privastream_api/model_artifacts.py`. Model manifests live under
 `models/manifests`, weights are cached outside Git under `.cache/models`, and
-the resolver verifies SHA-256 before returning a path to detector code. See
-`models/README.md` for the ML handoff and fetch commands.
+the resolver verifies SHA-256 before returning either a file path or an extracted
+model-pack directory to detector code. See `models/README.md` for the ML handoff
+and fetch commands.
 
 ## Prerequisites
 
@@ -63,9 +64,10 @@ available at `/docs`, `/redoc`, and `/openapi.json`.
 
 The production image is built by `apps/api/Dockerfile` and started through the
 repository-root `compose.production.yaml` CPU topology or its NVIDIA GPU
-override. It mounts the #14 model cache and only bootstraps a model when
-`PRIVASTREAM_MODEL_ID` is explicitly configured; it does not add a transport or
-privacy-readiness route.
+override. It installs the optional face runtime, mounts the #14 model cache, and
+bootstraps `PRIVASTREAM_MODEL_ID` and/or `PRIVASTREAM_FACE_MODEL_ID` when they
+are explicitly configured; it does not add a transport or privacy-readiness
+route.
 
 ## Component commands
 
@@ -198,3 +200,9 @@ uv run python scripts/face_demo.py --input demo.mp4 --output protected.mp4 --mod
 Add `--enrollment creator.jpg --consent` for explicit creator enrollment. See
 `docs/PRIVACY_FACE.md` for the matching policy, lifecycle rules, local model
 requirements, and limitations.
+
+For the production face adapter, set `PRIVASTREAM_FACE_MODEL_ID` to a manifest
+whose type is `archive` and runtime format is `insightface-pack`. The resolver
+downloads, verifies, and extracts the pack before `ProductionFaceIntegration`
+passes its versioned directory to InsightFace. `PRIVASTREAM_MODEL_ID` may be
+used instead when the configured manifest is the face pack.

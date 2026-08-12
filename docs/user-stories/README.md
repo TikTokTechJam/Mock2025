@@ -46,7 +46,7 @@ Use this when reviewing the implementation backlog. It shows which stable outcom
 | #11 Production privacy-to-WebRTC integration | US-0001, US-0006, US-0008, US-0009, US-0010, US-0012 |
 | #12 Production creator-console client integration | US-0001, US-0002, US-0008, US-0009, US-0012 |
 | #13 Privacy readiness/panic/fail-closed gate | US-0001, US-0003-0009, US-0012 |
-| #14 Model-file handoff, download/cache, and runtime path resolution | US-0004, US-0005, US-0006, US-0010, US-0011, US-0013 |
+| #14 Model-artifact handoff, download/cache, and runtime path resolution | US-0004, US-0005, US-0006, US-0010, US-0011, US-0013 |
 | #15 Evaluation tooling and standard metrics | US-0003-0007, US-0010, US-0011, US-0012, US-0013 |
 | #16 CPU/GPU deployment packaging | US-0009, US-0010, US-0011, US-0012 |
 | #17 Complete E2E verification | US-0001 through US-0012 |
@@ -73,7 +73,7 @@ ML
 #49 trains/fine-tunes and selects the best model
         ↓
 BACKEND / INFRA
-#14 makes the finished model file reproducibly loadable by the app
+#14 makes the finished model artifact reproducibly loadable by the app
         ↓
 #16 packages the runtime
 ```

@@ -14,8 +14,10 @@ remain local operator-controlled artifacts outside the current product
 retention contract. Runtime model artifacts are supplied through versioned
 manifests and a local cache resolver. The resolver validates the declared
 SHA-256 before returning a path to detector code, rejects path-unsafe manifest
-values, and never stores weights or provider credentials in Git. A model source
-or checksum mismatch is an unavailable model condition, not permission to
+values, verifies archives before extraction, and rejects archive traversal,
+links, special files, duplicate entries, and bounded-size violations. It never
+stores weights or provider credentials in Git. A model source, checksum, or
+archive-safety failure is an unavailable model condition, not permission to
 continue with an unverified artifact.
 
 The browser media demo requests explicit camera and microphone permission,

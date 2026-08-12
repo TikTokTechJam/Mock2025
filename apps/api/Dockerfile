@@ -23,9 +23,14 @@ COPY --chown=privastream:privastream apps/api/src ./src
 COPY --chown=privastream:privastream models/manifests ./models/manifests
 COPY --chown=privastream:privastream apps/api/docker-entrypoint.sh /usr/local/bin/privastream-api-entrypoint
 
+# InsightFace 0.7.x is source-distributed for the pinned Python runtime.
+RUN apt-get update \
+    && apt-get install --no-install-recommends -y build-essential \
+    && rm -rf /var/lib/apt/lists/*
+
 USER privastream
 
-RUN uv sync --frozen --no-dev --extra vision --extra audio
+RUN uv sync --frozen --no-dev --extra face --extra vision --extra audio
 
 EXPOSE 8000
 

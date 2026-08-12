@@ -23,8 +23,9 @@ process boundaries, dependencies, and data flows.
   and the protected media integration under
   `src/privastream_api/pipeline/media_integration.py`.
 - `models/` contains runtime model manifests and artifact metadata; the
-  `apps/api` resolver verifies and caches artifacts but is not a model server
-  and must not commit downloaded weights.
+  `apps/api` resolver verifies and caches files or archives, extracts verified
+  packs into a versioned directory, and is not a model server. It must not
+  commit downloaded weights.
 - `ml/` contains offline training, fine-tuning, and the dependency-free
   evaluation runner under `ml/evaluation/`. Runtime API code must not import
   training-only dependencies by default.
@@ -369,6 +370,13 @@ uv. Development and production Docker Compose files supply the local process,
 PostgreSQL, model-cache, and optional NVIDIA device boundaries. Compose
 healthchecks cover process liveness only; they do not prove product readiness,
 detector accuracy, redaction correctness, or transport readiness.
+
+The #14 model boundary accepts a logical manifest for either one file or an
+archive pack. The resolver verifies the declared SHA-256 before detector code
+can use the artifact; archive extraction is bounded and rejects traversal paths,
+links, special files, duplicate entries, and oversized expanded content. Runtime
+metadata selects an adapter format without coupling the resolver to detector
+inference.
 
 The foundation, normalized contracts, shared video engine, cross-modal synchronizer,
 standalone visual-privacy adapters and production plate/OCR adapters, timestamped audio

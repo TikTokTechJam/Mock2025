@@ -24,12 +24,15 @@ Unverified.
 | Face model adapter | `InsightFaceFaceModel` with a local `buffalo_l`-style InsightFace model pack | `FaceModel.detect` |
 | Embedding lifecycle | `CreatorFaceEnrollmentService` and `InMemoryCreatorEmbeddingStore` | consented samples in, safe enrollment metadata out |
 | Creator matching | `CreatorFaceDetector` | `FrameContext` in, normalized `VideoRegionDetection` out |
-| Production integration | `ProductionFaceIntegration`, `FaceEnrollmentRepository`, and `FaceReadinessTracker` | #4 adapter, #3 lifecycle, and sanitized #13 readiness input |
+| Production integration | `ProductionFaceIntegration`, `FaceEnrollmentRepository`, and `FaceReadinessTracker` | #4 adapter, #3 lifecycle, sanitized #13 readiness input, and optional #14 verified pack resolution |
 | Local runner | `apps/api/scripts/face_demo.py` | image or short clip in, locally blurred copy out |
 
-The adapter loads InsightFace lazily and requires a local model pack under the
-configured `model_root`. It does not download model weights during detection.
-The default embedding path uses the ArcFace embedding exposed by InsightFace.
+The standalone adapter loads InsightFace lazily and requires a local model pack
+under the configured `model_root`. It does not download model weights during
+detection. The production integration can resolve an `insightface-pack` archive
+manifest through #14 before constructing the adapter; the extracted pack must
+use the `models/<model_name>/...` layout. The default embedding path uses the
+ArcFace embedding exposed by InsightFace.
 
 ## Enrollment
 
