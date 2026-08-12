@@ -24,6 +24,8 @@ from privastream_api.privacy.vision import (
     VisionPrivacyService,
 )
 
+DEFAULT_PLATE_MODEL_ID = "plate-detector"
+
 
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Redact visual privacy regions locally.")
@@ -39,7 +41,10 @@ def _parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--plate-model",
-        help="Logical manifest ID to fetch, for example plate-detector",
+        help=(
+            "Logical manifest ID to fetch; defaults to plate-detector when --plate "
+            "is enabled without --plate-weights"
+        ),
     )
     parser.add_argument("--model-manifest-dir", type=Path, default=DEFAULT_MANIFEST_DIR)
     parser.add_argument("--model-cache-dir", type=Path, default=DEFAULT_CACHE_DIR)
@@ -60,13 +65,12 @@ def _service(args: Namespace) -> VisionPrivacyService:
         if args.plate_model and args.plate_weights:
             raise ValueError("choose either --plate-model or --plate-weights")
         weights_path = args.plate_weights
-        if args.plate_model:
+        model_id = args.plate_model or DEFAULT_PLATE_MODEL_ID
+        if weights_path is None:
             weights_path = ModelArtifactResolver(
                 manifest_dir=args.model_manifest_dir,
                 cache_dir=args.model_cache_dir,
-            ).resolve(args.plate_model)
-        if weights_path is None:
-            weights_path = Path("weights/license_plate.pt")
+            ).resolve(model_id)
         detectors.append(
             UltralyticsPlateDetector(
                 PlateDetectorConfig(

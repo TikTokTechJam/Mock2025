@@ -18,7 +18,13 @@ is `file` for one model file or `archive` for a pack that the resolver must
 extract. The source may be a public HTTP(S) URL or a local handoff path. A
 manifest is not a model file and must never contain credentials.
 
-After the ML team supplies an artifact, register its metadata and checksum:
+The repository currently includes a local-only `plate-detector` manifest. It
+uses the existing resolver with a relative local source path because the
+developer-provided `models/manifests/plate_detector.pt` is intentionally
+ignored. Its placeholder license/provenance value must be replaced before
+distribution or production handoff.
+
+After the ML team supplies a distributable artifact, register its metadata and checksum:
 
 ```bash
 uv run --project apps/api python -m privastream_api.model_artifacts register \
@@ -55,8 +61,8 @@ uv run --project apps/api python -m privastream_api.model_artifacts fetch \
   --model plate-detector
 ```
 
-The repository currently has no production model handoff, so no production
-manifest or weight is committed. The resolver rejects missing, corrupt, or
-checksum-mismatched artifacts before a detector can load them, and extracts
+The local plate weight is not committed. The resolver rejects missing, corrupt,
+or checksum-mismatched artifacts before a detector can load them, and extracts
 archives only after verification with path, link, member-count, and expanded-size
-safety checks.
+safety checks. A public production handoff still requires a distributable URL,
+confirmed license, provenance, and ML-owned version.

@@ -74,11 +74,12 @@ A concern may explain why a capability remains Planned, Unresolved, or Unverifie
   the #11 adapter's gate-before-sink ordering; no server transport can bypass
   the gate because that sink is not wired yet.
 - The production plate adapter has not received a runtime model or integration
-  pass. Its source-image provider, local weight configuration, and interaction
-  with the safety gate/model artifact resolver remain environment and
-  follow-up concerns. The current mitigation is a thin normalized adapter,
-  exactly-once shared padding, explicit scheduler failures, and deterministic
-  mocked integration coverage.
+  pass. Its source-image provider, local weight configuration, local-only
+  manifest, and interaction with the safety gate/model artifact resolver remain
+  environment and follow-up concerns. The current mitigation is a thin
+  normalized adapter, checksum-verified local resolution, exactly-once shared
+  padding, explicit scheduler failures, and deterministic mocked integration
+  coverage.
 - The production OCR/visual-PII adapter has not received a runtime OCR-model or
   integration pass. OCR image-provider compatibility, block-level mapping,
   contextual-recognizer availability, and interaction with the future safety

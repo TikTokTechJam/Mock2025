@@ -175,17 +175,23 @@ storage is outside this issue. See `docs/API.md` and `docs/PRIVACY_FACE.md`.
 ## Standalone visual privacy demo
 
 The optional vision dependencies and demo are documented in
-`docs/PRIVACY_VISION.md`. From `apps/api`, run the demo with a local plate weight
-file:
+`docs/PRIVACY_VISION.md`. From the repository root, run the plate-only local
+end-to-end demo. The checked-in manifest resolves the developer-provided
+ignored weight at `models/manifests/plate_detector.pt`:
 
 ```bash
-uv sync --extra vision
-uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
+uv sync --project apps/api --extra vision
+uv run --project apps/api python apps/api/scripts/vision_demo.py \
+  --input path/to/input.mp4 \
+  --output artifacts/plate-protected.mp4 \
+  --plate
 ```
 
-After a `plate-detector` manifest is supplied, use `--plate-model
-plate-detector` instead of the explicit weight path so the resolver verifies
-and caches the artifact first.
+The `--plate` default resolves `plate-detector` through the #14 resolver,
+verifies the SHA-256, caches the file, and runs only the plate detector. Use
+`--plate-weights` for a one-off explicit file or `--plate-model` to select a
+different manifest. The runner writes a protected image/video locally; it is
+not a server-side media route.
 
 ## Standalone face demo
 

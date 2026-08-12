@@ -1,0 +1,14 @@
+{
+  "model_id": "plate-detector",
+  "version": "local-v1",
+  "type": "file",
+  "filename": "plate_detector.pt",
+  "source": {
+    "url": "models/manifests/plate_detector.pt",
+    "sha256": "c6904ca6cc4ab8b12c5c5e24471226d766ab04b43a947f6b500c89465d44ff34"
+  },
+  "license": "local-development-only; provenance and redistribution terms pending",
+  "runtime": {
+    "format": "ultralytics"
+  }
+}
