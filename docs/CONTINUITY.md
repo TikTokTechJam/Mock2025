@@ -25,8 +25,9 @@ persistence, and E2E infrastructure remain absent.
 
 - Run the explicit UI/browser verification pass for the #12 production client
   adapters, including injected API errors and protected-stream separation.
-- Obtain the first approved ML model handoff manifest and run a dedicated model
-  artifact resolver verification pass.
+- Run a dedicated model artifact resolver and local plate-demo verification pass
+  with the supplied weight, then obtain the first approved distributable ML
+  handoff manifest.
 - Run a dedicated CPU/GPU image and Compose verification pass, including model
   cache persistence, health-gated startup, and host-driver compatibility.
 - Provide the authorized face API and the #13/#11 safety/media event bridge
@@ -57,10 +58,10 @@ persistence, and E2E infrastructure remain absent.
   integration pass. The default API still denies face control authorization.
 - The web safety adapter targets the implemented #13 gate, but its host event
   transport is not connected and therefore keeps publication blocked.
-- The model artifact resolver has no production model manifest or runtime
-  verification pass yet; detector loading remains unavailable until the ML
-  handoff supplies source, license, checksum, archive type where applicable,
-  and adapter runtime metadata.
+- The resolver now has a local-only plate manifest pointing to the ignored
+  developer-supplied weight, but no approved distributable production handoff or
+  runtime verification pass exists yet. A production handoff still needs source,
+  license, checksum, archive type where applicable, and adapter runtime metadata.
 - The cross-modal synchronizer has not received a dedicated source-timeline or
   integration verification pass. The #11 adapter consumes its decisions
   in-process, but no server transport uses them.
@@ -71,8 +72,8 @@ persistence, and E2E infrastructure remain absent.
   production model/dataset adapter pass; its metrics and timing output remain
   Unverified.
 - The packaged CPU/GPU images and Compose topology have not received a build,
-  startup, cache-persistence, or host-driver verification pass. No production
-  model manifest or server WebRTC transport is available yet.
+  startup, cache-persistence, or host-driver verification pass. No approved
+  production model handoff or server WebRTC transport is available yet.
 
 ## Verification Status
 
@@ -80,7 +81,7 @@ persistence, and E2E infrastructure remain absent.
 | --- | --- | --- | --- |
 | Creator privacy console and production client adapters | Implemented | Unverified | Browser permission/media plus face enrollment/readiness/safety adapter boundaries; no UI/browser pass run. |
 | Offline benchmark report runner | Implemented | Unverified | Standard plate metrics, latency/FPS summaries, mandatory provenance, and JSON/Markdown reports; no controlled model or held-out dataset pass. |
-| Model manifest and artifact resolver | Implemented | Unverified | Versioned file/archive manifest registration, checksum verification, bounded extraction, and local cache resolution; no production model handoff or runtime pass. |
+| Model manifest and artifact resolver | Implemented | Unverified | Versioned file/archive manifest registration, checksum verification, bounded extraction, and local cache resolution; local plate manifest only, with no approved production handoff or runtime pass. |
 | CPU/GPU runtime packaging | Implemented | Unverified | Production web/API images, CPU Compose topology, GPU device override, health-gated startup, and persistent model-cache mount; no image or host verification pass. |
 | Browser media loopback and mock processors | Implemented | Unverified | Local WebRTC path with canvas/gain processing; no browser pass run. |
 | Backend foundation and `/health` | Implemented | Unverified | FastAPI process-health route; no runtime pass run. |

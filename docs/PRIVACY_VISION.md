@@ -12,9 +12,9 @@ or other detector modules.
 
 The standalone adapters, production plate and OCR/visual-PII adapters,
 deterministic tests, and local image/video demo are Implemented in source.
-Running a real model requires the optional `vision` dependency group, a local
-YOLO-family plate weight file, and local OCR model assets. Runtime verification
-and real-model fixture verification are Unverified.
+Running the local plate path requires the optional `vision` dependency group and
+the developer-provided ignored `models/manifests/plate_detector.pt` file.
+Runtime verification and real-model fixture verification are Unverified.
 
 ## Components
 
@@ -35,8 +35,10 @@ or scripts that are not present in the configured OCR engine.
 ## Plate path
 
 `UltralyticsPlateDetector` requires a local weight path. It does not download a
-model during request or demo handling. A dedicated plate model may accept every
-returned class; general models can be restricted with `class_names`.
+model during request or demo handling. The local `plate-detector` manifest lets
+`vision_demo.py` resolve and verify the ignored handoff file before constructing
+the detector. A dedicated plate model may accept every returned class; general
+models can be restricted with `class_names`.
 
 For each configured standalone inference frame, `UltralyticsPlateDetector.detect()`:
 
@@ -94,22 +96,21 @@ mapped conservatively to its complete source OCR block.
 
 ## Standalone demo
 
-From `apps/api`:
+From the repository root:
 
 ~~~bash
-uv sync --extra vision
-uv run python scripts/vision_demo.py \
-  --input demo.mp4 \
-  --output protected.mp4 \
-  --plate \
-  --plate-weights weights/license_plate.pt \
-  --ocr-pii
+uv sync --project apps/api --extra vision
+uv run --project apps/api python apps/api/scripts/vision_demo.py \
+  --input path/to/input.mp4 \
+  --output artifacts/plate-protected.mp4 \
+  --plate
 ~~~
 
-When the ML handoff manifest is available, replace `--plate-weights` with
-`--plate-model plate-detector`. The model resolver fetches the versioned local
-artifact and verifies its checksum before the detector loads it. The repository
-does not currently contain a production plate manifest or weight.
+With `--plate` alone, the runner selects `plate-detector`, fetches the local
+source into the versioned cache, verifies its checksum, and runs only plate
+detection. The command emits a locally blurred image/video and reports region
+counts; it does not start server-side media transport. The ignored weight must
+be present at `models/manifests/plate_detector.pt`.
 
 The demo accepts an image or short video, runs the selected adapters, applies
 local OpenCV blur masks, and writes a protected image or video. Its summary

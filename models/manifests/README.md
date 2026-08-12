@@ -52,4 +52,9 @@ The pack must contain the InsightFace layout expected by the adapter, such as
 `extracted/` child directory. `fetch` prints the file path for a file artifact or
 the extraction directory for an archive artifact.
 
-Do not place downloaded weights or provider credentials here.
+The local `plate-detector.json` manifest is an exception to the public-URL
+example: it points to the developer-provided, ignored
+`models/manifests/plate_detector.pt` file so the local plate-only demo can run.
+Do not commit that weight or any other downloaded weights or provider
+credentials here. Replace the local manifest source and license metadata with
+the approved ML handoff before distribution.

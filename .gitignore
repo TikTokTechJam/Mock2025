@@ -43,6 +43,8 @@ models/**/*.onnx
 models/**/*.pt
 models/**/*.pth
 models/**/*.safetensors
+# Local plate handoff weight; keep the developer-provided file outside Git.
+models/manifests/plate_detector.pt
 ml/**/checkpoints/
 ml/**/outputs/
 

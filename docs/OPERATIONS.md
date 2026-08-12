@@ -41,9 +41,9 @@ The API image mounts the named `model_cache` volume at
 `/var/cache/privastream/models`. When `PRIVASTREAM_MODEL_ID` is non-empty, its
 entrypoint invokes the #14 verified model bootstrap before starting FastAPI.
 `PRIVASTREAM_FACE_MODEL_ID` can be set separately for an InsightFace pack; both
-IDs are bootstrapped when configured, with duplicate IDs fetched once. Empty
-values skip bootstrap, which is the current default because the repository has
-no production model manifest. The web image receives
+IDs are bootstrapped when configured, with duplicate IDs fetched once. The
+example environment uses `PRIVASTREAM_MODEL_ID=plate-detector` for the local
+plate handoff; clear it to skip container bootstrap. The web image receives
 `NEXT_PUBLIC_API_BASE_URL` as a build argument, so change that value before
 `pnpm prod:up` when the browser must call a non-local API origin.
 
@@ -80,8 +80,8 @@ quality claim.
 ## Runtime model artifacts
 
 Model artifacts are described by JSON manifests under `models/manifests/` and
-cached under `.cache/models/`. After the ML team provides a real artifact and
-manifest metadata, fetch it from the repository root with:
+cached under `.cache/models/`. The local plate handoff can be fetched from the
+repository root with:
 
 ~~~bash
 uv run --project apps/api python -m privastream_api.model_artifacts fetch --model plate-detector
@@ -144,22 +144,25 @@ destructive. The other shutdown path preserves volumes.
 
 ## Standalone visual demo
 
-From `apps/api`, install the optional vision dependencies and run the local
-image/video redaction demo:
+From the repository root, install the optional vision dependencies and run the
+plate-only local image/video redaction demo:
 
 ~~~bash
-uv sync --extra vision
-uv run python scripts/vision_demo.py --input demo.mp4 --output protected.mp4 --plate --plate-weights weights/license_plate.pt --ocr-pii
+uv sync --project apps/api --extra vision
+uv run --project apps/api python apps/api/scripts/vision_demo.py \
+  --input path/to/input.mp4 \
+  --output artifacts/plate-protected.mp4 \
+  --plate
 ~~~
 
-The command requires a local YOLO-family plate weight file. It does not download
-weights during processing and does not require WebRTC or other services. See
-`docs/PRIVACY_VISION.md` for thresholds, languages, limitations, and failure
-behavior.
+The command requires the ignored `models/manifests/plate_detector.pt` file. It
+does not download weights during processing and does not require WebRTC or
+other services. See `docs/PRIVACY_VISION.md` for thresholds, languages,
+limitations, and failure behavior.
 
-Once the ML handoff manifest exists, pass `--plate-model plate-detector` to
-resolve and verify the artifact through the shared model cache. For the
-production face adapter, set `PRIVASTREAM_FACE_MODEL_ID` to an archive manifest
+The plate-only command defaults to `--plate-model plate-detector` and resolves
+the local file through the shared model cache. For the production face adapter,
+set `PRIVASTREAM_FACE_MODEL_ID` to an archive manifest
 with runtime format `insightface-pack`; `pnpm prod:up` downloads, verifies, and
 extracts it before FastAPI starts. The archive must contain
 `models/<model_name>/...`, for example `models/buffalo_l/...`.

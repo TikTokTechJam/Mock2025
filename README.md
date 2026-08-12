@@ -166,9 +166,11 @@ pnpm prod:up:gpu
 ```
 
 Set `NEXT_PUBLIC_API_BASE_URL` before building when the browser must use an API
-origin other than `http://localhost:8000`. Set `PRIVASTREAM_MODEL_ID` only after
-an approved #14 manifest is present; the API entrypoint then invokes the #14
-verified bootstrap into the persistent model-cache volume. Set
+origin other than `http://localhost:8000`. The example environment selects the
+local `plate-detector` manifest; the API entrypoint invokes the #14 verified
+bootstrap into the persistent model-cache volume when the ignored local weight
+is present. Set `PRIVASTREAM_MODEL_ID` to an approved manifest ID to change the
+model or leave it blank to skip container bootstrap. Set
 `PRIVASTREAM_FACE_MODEL_ID` for an explicit face-pack manifest; the entrypoint
 bootstraps both IDs when both are configured. Archive packs are extracted only
 after checksum verification. These packaged topologies expose only the
@@ -218,17 +220,32 @@ privacy-gate contracts before handing protected output to an injected sink. It
 does not add an HTTP route or implement WebRTC/mediasoup; a server-side
 transport adapter remains a separate planned boundary.
 
-Runtime model artifacts are never committed. After an ML handoff manifest is
-available, fetch and verify it with:
+Runtime model weights are never committed. The local plate handoff manifest is
+available now and points to the ignored `models/manifests/plate_detector.pt`
+file. Fetch and verify it with:
 
 ```bash
 uv run --project apps/api python -m privastream_api.model_artifacts fetch --model plate-detector
 ```
 
 The same command returns an extracted directory for an archive model pack. For
-the production face adapter, configure `PRIVASTREAM_FACE_MODEL_ID` with an
-`insightface-pack` archive manifest and start the packaged runtime with
-`pnpm prod:up`; no manual `.onnx` or `.pt` copying is required.
+the first local plate-only end-to-end visual flow, provide an input image or
+short video and run:
+
+```bash
+uv sync --project apps/api --extra vision
+uv run --project apps/api python apps/api/scripts/vision_demo.py \
+  --input path/to/input.mp4 \
+  --output artifacts/plate-protected.mp4 \
+  --plate
+```
+
+With `--plate` and no explicit weight path, the demo resolves
+`plate-detector`, verifies the local file, runs Ultralytics, and writes the
+blurred output. OCR and face detectors are not enabled. This is the current
+local media flow; the packaged API still has no server-side media-ingestion
+route. For the production face adapter, configure `PRIVASTREAM_FACE_MODEL_ID`
+with an `insightface-pack` archive manifest.
 
 See [Product](docs/PRODUCT.md), [Architecture](docs/ARCHITECTURE.md), and
 [Operations](docs/OPERATIONS.md) for current boundaries, planned behavior, and
